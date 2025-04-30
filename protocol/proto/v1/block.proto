@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package blockparty.v1;
+
+// Canonical BlockParty block format
+message Block {
+  uint32 version = 1;               // Block version (e.g. 1)
+  bytes id = 2;                     // Derived block ID (optional precomputed or recomputed)
+  bytes type_code = 3;             // World-scoped type hash
+  bytes audience_code = 4;         // World-scoped audience hash
+  int64 timestamp = 5;             // Unix timestamp (seconds since epoch)
+  bytes data = 6;                  // Encrypted or plaintext payload
+
+  Signatures sigs = 7;             // Required and optional block signatures
+}
+
+// Signature bundle for a block
+message Signatures {
+  bytes world = 1;                 // Signature from the World key
+  bytes author = 2;                // Signature from the author's root signing key
+  repeated ExtraSignature extra = 3;  // Optional additional signatures
+}
+
+// Additional typed signature (e.g. endorsement, consensus, etc.)
+message ExtraSignature {
+  string type = 1;                 // Type string (e.g. "com.example/endorse")
+  bytes sig = 2;                   // Signature bytes
+}

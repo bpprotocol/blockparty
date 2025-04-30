@@ -1,0 +1,16 @@
+// _theme.scss
+
+@use "bulma/sass/utilities" with (
+  $color-scheme: 'dark',
+);
+
+// @use "bulma/sass/utilities/derived-variables" with (
+//   // 1. Color Palette
+//   $primary: #3273dc,
+//   $info: #209cee,
+//   $success: #23d160,
+//   $warning: #ffdd57,
+//   $danger: #ff3860,
+//   $dark: #222,
+//   $light: #fdfdfd,
+// );

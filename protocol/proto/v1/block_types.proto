@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package blockparty.v1;
+
+// --- Content & Expression ---
+
+message ContentPost {
+  map<string, string> headers = 1;
+  bytes body = 2;
+}
+
+message ContentReaction {
+  string target = 1;
+  string reaction = 2;
+}
+
+message ContentTagRequest {
+  string target = 1;
+  string identity = 2;
+  string label = 3;
+}
+
+message ContentTagAccept {
+  string request = 1;
+}
+
+message ContentChunkedManifest {
+  map<string, string> headers = 1;
+  repeated string chunks = 2;
+  string sha512 = 3;
+}
+
+message ContentChunkedBlock {
+  bytes data = 1;
+}
+
+message ContentGallery {
+  string title = 1;
+  string description = 2;
+  repeated string blocks = 3;
+}
+
+message ContentQuote {
+  string quote = 1;
+  optional ContentPost commentary = 2;
+}
+
+// --- Connections & Relationships ---
+
+message ConnectRequest {
+  string target = 1;
+  string nonce = 2;
+}
+
+message ConnectResponse {
+  string request = 1;
+  string nonce_response = 2;
+}
+
+message ConnectIdentity {
+  string name = 1;
+  repeated string keys = 2;
+}
+
+message ConnectRotate {
+  string new_channel = 1;
+}
+
+message ConnectClose {
+  string target = 1;
+  string reason = 2;
+}
+
+// --- Identity & Lifecycle ---
+
+message IdentityDeclare {
+  string name = 1;
+  repeated string public_keys = 2;
+}
+
+message IdentityBurn {
+  string identity = 1;
+  string burn_notice = 2;
+}
+
+// --- Chunked Data ---
+
+message ChunkManifest {
+  repeated string chunks = 1;
+  string sha512 = 2;
+}
+
+message ChunkBlock {
+  bytes data = 1;
+}
+
+// --- RPC Interaction ---
+
+message RpcRequest {
+  string id = 1;
+  string method = 2;
+  map<string, string> params = 3;
+}
+
+message RpcResponse {
+  string id = 1;
+  map<string, string> result = 2;
+  string error = 3;
+}
+
+message RpcRender {
+  string id = 1;
+  string method = 2;
+  map<string, string> params = 3;
+}

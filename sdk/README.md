@@ -18,6 +18,7 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`encryption`](./encryption) | ✅ implemented | #5 |
 | [`audiences`](./audiences) | ✅ implemented | #6 |
 | [`connections`](./connections) | ✅ implemented | #7 |
+| [`blocktypes`](./blocktypes) | ✅ implemented | #8 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -81,6 +82,16 @@ Faithful to [`protocol/specs/connections.md`](../protocol/specs/connections.md):
 - **Rotation:** `Rotate` / `ApplyRotate` advance to a new epoch with fresh KEM entropy (forward ratchet); `BuildClose` tears down.
 - **`ReplayGuard`** — rejects replayed `(target, nonce)` pairs and stale timestamps (default ±300 s).
 - Resolved a spec ambiguity: the rotation HKDF salt is the rotation ciphertext `ct3` (clarified in `connections.md`).
+
+### `blocktypes` — core types, handlers, chunks, burn & ping (#8)
+
+Faithful to [`protocol/specs/block-types.md`](../protocol/specs/block-types.md) and [`rpc.md`](../protocol/specs/rpc.md):
+
+- **Type URNs + `Resolver`** — canonical type strings, a payload factory, and reverse mapping from a block's world-scoped `type_code` to its URN for dispatch.
+- **`rpc.render` guard** — render is local-only, so decoding one received over a transport is refused (`ErrRenderNotTransportable`).
+- **Chunk reassembly** — `ReassembleChunks` (and manifest wrappers) concatenate chunks in order and verify SHA-512.
+- **Burn** — `VerifyBurn` (revealed private keys must re-derive the burned address) and `TrustState` to flag a burned identity's blocks as contested.
+- **`core.ping`** — `BuildPing` / `HandlePing` / `ParsePingResponse`.
 
 ## Develop
 

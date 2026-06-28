@@ -1,0 +1,39 @@
+{
+  "crypto": {
+    "seed": "bpprotocol.org/v1/test-identity",
+    "kyberPubKeccak": "b30a612376b16a0c81ae4000d725466655d801fb33bef7a86ec6ea11eb6a7a54",
+    "dilithiumPubKeccak": "b5f3d90cd540d800a4cf1243dc763387a587ce48bcbb123b534884c0778cd679"
+  },
+  "world": {
+    "seed": "bpprotocol.org/v1/test-world",
+    "walletSalt": "1ddf42bd8f7a2595044f9f54b06bc74f432aa4ea0a88fe205b6031f0499d4623",
+    "typeSalt": "242b4984c7100a1e3ce37745955ba1ceeeb32e16c4c844ffee3ef83b8e91aa4c",
+    "audienceSalt": "d3c3a17a70b1039d633b7f3b05c64ae06aa88482207314342ded010196d9b7ff",
+    "signingKeyKeccak": "574b4e6a609ecb49d9a928ad5f92249cea69a8d54b835a002ae4e97b22a84df1",
+    "typeCode": "a451d8b7e0ec778506b8001ebd31c2b9",
+    "audienceCode": "8572d37a189d92544082f34254f01d8e"
+  },
+  "identity": {
+    "world": "bpprotocol.org/v1/test-world",
+    "passphrase": "correct horse battery staple",
+    "address": "cff62cff35a0cc4271c262c07a86cbccc63ad13a",
+    "dilithiumPubKeccak": "d24f70f809d782cec7b3bcc6387fb0f97f80a9b57984c99df3192023fa77a716",
+    "kyberPubKeccak": "48d8f10cb682fe5009d73cd7686a7ce8c8c914d153f803f90b0ee5291ed7f38c"
+  },
+  "blockID": {
+    "version": 1,
+    "timestamp": 1700000000,
+    "data": "hello",
+    "id": "8ee902f1e917eecea552099bf9d26cadd09187b32111cf9ab24fe0c56c6675f8"
+  },
+  "audiences": {
+    "publicAudienceSecret": "8f63e9df89faa3212db39bad276d43b26259d85513f28b3ef43668a09fc24820",
+    "inboxCode": "a63d7db7e718498a6f2fda53c73f2c4f"
+  },
+  "aead": {
+    "secretSeed": "bpprotocol.org/v1/test-secret",
+    "nonce": "bpprotocol/v1/test-nonce",
+    "contentKey": "0808611f62904c55850934ce82b79273f64ed63902e6760cf696cbeacfda78d6",
+    "aad": "00000001a451d8b7e0ec778506b8001ebd31c2b98572d37a189d92544082f34254f01d8e000000006553f100"
+  }
+}

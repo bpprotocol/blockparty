@@ -4,7 +4,17 @@ Go reference implementation of the [BlockParty Protocol](../protocol). Tracking 
 
 Module path: `github.com/bpprotocol/blockparty/sdk`
 
-> Module layout (rooting at `sdk/` vs a top-level module) is provisional and revisited in #9.
+The protocol library is functionally complete: crypto → derivations → identity → blocks → encryption → audiences → connections → block types, with a reference node/CLI on a filesystem transport.
+
+## Try it
+
+```sh
+cd sdk
+./demo.sh          # two CLI instances exchange an encrypted block + run the handshake demo
+go run ./cmd/bp    # see available commands
+```
+
+The `bp` CLI commands: `address`, `send`, `inbox`, `ping`, `demo` — see [`cmd/bp`](./cmd/bp).
 
 ## Packages
 
@@ -19,6 +29,9 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`audiences`](./audiences) | ✅ implemented | #6 |
 | [`connections`](./connections) | ✅ implemented | #7 |
 | [`blocktypes`](./blocktypes) | ✅ implemented | #8 |
+| [`node`](./node) | ✅ implemented | #9 |
+| [`vectors`](./vectors) | ✅ implemented | #9 |
+| [`cmd/bp`](./cmd/bp) | ✅ implemented | #9 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -92,6 +105,22 @@ Faithful to [`protocol/specs/block-types.md`](../protocol/specs/block-types.md) 
 - **Chunk reassembly** — `ReassembleChunks` (and manifest wrappers) concatenate chunks in order and verify SHA-512.
 - **Burn** — `VerifyBurn` (revealed private keys must re-derive the burned address) and `TrustState` to flag a burned identity's blocks as contested.
 - **`core.ping`** — `BuildPing` / `HandlePing` / `ParsePingResponse`.
+
+### `node` — filesystem transport & node helpers (#9)
+
+A "sneakernet" transport (`FileStore` writes/reads `.block` files) plus `BuildPost`/`OpenPost` for authoring and reading audience-scoped posts. Home of the end-to-end tests proving two parties connect and exchange an encrypted block.
+
+### `cmd/bp` — reference CLI (#9)
+
+`address`, `send`, `inbox`, `ping`, and `demo` (a full two-party connection handshake + private encrypted exchange in one process). See `./demo.sh` for a two-instance public-audience exchange.
+
+### `vectors` — conformance vectors (#9)
+
+`Compute()` derives deterministic outputs from fixed inputs via the public API; `vectors.json` is the committed cross-client reference, locked by a test (`go test ./vectors -update-vectors` to regenerate).
+
+## CI
+
+`.github/workflows/sdk.yml` gates on `gofmt`, `go vet`, `go build`, `go test`, and an up-to-date `vectors.json`; `golangci-lint` runs as an advisory job.
 
 ## Develop
 

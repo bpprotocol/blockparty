@@ -11,6 +11,8 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | Package | Status | Issue |
 |---------|--------|-------|
 | [`crypto`](./crypto) | ✅ implemented | #2 |
+| [`derive`](./derive) | ✅ implemented | #3 |
+| [`identity`](./identity) | ✅ implemented | #3 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -21,6 +23,21 @@ Faithful to [`protocol/specs/derivations.md`](../protocol/specs/derivations.md):
 - **Post-quantum keys:** `MakeKyberPair` (ML-KEM768) and `MakeDilithiumPair` (Dilithium3), derived deterministically from a seed; plus `Sign`/`VerifyDilithium` and `Encapsulate`/`Decapsulate`.
 
 Backed by [Cloudflare CIRCL](https://github.com/cloudflare/circl). The KEM uses FIPS-203 ML-KEM768; signatures use round-3 Dilithium3 (matching the spec's "Dilithium" wording). Migrating signatures to ML-DSA (FIPS 204) is future work.
+
+### `derive` — worlds, codes, address & block ID (#3)
+
+Faithful to [`protocol/specs/derivations.md`](../protocol/specs/derivations.md):
+
+- **Worlds:** `OpenWorld` / `GenerateWorld` → Dilithium signing key + wallet/type/audience salts (`GlobalSalt = "bpprotocol.org/v1/global"`).
+- **Codes:** `GetTypeCode` / `GetAudienceCode` → 16-byte, world-scoped `Code` (Keccak-256).
+- **Address:** `BytesToAddress` → 40-char hex binding both PQ public keys.
+- **Block ID:** `GetBlockID` → content-binding identifier (folds in `Keccak256(data)`).
+
+String identifiers are normalized (trim surrounding whitespace + trailing slashes) before hashing.
+
+### `identity` — identity derivation (#3)
+
+Faithful to [`protocol/specs/identity.md`](../protocol/specs/identity.md): `OpenIdentity(world, passphrase)` derives an `Identity` (Dilithium + Kyber keys + address) via a world-scoped `worldPassword` (HKDF over `WalletSalt`) and `mlkem`/`dilithium` domain separation. The same passphrase yields a distinct identity per World.
 
 ## Develop
 

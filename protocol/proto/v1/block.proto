@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package blockparty.v1;
 
+option go_package = "github.com/bpprotocol/blockparty/sdk/blockpb;blockpb";
+
 // Canonical BlockParty block format
 message Block {
   uint32 version = 1;               // Block version (e.g. 1)

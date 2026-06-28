@@ -13,6 +13,8 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`crypto`](./crypto) | ✅ implemented | #2 |
 | [`derive`](./derive) | ✅ implemented | #3 |
 | [`identity`](./identity) | ✅ implemented | #3 |
+| [`blockpb`](./blockpb) | ✅ generated | #4 |
+| [`block`](./block) | ✅ implemented | #4 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -38,6 +40,19 @@ String identifiers are normalized (trim surrounding whitespace + trailing slashe
 ### `identity` — identity derivation (#3)
 
 Faithful to [`protocol/specs/identity.md`](../protocol/specs/identity.md): `OpenIdentity(world, passphrase)` derives an `Identity` (Dilithium + Kyber keys + address) via a world-scoped `worldPassword` (HKDF over `WalletSalt`) and `mlkem`/`dilithium` domain separation. The same passphrase yields a distinct identity per World.
+
+### `blockpb` — generated protobuf types (#4)
+
+Go types generated from [`protocol/proto/v1`](../protocol/proto/v1) (`Block`, `Signatures`, `ExtraSignature`, and all block-type payloads). Regenerate with `go generate ./blockpb` (needs `protoc` + `protoc-gen-go`).
+
+### `block` — envelope, signing & co-signatures (#4)
+
+Faithful to [`protocol/specs/block.md`](../protocol/specs/block.md):
+
+- **Lifecycle:** `New` (derives the content-binding ID) → `Sign` → `AddCoSignature`* → `Encode`; `Decode` → `Verify`.
+- **Two-layer signing:** `world_sig` (World key) then `author_sig` (author key, over the fields + `world_sig`).
+- **Co-signatures** (`sigs.extra`): each an independent Dilithium signature over the fields + `world_sig` + `author_sig`; an invalid co-signature never invalidates the block.
+- Signatures are over a domain-separated, length-prefixed **preimage** of the signed fields (not the wire bytes), so they're independent of encoder ordering. Wire format is deterministic Protobuf.
 
 ## Develop
 

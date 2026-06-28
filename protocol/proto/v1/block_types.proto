@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package blockparty.v1;
 
+option go_package = "github.com/bpprotocol/blockparty/sdk/blockpb;blockpb";
+
 // --- Content & Expression ---
 
 message ContentPost {
@@ -48,22 +50,26 @@ message ContentQuote {
 // --- Connections & Relationships ---
 
 message ConnectRequest {
-  string target = 1;
-  string nonce = 2;
+  string target = 1;              // target identity address
+  bytes init_kem_pub = 2;         // initiator's ephemeral ML-KEM768 public key
+  bytes kem_ciphertext = 3;       // ML-KEM768 ciphertext encapsulated to target's static kyber key
+  bytes nonce = 4;                // 32 random bytes
 }
 
 message ConnectResponse {
-  string request = 1;
-  string nonce_response = 2;
+  string request = 1;             // connect.request block id
+  bytes kem_ciphertext = 2;       // ML-KEM768 ciphertext encapsulated to initiator's init_kem_pub
+  bytes nonce_response = 3;       // 32 random bytes
 }
 
 message ConnectIdentity {
   string name = 1;
-  repeated string keys = 2;
+  repeated string keys = 2;       // additional public keys shared within the connection
 }
 
 message ConnectRotate {
-  string new_channel = 1;
+  string new_channel = 1;         // hex audience_code of the next epoch
+  bytes kem_ciphertext = 2;       // fresh ML-KEM768 contribution (forward ratchet)
 }
 
 message ConnectClose {
@@ -79,8 +85,10 @@ message IdentityDeclare {
 }
 
 message IdentityBurn {
-  string identity = 1;
-  string burn_notice = 2;
+  string identity = 1;            // address of the identity being burned
+  bytes revealed_dilithium = 2;  // revealed root Dilithium private key
+  bytes revealed_kyber = 3;      // revealed root ML-KEM768 private key
+  string burn_notice = 4;        // "voluntary" | "compromised" | "rotated" | "other"
 }
 
 // --- Chunked Data ---

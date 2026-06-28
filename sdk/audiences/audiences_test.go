@@ -48,7 +48,7 @@ func TestPublicAudienceRoundTrip(t *testing.T) {
 		t.Fatalf("EncryptForBlock: %v", err)
 	}
 	b := block.New(author.Address, typeCode, pub.Code, testTimestamp, data)
-	block.Sign(b, w, author.Dilithium)
+	block.Sign(b, w, author.MLDSA)
 
 	// Another World member independently derives the audience via a registry
 	// and decrypts.

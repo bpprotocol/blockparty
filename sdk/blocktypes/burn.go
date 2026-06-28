@@ -15,7 +15,7 @@ import (
 // private keys, putting it into the post-truth state. notice is one of
 // "voluntary", "compromised", "rotated", or "other".
 func BuildBurn(id identity.Identity, notice string) (*blockpb.IdentityBurn, error) {
-	dil, err := id.Dilithium.Private.MarshalBinary()
+	dil, err := id.MLDSA.Private.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -24,10 +24,10 @@ func BuildBurn(id identity.Identity, notice string) (*blockpb.IdentityBurn, erro
 		return nil, err
 	}
 	return &blockpb.IdentityBurn{
-		Identity:          string(id.Address),
-		RevealedDilithium: dil,
-		RevealedKyber:     kyb,
-		BurnNotice:        notice,
+		Identity:      string(id.Address),
+		RevealedMlDsa: dil,
+		RevealedKyber: kyb,
+		BurnNotice:    notice,
 	}, nil
 }
 
@@ -35,13 +35,13 @@ func BuildBurn(id identity.Identity, notice string) (*blockpb.IdentityBurn, erro
 // re-derive the public keys whose address matches burn.Identity. No registry is
 // needed — the keys either reproduce the address or they do not.
 func VerifyBurn(burn *blockpb.IdentityBurn) (bool, error) {
-	sk, err := crypto.SigScheme().UnmarshalBinaryPrivateKey(burn.RevealedDilithium)
+	sk, err := crypto.SigScheme().UnmarshalBinaryPrivateKey(burn.RevealedMlDsa)
 	if err != nil {
 		return false, err
 	}
 	dilPub, ok := sk.Public().(sign.PublicKey)
 	if !ok {
-		return false, errors.New("blocktypes: revealed dilithium key has no public key")
+		return false, errors.New("blocktypes: revealed ML-DSA key has no public key")
 	}
 	kk, err := crypto.KEMScheme().UnmarshalBinaryPrivateKey(burn.RevealedKyber)
 	if err != nil {

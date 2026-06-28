@@ -39,15 +39,15 @@ Faithful to [`protocol/specs/derivations.md`](../protocol/specs/derivations.md):
 
 - **Hashing / KDF:** `Keccak256`, `Sha256`, `HMACSHA256`, `HKDFSHA256`.
 - **Deterministic RNG:** `DeterministicRNG` — a SHAKE256 XOF that makes key generation reproducible across clients.
-- **Post-quantum keys:** `MakeKyberPair` (ML-KEM768) and `MakeDilithiumPair` (Dilithium3), derived deterministically from a seed; plus `Sign`/`VerifyDilithium` and `Encapsulate`/`Decapsulate`.
+- **Post-quantum keys:** `MakeKyberPair` (ML-KEM768) and `MakeMLDSAPair` (ML-DSA-65), derived deterministically from a seed; plus `Sign`/`VerifyMLDSA` and `Encapsulate`/`Decapsulate`.
 
-Backed by [Cloudflare CIRCL](https://github.com/cloudflare/circl). The KEM uses FIPS-203 ML-KEM768; signatures use round-3 Dilithium3 (matching the spec's "Dilithium" wording). Migrating signatures to ML-DSA (FIPS 204) is future work.
+Backed by [Cloudflare CIRCL](https://github.com/cloudflare/circl): FIPS-203 ML-KEM768 for the KEM and FIPS-204 ML-DSA-65 for signatures. (Both are the NIST-standardized successors to CRYSTALS-Kyber and CRYSTALS-Dilithium.)
 
 ### `derive` — worlds, codes, address & block ID (#3)
 
 Faithful to [`protocol/specs/derivations.md`](../protocol/specs/derivations.md):
 
-- **Worlds:** `OpenWorld` / `GenerateWorld` → Dilithium signing key + wallet/type/audience salts (`GlobalSalt = "bpprotocol.org/v1/global"`).
+- **Worlds:** `OpenWorld` / `GenerateWorld` → ML-DSA-65 signing key + wallet/type/audience salts (`GlobalSalt = "bpprotocol.org/v1/global"`).
 - **Codes:** `GetTypeCode` / `GetAudienceCode` → 16-byte, world-scoped `Code` (Keccak-256).
 - **Address:** `BytesToAddress` → 40-char hex binding both PQ public keys.
 - **Block ID:** `GetBlockID` → content-binding identifier (folds in `Keccak256(data)`).
@@ -56,7 +56,7 @@ String identifiers are normalized (trim surrounding whitespace + trailing slashe
 
 ### `identity` — identity derivation (#3)
 
-Faithful to [`protocol/specs/identity.md`](../protocol/specs/identity.md): `OpenIdentity(world, passphrase)` derives an `Identity` (Dilithium + Kyber keys + address) via a world-scoped `worldPassword` (HKDF over `WalletSalt`) and `mlkem`/`dilithium` domain separation. The same passphrase yields a distinct identity per World.
+Faithful to [`protocol/specs/identity.md`](../protocol/specs/identity.md): `OpenIdentity(world, passphrase)` derives an `Identity` (ML-DSA-65 + Kyber keys + address) via a world-scoped `worldPassword` (HKDF over `WalletSalt`) and `mlkem`/`ml-dsa` domain separation. The same passphrase yields a distinct identity per World.
 
 ### `blockpb` — generated protobuf types (#4)
 
@@ -68,7 +68,7 @@ Faithful to [`protocol/specs/block.md`](../protocol/specs/block.md):
 
 - **Lifecycle:** `New` (derives the content-binding ID) → `Sign` → `AddCoSignature`* → `Encode`; `Decode` → `Verify`.
 - **Two-layer signing:** `world_sig` (World key) then `author_sig` (author key, over the fields + `world_sig`).
-- **Co-signatures** (`sigs.extra`): each an independent Dilithium signature over the fields + `world_sig` + `author_sig`; an invalid co-signature never invalidates the block.
+- **Co-signatures** (`sigs.extra`): each an independent ML-DSA-65 signature over the fields + `world_sig` + `author_sig`; an invalid co-signature never invalidates the block.
 - Signatures are over a domain-separated, length-prefixed **preimage** of the signed fields (not the wire bytes), so they're independent of encoder ordering. Wire format is deterministic Protobuf.
 
 ### `encryption` — audience-scoped AEAD (#5)

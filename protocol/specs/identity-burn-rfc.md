@@ -55,13 +55,13 @@ The `identity.burn` payload (proto `IdentityBurn`, see [Block Types](./block-typ
 ```json
 {
   "identity":            "<identity_address>",
-  "revealed_dilithium":  "<base64 dilithiumKey.private>",
+  "revealed_ml_dsa":  "<base64 mldsaKey.private>",
   "revealed_kyber":      "<base64 kyberKey.private>",
   "burn_notice":         "voluntary"
 }
 ```
 
-- `revealed_dilithium` / `revealed_kyber` — the identity's root **private** keys, the material that puts the identity into the post-truth state. Both are revealed so the whole identity (authorship *and* prior private-audience confidentiality) is repudiated.
+- `revealed_ml_dsa` / `revealed_kyber` — the identity's root **private** keys, the material that puts the identity into the post-truth state. Both are revealed so the whole identity (authorship *and* prior private-audience confidentiality) is repudiated.
 - `burn_notice` — a reason enum: `voluntary` | `compromised` | `rotated` | `other`.
 - The block is normally a [plaintext block](./encryption.md) addressed to a [public audience](./audiences.md) so it is world-readable.
 
@@ -71,7 +71,7 @@ A client treats a burn as **genuine** only if the revealed private keys actually
 
 ```ts
 function VerifyBurn(burn, world):
-  d = DilithiumPairFromPrivate(burn.revealed_dilithium)
+  d = MLDSAPairFromPrivate(burn.revealed_ml_dsa)
   k = KyberPairFromPrivate(burn.revealed_kyber)
   return BytesToAddress(d.pub, k.pub) == burn.identity
 ```

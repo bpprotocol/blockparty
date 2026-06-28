@@ -67,7 +67,7 @@ func TestCodeNormalization(t *testing.T) {
 }
 
 func TestBytesToAddress(t *testing.T) {
-	dil := []byte("dilithium-public-key-bytes")
+	dil := []byte("ml-dsa-public-key-bytes")
 	kyb := []byte("kyber-public-key-bytes")
 	addr := BytesToAddress(dil, kyb)
 	if len(addr) != 40 {
@@ -81,7 +81,7 @@ func TestBytesToAddress(t *testing.T) {
 	}
 	// Sensitive to each key.
 	if BytesToAddress(dil, kyb) == BytesToAddress(append([]byte{0}, dil...), kyb) {
-		t.Error("address not sensitive to dilithium key")
+		t.Error("address not sensitive to ml-dsa key")
 	}
 	if BytesToAddress(dil, kyb) == BytesToAddress(dil, append([]byte{0}, kyb...)) {
 		t.Error("address not sensitive to kyber key")

@@ -7,14 +7,12 @@
 //   - Hashing/KDF: Keccak-256, SHA-256, HMAC-SHA256, HKDF-SHA256.
 //   - Deterministic RNG: a SHAKE256 XOF, used to drive reproducible key
 //     generation.
-//   - Post-quantum keys: ML-KEM768 (KEM) and Dilithium3 (signatures), via
+//   - Post-quantum keys: ML-KEM768 (KEM) and ML-DSA-65 (signatures), via
 //     Cloudflare CIRCL, derived deterministically from a seed.
 //
 // "Keccak-256" here is the original Keccak padding (as used by Ethereum), not
 // FIPS-202 SHA3-256; the two produce different digests for the same input.
 //
-// Note on algorithm names: the protocol specifies "ML-KEM768" (FIPS 203) for
-// the KEM and "Dilithium" for signatures. We therefore use CIRCL's FIPS ML-KEM
-// for the KEM and round-3 Dilithium3 for signatures. Migrating signatures to
-// the finalized ML-DSA (FIPS 204) is tracked as future work.
+// The protocol uses FIPS-203 ML-KEM768 for the KEM and FIPS-204 ML-DSA-65 for
+// signatures, both via Cloudflare CIRCL.
 package crypto

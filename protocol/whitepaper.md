@@ -94,7 +94,7 @@ BlockParty is designed for diverse, resilient, and sometimes extreme environment
 
 - **Local-first:** You own your keys, you store your blocks, you define your experience.
 - **Audience-scoped privacy:** All blocks are encrypted based on derived audiences.
-- **Post-quantum security:** Built on ML-KEM768 (formerly CRYSTALS-Kyber) and Dilithium to anticipate the cryptographic future.
+- **Post-quantum security:** Built on ML-KEM768 (formerly CRYSTALS-Kyber) and ML-DSA-65 (FIPS 204, formerly CRYSTALS-Dilithium) to anticipate the cryptographic future.
 - **Burnable identity:** You can walk away. The protocol supports post-truth repudiation.
 - **Transport-agnostic:** Blocks can be transferred via any medium—p2p, QR, even sneaker-net.
 - **Extensible, not monolithic:** The core is small. Everything else is an optional extension.
@@ -115,7 +115,7 @@ A block contains the following structured components:
 - **Audience Code**: A world-scoped hash indicating the intended audience's cryptographic scope.
 - **Timestamp**: Time of block creation.
 - **Data Blob**: Encrypted payload meant for the designated audience.
-- **World Signature**: Dilithium signature binding the block to its originating World.
+- **World Signature**: ML-DSA-65 signature binding the block to its originating World.
 - **Author Signature**: Signature by the author's root signing key, validating the author's endorsement of the world-signed block.
 
 Without possession of world-specific type mappings or audience keys, blocks appear as opaque, structured artifacts. Interpretation and decryption are possible only within the correct cryptographic and world contexts.
@@ -175,7 +175,7 @@ The process works as follows:
 
 - Derive a world password from the passphrase and the World's wallet salt (so the same passphrase yields a different identity in each World).
 - Derive a root keypair for post-quantum encryption (ML-KEM768) from a `mlkem`-domain-separated seed.
-- Derive a root signature keypair for post-quantum signing (Dilithium) from a `dilithium`-domain-separated seed.
+- Derive a root signature keypair for post-quantum signing (ML-DSA-65) from a `ml-dsa`-domain-separated seed.
 - Generate the address by hashing **both** public keys into a shortened, content-binding address.
 
 #### Pseudocode
@@ -185,12 +185,12 @@ func OpenIdentity(world, walletOptions):
   worldPassword = HKDF(walletOptions.passphrase, world.walletSalt, "bpprotocol.org/v1/identity")
 
   kyberKey     = MakeKyberPair(HKDF(worldPassword, "", "mlkem"))
-  dilithiumKey = MakeDilithiumPair(HKDF(worldPassword, "", "dilithium"))
+  mldsaKey = MakeMLDSAPair(HKDF(worldPassword, "", "ml-dsa"))
 
   return Identity{
-    address: BytesToAddress(dilithiumKey.public, kyberKey.public),
+    address: BytesToAddress(mldsaKey.public, kyberKey.public),
     rootKEM: kyberKey,
-    rootSig: dilithiumKey,
+    rootSig: mldsaKey,
   }
 end
 ```
@@ -266,15 +266,15 @@ Storage and transmission are fundamentally treated the same—serialization of b
 
 BlockParty integrates cryptography that anticipates both current and post-quantum threat models:
 
-Each block's authenticity is layered through two Dilithium signatures:
+Each block's authenticity is layered through two ML-DSA-65 signatures:
 
-- **World Signature**: A Dilithium signature, produced by the World's signing key, validating that the block belongs to a specific World. It signs over the block ID, version, type code, audience code, timestamp, and encrypted data blob. Any client can verify this signature to confirm world membership without decrypting the block.
-- **Author Signature**: A signature by the author's root Dilithium signing key, endorsing the previously generated World Signature. This authenticates authorship while preserving the World context.
+- **World Signature**: A ML-DSA-65 signature, produced by the World's signing key, validating that the block belongs to a specific World. It signs over the block ID, version, type code, audience code, timestamp, and encrypted data blob. Any client can verify this signature to confirm world membership without decrypting the block.
+- **Author Signature**: A signature by the author's root ML-DSA-65 signing key, endorsing the previously generated World Signature. This authenticates authorship while preserving the World context.
 
 Further cryptographic protections include:
 
 - **ML-KEM768 (formerly CRYSTALS-Kyber)** for post-quantum key agreement, establishing the shared secret from which audience encryption keys are derived.
-- **Dilithium** for post-quantum signatures — author, World, and co-signatures alike.
+- **ML-DSA-65** for post-quantum signatures — author, World, and co-signatures alike.
 - **Per-block AEAD encryption** using XChaCha20-Poly1305, keyed via HKDF-SHA256 from the audience secret, with block metadata bound as additional authenticated data, ensuring each block's payload is accessible only to the intended audience and that metadata is tamper-evident. See the [Block Encryption specification](https://bpprotocol.org/specs/encryption).
 - **World signature + Author signature** are layered onto each block, validating both global (World) context and individual authorship.
 - **Optional co-signatures** let additional identities endorse or witness a block. The core treats each as an independent, per-signer endorsement; threshold, quorum, and multi-party-consensus schemes are built on top of this primitive as extensions, not assumed by the core.
@@ -370,7 +370,7 @@ While BlockParty is designed for resilience and autonomy, certain risks and chal
 
 ### Cryptographic Evolution
 
-BlockParty relies on post-quantum cryptographic standards such as ML-KEM768 and Dilithium. Although these algorithms have been vetted through rigorous processes like NIST PQC, the future evolution of cryptanalysis could expose vulnerabilities.
+BlockParty relies on post-quantum cryptographic standards such as ML-KEM768 and ML-DSA-65. Although these algorithms have been vetted through rigorous processes like NIST PQC, the future evolution of cryptanalysis could expose vulnerabilities.
 BlockParty mitigates this risk through discrete block versioning: each block records its protocol version explicitly, allowing future updates to cryptographic primitives without retroactively invalidating historical data.
 Ongoing monitoring, community consensus, and orderly migration plans will be essential to maintaining security over decades.
 
@@ -452,7 +452,7 @@ The primary risks associated with transport diversity relate to delivery reliabi
 
 - [NIST PQC Finalists: ML-KEM (Kyber)](https://csrc.nist.gov/Projects/post-quantum-cryptography/selected-algorithms-2022) — ML-KEM768 (formerly CRYSTALS-Kyber) for post-quantum key encapsulation.
 
-- [NIST PQC Finalists: Dilithium](https://csrc.nist.gov/Projects/post-quantum-cryptography/selected-algorithms-2022) — Dilithium signatures for post-quantum digital signature schemes.
+- [NIST PQC Finalists: ML-DSA-65](https://csrc.nist.gov/Projects/post-quantum-cryptography/selected-algorithms-2022) — ML-DSA-65 signatures for post-quantum digital signature schemes.
 - [Nostr: Nostr Protocol Specification](https://github.com/nostr-protocol/nostr) — Cryptographic relay protocol for decentralized social messaging.
 - [IPFS: Libp2p Specification](https://docs.libp2p.io/) — Modular network stack for peer-to-peer applications, underlying IPFS.
 

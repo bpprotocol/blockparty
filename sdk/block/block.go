@@ -49,7 +49,7 @@ func IDHex(b *blockpb.Block) string { return hex.EncodeToString(b.Id) }
 // Sign applies the world signature (with the World's signing key) and then the
 // author signature (with the author's signing key). It overwrites any existing
 // world/author signatures and leaves co-signatures untouched.
-func Sign(b *blockpb.Block, world derive.World, author crypto.DilithiumKeyPair) {
+func Sign(b *blockpb.Block, world derive.World, author crypto.MLDSAKeyPair) {
 	if b.Sigs == nil {
 		b.Sigs = &blockpb.Signatures{}
 	}
@@ -65,10 +65,10 @@ func Verify(b *blockpb.Block, world derive.World, authorPub sign.PublicKey) erro
 	if b.Sigs == nil || len(b.Sigs.World) == 0 || len(b.Sigs.Author) == 0 {
 		return ErrMissingSignatures
 	}
-	if !crypto.VerifyDilithium(world.SigningKey.Public, worldPreimage(b), b.Sigs.World) {
+	if !crypto.VerifyMLDSA(world.SigningKey.Public, worldPreimage(b), b.Sigs.World) {
 		return ErrWorldSignature
 	}
-	if !crypto.VerifyDilithium(authorPub, authorPreimage(b), b.Sigs.Author) {
+	if !crypto.VerifyMLDSA(authorPub, authorPreimage(b), b.Sigs.Author) {
 		return ErrAuthorSignature
 	}
 	return nil
@@ -77,7 +77,7 @@ func Verify(b *blockpb.Block, world derive.World, authorPub sign.PublicKey) erro
 // AddCoSignature appends a co-signature of the given namespaced type, signed by
 // signer over the block's fields plus its world and author signatures. The
 // block must already be signed (Sign) so author_sig is present.
-func AddCoSignature(b *blockpb.Block, sigType string, signer crypto.DilithiumKeyPair) {
+func AddCoSignature(b *blockpb.Block, sigType string, signer crypto.MLDSAKeyPair) {
 	if b.Sigs == nil {
 		b.Sigs = &blockpb.Signatures{}
 	}
@@ -90,7 +90,7 @@ func AddCoSignature(b *blockpb.Block, sigType string, signer crypto.DilithiumKey
 // VerifyCoSignature reports whether extra is a valid co-signature of b by
 // signerPub.
 func VerifyCoSignature(b *blockpb.Block, extra *blockpb.ExtraSignature, signerPub sign.PublicKey) bool {
-	return crypto.VerifyDilithium(signerPub, coSignPreimage(b), extra.Sig)
+	return crypto.VerifyMLDSA(signerPub, coSignPreimage(b), extra.Sig)
 }
 
 // CoSignatures returns the block's co-signatures (sigs.extra), or nil.

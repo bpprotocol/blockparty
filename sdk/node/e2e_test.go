@@ -102,7 +102,7 @@ func TestConnectionExchange(t *testing.T) {
 		t.Fatalf("expected 1 block, got %d", len(blocks))
 	}
 	got := blocks[0]
-	if err := block.Verify(got, w, alice.Dilithium.Public); err != nil {
+	if err := block.Verify(got, w, alice.MLDSA.Public); err != nil {
 		t.Fatalf("Verify: %v", err)
 	}
 	r := blocktypes.NewResolver(w)

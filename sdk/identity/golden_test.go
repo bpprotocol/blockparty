@@ -11,9 +11,9 @@ import (
 // Golden conformance vectors for OpenIdentity(OpenWorld(testPhrase),
 // testPassphrase). Keys are fingerprinted via Keccak256.
 const (
-	goldenAddress     = "cff62cff35a0cc4271c262c07a86cbccc63ad13a"
-	goldenDilithiumFP = "d24f70f809d782cec7b3bcc6387fb0f97f80a9b57984c99df3192023fa77a716"
-	goldenKyberFP     = "48d8f10cb682fe5009d73cd7686a7ce8c8c914d153f803f90b0ee5291ed7f38c"
+	goldenAddress = "51fdf6cd0baf5eb11bd1d1aa367e838eb6f8f685"
+	goldenMLDSAFP = "76542c4997870c0acecd929967ac3cc2b66803ff23bdf6394072c0cfc6724407"
+	goldenKyberFP = "48d8f10cb682fe5009d73cd7686a7ce8c8c914d153f803f90b0ee5291ed7f38c"
 )
 
 func TestGoldenIdentity(t *testing.T) {
@@ -21,8 +21,8 @@ func TestGoldenIdentity(t *testing.T) {
 	if string(id.Address) != goldenAddress {
 		t.Errorf("Address changed:\n got  %s\n want %s", id.Address, goldenAddress)
 	}
-	if got := hex.EncodeToString(crypto.Keccak256(id.Dilithium.PublicBytes())); got != goldenDilithiumFP {
-		t.Errorf("Dilithium key changed:\n got  %s\n want %s", got, goldenDilithiumFP)
+	if got := hex.EncodeToString(crypto.Keccak256(id.MLDSA.PublicBytes())); got != goldenMLDSAFP {
+		t.Errorf("ML-DSA key changed:\n got  %s\n want %s", got, goldenMLDSAFP)
 	}
 	if got := hex.EncodeToString(crypto.Keccak256(id.Kyber.PublicBytes())); got != goldenKyberFP {
 		t.Errorf("Kyber key changed:\n got  %s\n want %s", got, goldenKyberFP)

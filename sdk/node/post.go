@@ -30,7 +30,7 @@ func BuildPost(w derive.World, author identity.Identity, audienceCode derive.Cod
 		return nil, err
 	}
 	b := block.New(author.Address, typeCode, audienceCode, timestamp, data)
-	block.Sign(b, w, author.Dilithium)
+	block.Sign(b, w, author.MLDSA)
 	return b, nil
 }
 

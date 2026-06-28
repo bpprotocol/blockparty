@@ -23,7 +23,7 @@ A reference of core terms used throughout the BlockParty Protocol and ecosystem.
 | **Inbox Audience** | A per-identity rendezvous audience (`bpprotocol.org/v1/audience/inbox/<address>`) any World member can derive, used to deliver connection-handshake blocks. |
 | **AEAD** | Authenticated Encryption with Associated Data. BlockParty encrypts block payloads with XChaCha20-Poly1305, binding block metadata as associated data so tampering is detectable. |
 | **KEM** | Key Encapsulation Mechanism. BlockParty uses ML-KEM768 (Kyber) to establish shared secrets for audience encryption and connections. |
-| **Co-Signature** | An optional additional Dilithium signature by another identity over a block (`sigs.extra[]`), expressing endorsement or witnessing. Verified independently; consensus schemes are extension-layer. |
+| **Co-Signature** | An optional additional ML-DSA-65 signature by another identity over a block (`sigs.extra[]`), expressing endorsement or witnessing. Verified independently; consensus schemes are extension-layer. |
 | **Mirror Node** | Any participant or device that voluntarily stores and rebroadcasts blocks. Mirrors are essential for persistence but are not mandatory for network operation. |
 | **Burnable Identity** | A user identity model where revealing the root private key invalidates all previous trust, allowing repudiation of past activity. |
 | **Root Key** | The fundamental signing and encryption keypair from which all other keys and trust relationships are derived. |

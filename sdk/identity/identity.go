@@ -14,9 +14,9 @@ import (
 
 // info strings for the per-purpose HKDF derivations.
 const (
-	identityInfo  = "bpprotocol.org/v1/identity"
-	dilithiumInfo = "dilithium"
-	mlkemInfo     = "mlkem"
+	identityInfo = "bpprotocol.org/v1/identity"
+	mldsaInfo    = "ml-dsa"
+	mlkemInfo    = "mlkem"
 )
 
 // emptySalt is the empty (non-nil) HKDF salt the spec specifies for the
@@ -26,9 +26,9 @@ var emptySalt = []byte{}
 // Identity is a participant's post-quantum signing key, KEM key, and the
 // address that binds them.
 type Identity struct {
-	Address   derive.Address
-	Dilithium crypto.DilithiumKeyPair
-	Kyber     crypto.KyberKeyPair
+	Address derive.Address
+	MLDSA   crypto.MLDSAKeyPair
+	Kyber   crypto.KyberKeyPair
 }
 
 // OpenIdentity deterministically derives an identity from a passphrase within a
@@ -38,12 +38,12 @@ type Identity struct {
 func OpenIdentity(w derive.World, passphrase string) Identity {
 	worldPassword := crypto.HKDFSHA256([]byte(passphrase), w.WalletSalt, []byte(identityInfo), 32)
 
-	dilithium := crypto.MakeDilithiumPair(crypto.HKDFSHA256(worldPassword, emptySalt, []byte(dilithiumInfo), 32))
+	mldsa := crypto.MakeMLDSAPair(crypto.HKDFSHA256(worldPassword, emptySalt, []byte(mldsaInfo), 32))
 	kyber := crypto.MakeKyberPair(crypto.HKDFSHA256(worldPassword, emptySalt, []byte(mlkemInfo), 32))
 
 	return Identity{
-		Address:   derive.BytesToAddress(dilithium.PublicBytes(), kyber.PublicBytes()),
-		Dilithium: dilithium,
-		Kyber:     kyber,
+		Address: derive.BytesToAddress(mldsa.PublicBytes(), kyber.PublicBytes()),
+		MLDSA:   mldsa,
+		Kyber:   kyber,
 	}
 }

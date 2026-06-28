@@ -156,9 +156,9 @@ func TestSignedEncryptedBlock(t *testing.T) {
 		t.Fatalf("EncryptForBlock: %v", err)
 	}
 	b := block.New(author.Address, derive.Code(e.typeCode), derive.Code(e.audCode), testTimestamp, data)
-	block.Sign(b, e.world, author.Dilithium)
+	block.Sign(b, e.world, author.MLDSA)
 
-	if err := block.Verify(b, e.world, author.Dilithium.Public); err != nil {
+	if err := block.Verify(b, e.world, author.MLDSA.Public); err != nil {
 		t.Fatalf("Verify: %v", err)
 	}
 	got, err := DecryptData(e.secret, b)

@@ -19,8 +19,8 @@ func TestOpenIdentityDeterministic(t *testing.T) {
 	if a.Address != b.Address {
 		t.Fatal("address differs across runs for the same world + passphrase")
 	}
-	if string(a.Dilithium.PublicBytes()) != string(b.Dilithium.PublicBytes()) {
-		t.Fatal("dilithium key differs across runs")
+	if string(a.MLDSA.PublicBytes()) != string(b.MLDSA.PublicBytes()) {
+		t.Fatal("ML-DSA key differs across runs")
 	}
 	if string(a.Kyber.PublicBytes()) != string(b.Kyber.PublicBytes()) {
 		t.Fatal("kyber key differs across runs")
@@ -49,11 +49,11 @@ func TestDerivedKeysAreUsable(t *testing.T) {
 	w := derive.OpenWorld(testPhrase)
 	id := OpenIdentity(w, testPassphrase)
 
-	// Dilithium key signs and verifies.
+	// ML-DSA key signs and verifies.
 	msg := []byte("nothing can stop the signal")
-	sig := id.Dilithium.Sign(msg)
-	if !crypto.VerifyDilithium(id.Dilithium.Public, msg, sig) {
-		t.Fatal("derived dilithium key failed sign/verify")
+	sig := id.MLDSA.Sign(msg)
+	if !crypto.VerifyMLDSA(id.MLDSA.Public, msg, sig) {
+		t.Fatal("derived ML-DSA key failed sign/verify")
 	}
 
 	// Kyber key encapsulates and decapsulates.
@@ -70,7 +70,7 @@ func TestDerivedKeysAreUsable(t *testing.T) {
 	}
 
 	// Address is exactly BytesToAddress of the two public keys.
-	want := derive.BytesToAddress(id.Dilithium.PublicBytes(), id.Kyber.PublicBytes())
+	want := derive.BytesToAddress(id.MLDSA.PublicBytes(), id.Kyber.PublicBytes())
 	if id.Address != want {
 		t.Fatalf("address = %s, want %s", id.Address, want)
 	}

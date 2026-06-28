@@ -218,11 +218,11 @@ Notifies the peer of relationship closure. `reason` ∈ `rotated_keys` | `closed
 ### `identity`
 **Type:** `bpprotocol.org/v1/types/identity`
 
-Declares an identity and its public keys. Normally a [plaintext block](./encryption.md) on a [public audience](./audiences.md). `public_keys` are the identity's `dilithiumKey.pub` and `kyberKey.pub` (the material peers need to verify authorship and open [connections](./connections.md)).
+Declares an identity and its public keys. Normally a [plaintext block](./encryption.md) on a [public audience](./audiences.md). `public_keys` are the identity's `mldsaKey.pub` and `kyberKey.pub` (the material peers need to verify authorship and open [connections](./connections.md)).
 ```json
 {
   "name": "Alice",
-  "public_keys": ["<dilithium_pub>", "<kyber_pub>"]
+  "public_keys": ["<mldsa_pub>", "<kyber_pub>"]
 }
 ```
 
@@ -233,7 +233,7 @@ Burns the identity by **revealing its root private keys**, entering the post-tru
 ```json
 {
   "identity": "<identity_address>",
-  "revealed_dilithium": "<base64 dilithiumKey.private>",
+  "revealed_ml_dsa": "<base64 mldsaKey.private>",
   "revealed_kyber": "<base64 kyberKey.private>",
   "burn_notice": "voluntary"
 }

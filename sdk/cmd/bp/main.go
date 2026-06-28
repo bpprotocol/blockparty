@@ -207,7 +207,7 @@ func cmdDemo(args []string) error {
 	}
 	r := blocktypes.NewResolver(w)
 	for _, blk := range blocks {
-		if err := block.Verify(blk, w, alice.Dilithium.Public); err != nil {
+		if err := block.Verify(blk, w, alice.MLDSA.Public); err != nil {
 			return fmt.Errorf("verify: %w", err)
 		}
 		var text string

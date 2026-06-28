@@ -87,7 +87,7 @@ func TestPrivateAudienceRoundTrip(t *testing.T) {
 		t.Fatalf("EncryptForBlock: %v", err)
 	}
 	blk := block.New(p.alice.Address, typeCode, code, testTimestamp, data)
-	block.Sign(blk, p.world, p.alice.Dilithium)
+	block.Sign(blk, p.world, p.alice.MLDSA)
 
 	// Bob decrypts with his independently-derived audience secret.
 	got, err := encryption.DecryptData(b.AudienceSecret(), blk)

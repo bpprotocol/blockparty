@@ -4,20 +4,20 @@ import (
 	"github.com/cloudflare/circl/kem"
 	"github.com/cloudflare/circl/kem/mlkem/mlkem768"
 	"github.com/cloudflare/circl/sign"
-	"github.com/cloudflare/circl/sign/dilithium/mode3"
+	"github.com/cloudflare/circl/sign/mldsa/mldsa65"
 )
 
-// kemScheme is ML-KEM768 (FIPS 203); sigScheme is Dilithium3 (round 3).
+// kemScheme is ML-KEM768 (FIPS 203); sigScheme is ML-DSA-65 (FIPS 204).
 var (
 	kemScheme = mlkem768.Scheme()
-	sigScheme = mode3.Scheme()
+	sigScheme = mldsa65.Scheme()
 )
 
 // KEMScheme returns the ML-KEM768 scheme, e.g. for unmarshalling public keys
 // and ciphertexts carried in blocks.
 func KEMScheme() kem.Scheme { return kemScheme }
 
-// SigScheme returns the Dilithium3 signature scheme, e.g. for unmarshalling
+// SigScheme returns the ML-DSA-65 signature scheme, e.g. for unmarshalling
 // public keys carried in blocks.
 func SigScheme() sign.Scheme { return sigScheme }
 
@@ -27,8 +27,8 @@ type KyberKeyPair struct {
 	Private kem.PrivateKey
 }
 
-// DilithiumKeyPair is a Dilithium3 signature keypair.
-type DilithiumKeyPair struct {
+// MLDSAKeyPair is a ML-DSA-65 signature keypair.
+type MLDSAKeyPair struct {
 	Public  sign.PublicKey
 	Private sign.PrivateKey
 }
@@ -43,28 +43,28 @@ func MakeKyberPair(seed []byte) KyberKeyPair {
 	return KyberKeyPair{Public: pub, Private: priv}
 }
 
-// MakeDilithiumPair deterministically derives a Dilithium3 keypair from seed,
+// MakeMLDSAPair deterministically derives a ML-DSA-65 keypair from seed,
 // mirroring MakeKyberPair.
-func MakeDilithiumPair(seed []byte) DilithiumKeyPair {
+func MakeMLDSAPair(seed []byte) MLDSAKeyPair {
 	rng := DeterministicRNG(Keccak256(seed))
 	pub, priv := sigScheme.DeriveKey(readN(rng, sigScheme.SeedSize()))
-	return DilithiumKeyPair{Public: pub, Private: priv}
+	return MLDSAKeyPair{Public: pub, Private: priv}
 }
 
 // PublicBytes returns the canonical binary encoding of the public key.
 func (kp KyberKeyPair) PublicBytes() []byte { return mustMarshal(kp.Public) }
 
 // PublicBytes returns the canonical binary encoding of the public key.
-func (kp DilithiumKeyPair) PublicBytes() []byte { return mustMarshal(kp.Public) }
+func (kp MLDSAKeyPair) PublicBytes() []byte { return mustMarshal(kp.Public) }
 
-// Sign returns a Dilithium3 signature over message.
-func (kp DilithiumKeyPair) Sign(message []byte) []byte {
+// Sign returns a ML-DSA-65 signature over message.
+func (kp MLDSAKeyPair) Sign(message []byte) []byte {
 	return sigScheme.Sign(kp.Private, message, nil)
 }
 
-// VerifyDilithium reports whether sig is a valid Dilithium3 signature over
+// VerifyMLDSA reports whether sig is a valid ML-DSA-65 signature over
 // message under pub.
-func VerifyDilithium(pub sign.PublicKey, message, sig []byte) bool {
+func VerifyMLDSA(pub sign.PublicKey, message, sig []byte) bool {
 	return sigScheme.Verify(pub, message, sig, nil)
 }
 

@@ -80,7 +80,7 @@ func TestTrustStateFlagsBurned(t *testing.T) {
 
 func TestRecordBurnBadKeyBytes(t *testing.T) {
 	ts := NewTrustState()
-	bad := &blockpb.IdentityBurn{Identity: "addr", RevealedDilithium: []byte("nonsense"), RevealedKyber: []byte("nonsense")}
+	bad := &blockpb.IdentityBurn{Identity: "addr", RevealedMlDsa: []byte("nonsense"), RevealedKyber: []byte("nonsense")}
 	if genuine, _ := ts.RecordBurn(bad); genuine {
 		t.Fatal("burn with malformed keys reported genuine")
 	}

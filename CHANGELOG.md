@@ -26,6 +26,10 @@ For a human-friendly overview, see the [whitepaper](./protocol/whitepaper.md) an
 
 ## [Unreleased]
 
+### Changed — Signature scheme: ML-DSA-65 (FIPS 204)
+- Migrated signatures from round-3 CRYSTALS-Dilithium (Dilithium3) to the NIST-standardized **ML-DSA-65 (FIPS 204)** across the spec, the Go reference, and the conformance vectors, so implementations interoperate with the JS ecosystem (which ships ML-DSA, not round-3 Dilithium). ML-KEM768 (FIPS 203) is unchanged.
+- Identity derivation's signature domain-separation label changed `"dilithium"` → `"ml-dsa"`; `identity.burn` proto field `revealed_dilithium` → `revealed_ml_dsa`. Affected golden vectors regenerated.
+
 ### Changed — Whitepaper ↔ Spec alignment & crypto hardening
 - Resolved contradictions between the whitepaper and specs by treating the specs as canonical:
   - Single canonical block-ID derivation (now binds the `data` payload) and identity address derivation (binds both PQ public keys).
@@ -33,7 +37,7 @@ For a human-friendly overview, see the [whitepaper](./protocol/whitepaper.md) an
   - Documented the distinct roles of the two chunking systems (`chunk.*` transport vs `content.chunked.*` content) and a shared reassembly algorithm.
 - Hardened cryptography for post-quantum consistency:
   - Removed MD5 from type/audience code derivation in favor of Keccak-256.
-  - Removed classical ECC from the core; World signing keys are now Dilithium, so `world_sig` is a genuine post-quantum signature.
+  - Removed classical ECC from the core; World signing keys are post-quantum (now ML-DSA-65), so `world_sig` is a genuine post-quantum signature.
   - Defined `GLOBAL_SALT` and the `DeterministicRNG` (SHAKE256) used for key generation.
 
 ### Added

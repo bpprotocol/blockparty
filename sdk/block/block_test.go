@@ -38,14 +38,14 @@ func newFixture() fixture {
 
 func (f fixture) signed(data []byte) *blockpb.Block {
 	b := New(f.author.Address, f.typeCode, f.audCode, testTimestamp, data)
-	Sign(b, f.world, f.author.Dilithium)
+	Sign(b, f.world, f.author.MLDSA)
 	return b
 }
 
 func TestSignAndVerify(t *testing.T) {
 	f := newFixture()
 	b := f.signed([]byte("hello"))
-	if err := Verify(b, f.world, f.author.Dilithium.Public); err != nil {
+	if err := Verify(b, f.world, f.author.MLDSA.Public); err != nil {
 		t.Fatalf("Verify on a freshly signed block: %v", err)
 	}
 }
@@ -65,7 +65,7 @@ func TestNewSetsContentBindingID(t *testing.T) {
 func TestVerifyMissingSignatures(t *testing.T) {
 	f := newFixture()
 	b := New(f.author.Address, f.typeCode, f.audCode, testTimestamp, []byte("hi"))
-	if err := Verify(b, f.world, f.author.Dilithium.Public); err != ErrMissingSignatures {
+	if err := Verify(b, f.world, f.author.MLDSA.Public); err != ErrMissingSignatures {
 		t.Fatalf("Verify unsigned = %v, want ErrMissingSignatures", err)
 	}
 }
@@ -75,11 +75,11 @@ func TestVerifyWrongKeys(t *testing.T) {
 	b := f.signed([]byte("hello"))
 
 	stranger := identity.OpenIdentity(f.world, "stranger")
-	if err := Verify(b, f.world, stranger.Dilithium.Public); err != ErrAuthorSignature {
+	if err := Verify(b, f.world, stranger.MLDSA.Public); err != ErrAuthorSignature {
 		t.Fatalf("Verify with wrong author key = %v, want ErrAuthorSignature", err)
 	}
 	otherWorld := derive.OpenWorld("a-different-world")
-	if err := Verify(b, otherWorld, f.author.Dilithium.Public); err != ErrWorldSignature {
+	if err := Verify(b, otherWorld, f.author.MLDSA.Public); err != ErrWorldSignature {
 		t.Fatalf("Verify with wrong world = %v, want ErrWorldSignature", err)
 	}
 }
@@ -103,7 +103,7 @@ func TestTamperingAnyFieldFailsVerification(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			b := f.signed([]byte("hello"))
 			c.mutate(b)
-			if err := Verify(b, f.world, f.author.Dilithium.Public); err == nil {
+			if err := Verify(b, f.world, f.author.MLDSA.Public); err == nil {
 				t.Fatalf("tampering %s still verified", c.name)
 			}
 		})
@@ -113,7 +113,7 @@ func TestTamperingAnyFieldFailsVerification(t *testing.T) {
 func TestEncodeDecodeRoundTrip(t *testing.T) {
 	f := newFixture()
 	b := f.signed([]byte("hello"))
-	AddCoSignature(b, cosignType, f.cosigner.Dilithium)
+	AddCoSignature(b, cosignType, f.cosigner.MLDSA)
 
 	enc, err := Encode(b)
 	if err != nil {
@@ -132,10 +132,10 @@ func TestEncodeDecodeRoundTrip(t *testing.T) {
 		t.Fatal("re-encoding a decoded block produced different bytes")
 	}
 	// Signatures survive the round-trip.
-	if err := Verify(b2, f.world, f.author.Dilithium.Public); err != nil {
+	if err := Verify(b2, f.world, f.author.MLDSA.Public); err != nil {
 		t.Fatalf("Verify after round-trip: %v", err)
 	}
-	if cos := CoSignatures(b2); len(cos) != 1 || !VerifyCoSignature(b2, cos[0], f.cosigner.Dilithium.Public) {
+	if cos := CoSignatures(b2); len(cos) != 1 || !VerifyCoSignature(b2, cos[0], f.cosigner.MLDSA.Public) {
 		t.Fatal("co-signature did not survive the round-trip")
 	}
 }
@@ -143,21 +143,21 @@ func TestEncodeDecodeRoundTrip(t *testing.T) {
 func TestCoSignatureAddVerify(t *testing.T) {
 	f := newFixture()
 	b := f.signed([]byte("hello"))
-	AddCoSignature(b, cosignType, f.cosigner.Dilithium)
+	AddCoSignature(b, cosignType, f.cosigner.MLDSA)
 
 	cos := CoSignatures(b)
 	if len(cos) != 1 || cos[0].Type != cosignType {
 		t.Fatalf("unexpected co-signatures: %+v", cos)
 	}
-	if !VerifyCoSignature(b, cos[0], f.cosigner.Dilithium.Public) {
+	if !VerifyCoSignature(b, cos[0], f.cosigner.MLDSA.Public) {
 		t.Fatal("valid co-signature failed to verify")
 	}
 	// Wrong signer key.
-	if VerifyCoSignature(b, cos[0], f.author.Dilithium.Public) {
+	if VerifyCoSignature(b, cos[0], f.author.MLDSA.Public) {
 		t.Fatal("co-signature verified under the wrong signer key")
 	}
 	// The required signatures are unaffected by the presence of a co-signature.
-	if err := Verify(b, f.world, f.author.Dilithium.Public); err != nil {
+	if err := Verify(b, f.world, f.author.MLDSA.Public); err != nil {
 		t.Fatalf("Verify with a co-signature present: %v", err)
 	}
 }
@@ -170,10 +170,10 @@ func TestBadCoSignatureIgnored(t *testing.T) {
 		Type: "evil.example/forge",
 		Sig:  []byte("not a real signature"),
 	})
-	if err := Verify(b, f.world, f.author.Dilithium.Public); err != nil {
+	if err := Verify(b, f.world, f.author.MLDSA.Public); err != nil {
 		t.Fatalf("a bogus co-signature invalidated the block: %v", err)
 	}
-	if VerifyCoSignature(b, b.Sigs.Extra[0], f.cosigner.Dilithium.Public) {
+	if VerifyCoSignature(b, b.Sigs.Extra[0], f.cosigner.MLDSA.Public) {
 		t.Fatal("a bogus co-signature verified")
 	}
 }
@@ -181,13 +181,13 @@ func TestBadCoSignatureIgnored(t *testing.T) {
 func TestTamperedCoSignatureFailsButBlockValid(t *testing.T) {
 	f := newFixture()
 	b := f.signed([]byte("hello"))
-	AddCoSignature(b, cosignType, f.cosigner.Dilithium)
+	AddCoSignature(b, cosignType, f.cosigner.MLDSA)
 	b.Sigs.Extra[0].Sig[0] ^= 0xff
 
-	if VerifyCoSignature(b, b.Sigs.Extra[0], f.cosigner.Dilithium.Public) {
+	if VerifyCoSignature(b, b.Sigs.Extra[0], f.cosigner.MLDSA.Public) {
 		t.Fatal("tampered co-signature verified")
 	}
-	if err := Verify(b, f.world, f.author.Dilithium.Public); err != nil {
+	if err := Verify(b, f.world, f.author.MLDSA.Public); err != nil {
 		t.Fatalf("tampered co-signature invalidated the block: %v", err)
 	}
 }

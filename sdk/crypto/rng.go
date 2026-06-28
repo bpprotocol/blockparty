@@ -14,7 +14,7 @@ import (
 //
 // Per protocol/specs/derivations.md, callers that derive keys first reduce
 // their input to a 32-byte value with Keccak256 and pass that as seed (see
-// MakeKyberPair / MakeDilithiumPair).
+// MakeKyberPair / MakeMLDSAPair).
 func DeterministicRNG(seed []byte) io.Reader {
 	sh := sha3.NewShake256()
 	// ShakeHash.Write never returns an error.

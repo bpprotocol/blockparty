@@ -14,7 +14,7 @@ const (
 	goldenWalletSalt   = "1ddf42bd8f7a2595044f9f54b06bc74f432aa4ea0a88fe205b6031f0499d4623"
 	goldenTypeSalt     = "242b4984c7100a1e3ce37745955ba1ceeeb32e16c4c844ffee3ef83b8e91aa4c"
 	goldenAudienceSalt = "d3c3a17a70b1039d633b7f3b05c64ae06aa88482207314342ded010196d9b7ff"
-	goldenSigningKeyFP = "574b4e6a609ecb49d9a928ad5f92249cea69a8d54b835a002ae4e97b22a84df1"
+	goldenSigningKeyFP = "c107da6ad16905ec7ededb15d88f93cf81c2f51f18df7e53bf8c2e49fc698fb6"
 	goldenTypeCode     = "a451d8b7e0ec778506b8001ebd31c2b9"
 	goldenAudienceCode = "8572d37a189d92544082f34254f01d8e"
 	goldenBlockID      = "290201fe18e78a4ca31574acb3530cb838816de8c76f5669adb5f9111182aa13"

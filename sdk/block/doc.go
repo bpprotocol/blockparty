@@ -2,7 +2,7 @@
 // serialization, the two-layer signature model, and co-signatures, following
 // protocol/specs/block.md.
 //
-// A block carries two required Dilithium signatures and any number of optional
+// A block carries two required ML-DSA signatures and any number of optional
 // co-signatures:
 //
 //   - world_sig  — by the World's signing key, over the block's fields.

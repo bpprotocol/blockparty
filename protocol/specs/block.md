@@ -37,8 +37,8 @@ Each block consists of the following fields:
 | `audience_code` | Bytes    | Hashed audience identifier (world-scoped) |
 | `timestamp`     | Integer  | Unix timestamp in seconds |
 | `data`          | Bytes    | Encrypted or plaintext payload — see [Block Encryption](./encryption.md) |
-| `sigs.world`    | Bytes    | Dilithium signature from the World key |
-| `sigs.author`   | Bytes    | Dilithium signature from the author's root signing key |
+| `sigs.world`    | Bytes    | ML-DSA-65 signature from the World key |
+| `sigs.author`   | Bytes    | ML-DSA-65 signature from the author's root signing key |
 | `sigs.extra[]`  | ExtraSignature | Optional co-signatures (see §"Co-Signatures") |
 
 The wire field names follow [block.proto](../proto/v1/block.proto): the three signatures live in a `Signatures` bundle (`world`, `author`, `extra`).
@@ -47,27 +47,27 @@ The wire field names follow [block.proto](../proto/v1/block.proto): the three si
 
 ## 🔐 Signing and Verification
 
-Each block carries **two required Dilithium signatures**:
+Each block carries **two required ML-DSA-65 signatures**:
 
 1. **World Signature (`sigs.world`)**  
    - Validates that the block is scoped to a particular World  
-   - Produced by `World.SigningKey` (a Dilithium keypair — see [Derivations](./derivations.md) §"World Key + Salts")  
+   - Produced by `World.SigningKey` (a ML-DSA-65 keypair — see [Derivations](./derivations.md) §"World Key + Salts")  
    - Signed over: `version`, `id`, `type_code`, `audience_code`, `timestamp`, `data`  
    - Any holder of the World seed can verify world membership without decrypting `data`.
 
 2. **Author Signature (`sigs.author`)**  
    - Validates that the author endorses this block  
-   - Produced by the author's `dilithiumKey` (see [Identity](./identity.md))  
+   - Produced by the author's `mldsaKey` (see [Identity](./identity.md))  
    - Signed over: the full content including `sigs.world`
 
 Clients **must verify** both signatures before trusting a block.
 
 ### Co-Signatures
 
-The optional `sigs.extra[]` array carries **co-signatures** — additional Dilithium signatures by other identities over the canonical block bytes (including `sigs.author`). Each `ExtraSignature` has:
+The optional `sigs.extra[]` array carries **co-signatures** — additional ML-DSA-65 signatures by other identities over the canonical block bytes (including `sigs.author`). Each `ExtraSignature` has:
 
 - `type` — a namespaced string giving the co-signature's meaning (e.g. `bpprotocol.org/v1/cosign.endorse`, `bpprotocol.org/v1/cosign.witness`).
-- `sig` — the Dilithium signature bytes.
+- `sig` — the ML-DSA-65 signature bytes.
 
 Verification rules:
 

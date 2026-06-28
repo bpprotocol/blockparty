@@ -85,10 +85,10 @@ message IdentityDeclare {
 }
 
 message IdentityBurn {
-  string identity = 1;            // address of the identity being burned
-  bytes revealed_dilithium = 2;  // revealed root Dilithium private key
-  bytes revealed_kyber = 3;      // revealed root ML-KEM768 private key
-  string burn_notice = 4;        // "voluntary" | "compromised" | "rotated" | "other"
+  string identity = 1;          // address of the identity being burned
+  bytes revealed_ml_dsa = 2;    // revealed root ML-DSA-65 private key
+  bytes revealed_kyber = 3;     // revealed root ML-KEM768 private key
+  string burn_notice = 4;       // "voluntary" | "compromised" | "rotated" | "other"
 }
 
 // --- Chunked Data ---

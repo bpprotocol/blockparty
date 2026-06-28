@@ -10,9 +10,9 @@ import (
 type Address string
 
 // BytesToAddress derives the canonical address binding both of an identity's
-// post-quantum public keys: hex(Keccak256("v1" || dilithiumPub || kyberPub)[-20:]).
-func BytesToAddress(dilithiumPub, kyberPub []byte) Address {
-	digest := crypto.Keccak256([]byte("v1"), dilithiumPub, kyberPub)
+// post-quantum public keys: hex(Keccak256("v1" || mldsaPub || kyberPub)[-20:]).
+func BytesToAddress(mldsaPub, kyberPub []byte) Address {
+	digest := crypto.Keccak256([]byte("v1"), mldsaPub, kyberPub)
 	return Address(hex.EncodeToString(digest[len(digest)-20:]))
 }
 

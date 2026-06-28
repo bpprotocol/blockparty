@@ -40,9 +40,9 @@ type Vectors struct {
 }
 
 type CryptoVectors struct {
-	Seed               string `json:"seed"`
-	KyberPubKeccak     string `json:"kyberPubKeccak"`
-	DilithiumPubKeccak string `json:"dilithiumPubKeccak"`
+	Seed           string `json:"seed"`
+	KyberPubKeccak string `json:"kyberPubKeccak"`
+	MLDSAPubKeccak string `json:"mldsaPubKeccak"`
 }
 
 type WorldVectors struct {
@@ -56,11 +56,11 @@ type WorldVectors struct {
 }
 
 type IdentityVectors struct {
-	World              string `json:"world"`
-	Passphrase         string `json:"passphrase"`
-	Address            string `json:"address"`
-	DilithiumPubKeccak string `json:"dilithiumPubKeccak"`
-	KyberPubKeccak     string `json:"kyberPubKeccak"`
+	World          string `json:"world"`
+	Passphrase     string `json:"passphrase"`
+	Address        string `json:"address"`
+	MLDSAPubKeccak string `json:"mldsaPubKeccak"`
+	KyberPubKeccak string `json:"kyberPubKeccak"`
 }
 
 type BlockIDVectors struct {
@@ -91,7 +91,7 @@ func Compute() *Vectors {
 	id := identity.OpenIdentity(w, Passphrase)
 
 	kyber := crypto.MakeKyberPair([]byte(KeySeed))
-	dil := crypto.MakeDilithiumPair([]byte(KeySeed))
+	dil := crypto.MakeMLDSAPair([]byte(KeySeed))
 
 	aeadSecret := crypto.Keccak256([]byte(AEADSecretSeed))
 	contentKey := encryption.ContentKey(aeadSecret, []byte(audCode), []byte(AEADNonce))
@@ -100,9 +100,9 @@ func Compute() *Vectors {
 	const blockData = "hello"
 	return &Vectors{
 		Crypto: CryptoVectors{
-			Seed:               KeySeed,
-			KyberPubKeccak:     hexKeccak(kyber.PublicBytes()),
-			DilithiumPubKeccak: hexKeccak(dil.PublicBytes()),
+			Seed:           KeySeed,
+			KyberPubKeccak: hexKeccak(kyber.PublicBytes()),
+			MLDSAPubKeccak: hexKeccak(dil.PublicBytes()),
 		},
 		World: WorldVectors{
 			Seed:             WorldSeed,
@@ -114,11 +114,11 @@ func Compute() *Vectors {
 			AudienceCode:     audCode.Hex(),
 		},
 		Identity: IdentityVectors{
-			World:              WorldSeed,
-			Passphrase:         Passphrase,
-			Address:            string(id.Address),
-			DilithiumPubKeccak: hexKeccak(id.Dilithium.PublicBytes()),
-			KyberPubKeccak:     hexKeccak(id.Kyber.PublicBytes()),
+			World:          WorldSeed,
+			Passphrase:     Passphrase,
+			Address:        string(id.Address),
+			MLDSAPubKeccak: hexKeccak(id.MLDSA.PublicBytes()),
+			KyberPubKeccak: hexKeccak(id.Kyber.PublicBytes()),
 		},
 		BlockID: BlockIDVectors{
 			Version:   Version,

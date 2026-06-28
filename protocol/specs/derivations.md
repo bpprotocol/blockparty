@@ -13,11 +13,11 @@ This document defines how identifiers and cryptographic primitives in BlockParty
 
 All examples assume:
 - Cryptographic primitives: **Keccak-256**, **SHA-256**, **HMAC-SHA256**, and **HKDF-SHA256**
-- Post-quantum keypairs: **ML-KEM768** (KEM) and **Dilithium** (signatures)
+- Post-quantum keypairs: **ML-KEM768** (KEM) and **ML-DSA-65** (signatures)
 - Encoding as UTF-8 and byte-safe inputs
 - All hash outputs are hex-encoded unless otherwise specified
 
-> 🔐 **Post-quantum by default.** Every key BlockParty derives is post-quantum (ML-KEM768 or Dilithium). The protocol does **not** use classical elliptic-curve cryptography anywhere in its core. Earlier drafts derived World and audience material from classical ECC and hashed identifiers with MD5; both have been removed in favor of Keccak-256 and the post-quantum stack. See [Block Encryption](./encryption.md) for the symmetric/AEAD layer.
+> 🔐 **Post-quantum by default.** Every key BlockParty derives is post-quantum (ML-KEM768 or ML-DSA-65). The protocol does **not** use classical elliptic-curve cryptography anywhere in its core. Earlier drafts derived World and audience material from classical ECC and hashed identifiers with MD5; both have been removed in favor of Keccak-256 and the post-quantum stack. See [Block Encryption](./encryption.md) for the symmetric/AEAD layer.
 
 ⚠️ **Normalization Rule:**
 All string inputs to hash or key derivation functions must be normalized to UTF-8, with no trailing slashes or whitespace. Identifiers are treated as case-sensitive unless otherwise stated.
@@ -73,7 +73,7 @@ function GetAudienceCode(world, audienceID):
 
 ## 🌐 World Key + Salts
 
-Worlds are cryptographic domains with isolated type and audience scopes. A World is defined by a **Dilithium** signing keypair (its `world_sig` authority) and three derived salts.
+Worlds are cryptographic domains with isolated type and audience scopes. A World is defined by a **ML-DSA-65** signing keypair (its `world_sig` authority) and three derived salts.
 
 Function: `OpenWorld(seedPhrase)`
 
@@ -81,12 +81,12 @@ Function: `OpenWorld(seedPhrase)`
 ```ts
 function OpenWorld(seedPhrase):
   worldSeed = HMAC_SHA256(key=GLOBAL_SALT, message=seedPhrase)
-  signingKey = MakeDilithiumPair(worldSeed)   // World key — signs world_sig
+  signingKey = MakeMLDSAPair(worldSeed)   // World key — signs world_sig
   return GenerateWorld(signingKey, worldSeed)
 
 function GenerateWorld(signingKey, worldSeed):
   return World(
-    SigningKey:   signingKey,                          // Dilithium keypair
+    SigningKey:   signingKey,                          // ML-DSA-65 keypair
     WalletSalt:   HMAC_SHA256(worldSeed, "wallets"),   // scopes identity derivation
     TypeSalt:     HMAC_SHA256(worldSeed, "types"),     // scopes type codes
     AudienceSalt: HMAC_SHA256(worldSeed, "channels")   // scopes audience codes
@@ -94,19 +94,19 @@ function GenerateWorld(signingKey, worldSeed):
 ```
 
 - Anyone who knows `seedPhrase` derives the identical World — including the same `SigningKey`. World membership is therefore gated purely by knowledge of the seed, not by protocol-enforced permissions (see the [Whitepaper](../whitepaper.md) §3).
-- `World.SigningKey.private` produces the **World Signature** (`world_sig`) on every block scoped to the World; `World.SigningKey.public` lets any holder of the seed verify it. The World key is Dilithium so that `world_sig` is a genuine post-quantum signature, consistent with [Block Structure](./block.md) §"Signing and Verification".
+- `World.SigningKey.private` produces the **World Signature** (`world_sig`) on every block scoped to the World; `World.SigningKey.public` lets any holder of the seed verify it. The World key is ML-DSA-65 so that `world_sig` is a genuine post-quantum signature, consistent with [Block Structure](./block.md) §"Signing and Verification".
 - `WalletSalt` is consumed by identity derivation (see [Identity](./identity.md)); `TypeSalt` and `AudienceSalt` by the code derivations above.
 
 ---
 
 ## 🆔 Identity Address
 
-Function: `BytesToAddress(dilithiumPub, kyberPub)`
+Function: `BytesToAddress(mldsaPub, kyberPub)`
 
 **Pseudocode:**
 ```ts
-function BytesToAddress(dilithiumPub, kyberPub):
-  digest = Keccak256("v1" || dilithiumPub || kyberPub)
+function BytesToAddress(mldsaPub, kyberPub):
+  digest = Keccak256("v1" || mldsaPub || kyberPub)
   return hex(digest[-20:])   // last 20 bytes → 40-char hex address
 ```
 
@@ -157,25 +157,25 @@ function MakeKyberPair(seed):
 
 ---
 
-### ✍️ `MakeDilithiumPair(seed)`
-- Produces a post-quantum **Dilithium** signature keypair.
+### ✍️ `MakeMLDSAPair(seed)`
+- Produces a post-quantum **ML-DSA-65** signature keypair.
 - Also requires a deterministic RNG.
 
 **Pseudocode:**
 ```ts
-function MakeDilithiumPair(seed):
+function MakeMLDSAPair(seed):
     rng = DeterministicRNG(Keccak256(seed))   // SHAKE256 XOF seeded by Keccak256(seed)
-    (pubKey, privKey) = Dilithium.KeyGen(rng)
+    (pubKey, privKey) = MLDSA.KeyGen(rng)
     return { pubKey, privKey }
 ```
 
-> ✒️ Dilithium produces the `author_sig`, the `world_sig` (via `World.SigningKey`), and any co-signatures (see [Block Structure](./block.md)).
+> ✒️ ML-DSA-65 produces the `author_sig`, the `world_sig` (via `World.SigningKey`), and any co-signatures (see [Block Structure](./block.md)).
 
 ---
 
 ### 🎲 `DeterministicRNG(seed)`
 
-`MakeKyberPair` and `MakeDilithiumPair` require a deterministic byte stream so that key generation is reproducible from a seed. BlockParty specifies a **SHAKE256** extendable-output function (XOF) absorbing the 32-byte `seed`; the KEM/signature `KeyGen` routine reads as many bytes as it needs from the XOF. Any conforming implementation MUST use SHAKE256 here so that keypairs derived from the same seed are byte-identical across clients.
+`MakeKyberPair` and `MakeMLDSAPair` require a deterministic byte stream so that key generation is reproducible from a seed. BlockParty specifies a **SHAKE256** extendable-output function (XOF) absorbing the 32-byte `seed`; the KEM/signature `KeyGen` routine reads as many bytes as it needs from the XOF. Any conforming implementation MUST use SHAKE256 here so that keypairs derived from the same seed are byte-identical across clients.
 
 ---
 
@@ -186,7 +186,7 @@ function MakeDilithiumPair(seed):
 | Type / audience codes, address, payload hash | Keccak-256 |
 | Block ID, salts, domain separation | SHA-256 / HMAC-SHA256 |
 | Deterministic key generation RNG | SHAKE256 XOF |
-| Signatures (author, world, co-sign) | Dilithium |
+| Signatures (author, world, co-sign) | ML-DSA-65 |
 | Key agreement / encryption | ML-KEM768 |
 | Symmetric AEAD over `data` | XChaCha20-Poly1305 (see [encryption.md](./encryption.md)) |
 

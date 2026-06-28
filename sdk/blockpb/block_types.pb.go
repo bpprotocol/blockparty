@@ -782,13 +782,13 @@ func (x *IdentityDeclare) GetPublicKeys() []string {
 }
 
 type IdentityBurn struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	Identity          string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`                                            // address of the identity being burned
-	RevealedDilithium []byte                 `protobuf:"bytes,2,opt,name=revealed_dilithium,json=revealedDilithium,proto3" json:"revealed_dilithium,omitempty"` // revealed root Dilithium private key
-	RevealedKyber     []byte                 `protobuf:"bytes,3,opt,name=revealed_kyber,json=revealedKyber,proto3" json:"revealed_kyber,omitempty"`             // revealed root ML-KEM768 private key
-	BurnNotice        string                 `protobuf:"bytes,4,opt,name=burn_notice,json=burnNotice,proto3" json:"burn_notice,omitempty"`                      // "voluntary" | "compromised" | "rotated" | "other"
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`                                  // address of the identity being burned
+	RevealedMlDsa []byte                 `protobuf:"bytes,2,opt,name=revealed_ml_dsa,json=revealedMlDsa,proto3" json:"revealed_ml_dsa,omitempty"` // revealed root ML-DSA-65 private key
+	RevealedKyber []byte                 `protobuf:"bytes,3,opt,name=revealed_kyber,json=revealedKyber,proto3" json:"revealed_kyber,omitempty"`   // revealed root ML-KEM768 private key
+	BurnNotice    string                 `protobuf:"bytes,4,opt,name=burn_notice,json=burnNotice,proto3" json:"burn_notice,omitempty"`            // "voluntary" | "compromised" | "rotated" | "other"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *IdentityBurn) Reset() {
@@ -828,9 +828,9 @@ func (x *IdentityBurn) GetIdentity() string {
 	return ""
 }
 
-func (x *IdentityBurn) GetRevealedDilithium() []byte {
+func (x *IdentityBurn) GetRevealedMlDsa() []byte {
 	if x != nil {
-		return x.RevealedDilithium
+		return x.RevealedMlDsa
 	}
 	return nil
 }
@@ -1187,10 +1187,10 @@ const file_block_types_proto_rawDesc = "" +
 	"\x0fIdentityDeclare\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1f\n" +
 	"\vpublic_keys\x18\x02 \x03(\tR\n" +
-	"publicKeys\"\xa1\x01\n" +
+	"publicKeys\"\x9a\x01\n" +
 	"\fIdentityBurn\x12\x1a\n" +
-	"\bidentity\x18\x01 \x01(\tR\bidentity\x12-\n" +
-	"\x12revealed_dilithium\x18\x02 \x01(\fR\x11revealedDilithium\x12%\n" +
+	"\bidentity\x18\x01 \x01(\tR\bidentity\x12&\n" +
+	"\x0frevealed_ml_dsa\x18\x02 \x01(\fR\rrevealedMlDsa\x12%\n" +
 	"\x0erevealed_kyber\x18\x03 \x01(\fR\rrevealedKyber\x12\x1f\n" +
 	"\vburn_notice\x18\x04 \x01(\tR\n" +
 	"burnNotice\"?\n" +

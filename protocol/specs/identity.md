@@ -16,7 +16,7 @@ An `Identity` is the cryptographic core of a participant in the BlockParty Proto
 ```ts
 Identity {
   address: string               // Canonical 40-char hex identifier
-  dilithiumKey: KeyPair         // Post-quantum signature key (author_sig)
+  mldsaKey: KeyPair         // Post-quantum signature key (author_sig)
   kyberKey: KeyPair             // Post-quantum KEM key (encryption / connections)
 }
 ```
@@ -31,16 +31,16 @@ function OpenIdentity(world, passphrase):
     worldPassword = HKDF_SHA256(ikm=passphrase, salt=world.WalletSalt,
                                 info="bpprotocol.org/v1/identity", len=32)
 
-    dilithiumKey = MakeDilithiumPair(HKDF_SHA256(worldPassword, salt="", info="dilithium", len=32))
+    mldsaKey = MakeMLDSAPair(HKDF_SHA256(worldPassword, salt="", info="ml-dsa", len=32))
     kyberKey     = MakeKyberPair(HKDF_SHA256(worldPassword, salt="", info="mlkem", len=32))
 
-    address      = BytesToAddress(dilithiumKey.pub, kyberKey.pub)   // see Derivations
-    return { address, dilithiumKey, kyberKey }
+    address      = BytesToAddress(mldsaKey.pub, kyberKey.pub)   // see Derivations
+    return { address, mldsaKey, kyberKey }
 ```
 
-- `BytesToAddress` is the single canonical address derivation defined in [Derivations](./derivations.md) — `hex(Keccak256("v1" || dilithiumKey.pub || kyberKey.pub)[-20:])`, a 40-character hex address binding **both** public keys. This spec, [Derivations](./derivations.md), and the [Whitepaper](../whitepaper.md) §4 all refer to that one definition.
+- `BytesToAddress` is the single canonical address derivation defined in [Derivations](./derivations.md) — `hex(Keccak256("v1" || mldsaKey.pub || kyberKey.pub)[-20:])`, a 40-character hex address binding **both** public keys. This spec, [Derivations](./derivations.md), and the [Whitepaper](../whitepaper.md) §4 all refer to that one definition.
 - `worldPassword` consumes the World's `WalletSalt`, the salt previously derived but unused in earlier drafts.
-- The `"dilithium:"` / `"mlkem:"` domain separation matches the [Whitepaper](../whitepaper.md) §4 pseudocode; the two specs are aligned.
+- The `"ml-dsa:"` / `"mlkem:"` domain separation matches the [Whitepaper](../whitepaper.md) §4 pseudocode; the two specs are aligned.
 
 > 🚧 Notes:
 > - All key derivation functions must be deterministic and reproducible (see `DeterministicRNG` in [Derivations](./derivations.md)).
@@ -48,7 +48,7 @@ function OpenIdentity(world, passphrase):
 
 ## 🔑 Use Cases
 
-- Signing blocks (`author_sig`) and verifying authorship — via `dilithiumKey`
+- Signing blocks (`author_sig`) and verifying authorship — via `mldsaKey`
 - Establishing private [connections](./connections.md) and decrypting audience content — via `kyberKey`
 - Anchoring an [identity burn](./identity-burn-rfc.md): exposing the identity's root private keys induces the post-truth state
 

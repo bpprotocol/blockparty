@@ -15,6 +15,7 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`identity`](./identity) | ✅ implemented | #3 |
 | [`blockpb`](./blockpb) | ✅ generated | #4 |
 | [`block`](./block) | ✅ implemented | #4 |
+| [`encryption`](./encryption) | ✅ implemented | #5 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -53,6 +54,14 @@ Faithful to [`protocol/specs/block.md`](../protocol/specs/block.md):
 - **Two-layer signing:** `world_sig` (World key) then `author_sig` (author key, over the fields + `world_sig`).
 - **Co-signatures** (`sigs.extra`): each an independent Dilithium signature over the fields + `world_sig` + `author_sig`; an invalid co-signature never invalidates the block.
 - Signatures are over a domain-separated, length-prefixed **preimage** of the signed fields (not the wire bytes), so they're independent of encoder ordering. Wire format is deterministic Protobuf.
+
+### `encryption` — audience-scoped AEAD (#5)
+
+Faithful to [`protocol/specs/encryption.md`](../protocol/specs/encryption.md):
+
+- **`ContentKey`** — per-block key via HKDF-SHA256 from the audience secret, mixing in the block nonce.
+- **`EncryptData` / `DecryptData`** — XChaCha20-Poly1305; `data = 24-byte nonce ‖ ciphertext+tag`; block metadata (`version‖type_code‖audience_code‖timestamp`) bound as **AAD**, so tampering it fails decryption.
+- Agnostic to where the audience secret comes from (public audiences → #6, connections → #7). Inherently public block types skip this layer and store plaintext.
 
 ## Develop
 

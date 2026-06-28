@@ -17,6 +17,7 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`block`](./block) | ✅ implemented | #4 |
 | [`encryption`](./encryption) | ✅ implemented | #5 |
 | [`audiences`](./audiences) | ✅ implemented | #6 |
+| [`connections`](./connections) | ✅ implemented | #7 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -71,6 +72,15 @@ Faithful to [`protocol/specs/audiences.md`](../protocol/specs/audiences.md):
 - **Public audiences** `public-1 … public-16` (world-scoped): `PublicAudience` / `PublicAudienceSecret` derive code + 32-byte secret; only World-seed holders can derive the secret. Feeds the `encryption` AEAD layer.
 - **Inbox audiences** (`…/inbox/<address>`): per-identity rendezvous; `InboxAudience` derives a code (no secret).
 - **`Registry`** — the local code → audience map for resolving a received block's `audience_code` to its secret.
+
+### `connections` — connect.* handshake, rotation & replay (#7)
+
+Faithful to [`protocol/specs/connections.md`](../protocol/specs/connections.md):
+
+- **Handshake:** `StartRequest` → `AcceptRequest` → `Complete` runs the two-message ML-KEM768 exchange (initiator ephemeral key + responder static key); both parties derive the **same** private audience secret/code.
+- **Rotation:** `Rotate` / `ApplyRotate` advance to a new epoch with fresh KEM entropy (forward ratchet); `BuildClose` tears down.
+- **`ReplayGuard`** — rejects replayed `(target, nonce)` pairs and stale timestamps (default ±300 s).
+- Resolved a spec ambiguity: the rotation HKDF salt is the rotation ciphertext `ct3` (clarified in `connections.md`).
 
 ## Develop
 

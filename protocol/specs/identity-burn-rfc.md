@@ -1,7 +1,7 @@
 ---
 Title: RFC: Burnable Identities and the Post-Truth State in Cryptographic Protocols
 Version: 0.1.0
-Last Updated: 2025-05-01
+Last Updated: 2026-06-28
 Status: Draft
 License: CC0
 Canonical URL: https://bpprotocol.org/specs/identity-burn-rfc
@@ -46,14 +46,49 @@ Instead, it **embraces ambiguity** as a valid trust layer.
 
 ### 5.1 Key Disclosure
 
-To burn an identity, the user publishes their root private key in a verifiable context (e.g., as a signed block, a publicly gossiped message, or a post to a known mirror).
+To burn an identity, the user publishes their root private keys inside an [`identity.burn`](./block-types.md) block. Because the keys are revealed, *anyone* can thereafter forge blocks from the identity — which is precisely the point.
 
-This burn signal can include:
-- The root private key itself (in base64, PEM, etc.)
-- A timestamp
-- A burn signature (e.g., signed message stating intent)
+### 5.2 Burn Block Format
 
-### 5.2 Revocation vs Poisoning
+The `identity.burn` payload (proto `IdentityBurn`, see [Block Types](./block-types.md)) carries:
+
+```json
+{
+  "identity":            "<identity_address>",
+  "revealed_dilithium":  "<base64 dilithiumKey.private>",
+  "revealed_kyber":      "<base64 kyberKey.private>",
+  "burn_notice":         "voluntary"
+}
+```
+
+- `revealed_dilithium` / `revealed_kyber` — the identity's root **private** keys, the material that puts the identity into the post-truth state. Both are revealed so the whole identity (authorship *and* prior private-audience confidentiality) is repudiated.
+- `burn_notice` — a reason enum: `voluntary` | `compromised` | `rotated` | `other`.
+- The block is normally a [plaintext block](./encryption.md) addressed to a [public audience](./audiences.md) so it is world-readable.
+
+### 5.3 Verification
+
+A client treats a burn as **genuine** only if the revealed private keys actually belong to the named identity:
+
+```ts
+function VerifyBurn(burn, world):
+  d = DilithiumPairFromPrivate(burn.revealed_dilithium)
+  k = KyberPairFromPrivate(burn.revealed_kyber)
+  return BytesToAddress(d.pub, k.pub) == burn.identity
+```
+
+This check requires no trusted registry: the revealed keys either re-derive the identity's address (per [Derivations](./derivations.md)) or they do not. A burn whose keys do not match the claimed address is ignored.
+
+> ⚠️ **No anti-replay, by design.** Once the keys are public, anyone can publish a fresh, validly-signed `identity.burn` for that identity at any time. There is no meaningful "first" or "authentic" burn after disclosure — possession of the keys *is* the burn. Clients therefore key their trust decisions off the *fact of disclosure*, not off any single burn block's timestamp.
+
+### 5.4 Client Behavior in the Post-Truth State
+
+Once a client has verified a burn for an identity, it SHOULD:
+
+- Mark **all** blocks authored by that identity — both before and after the burn timestamp — as `contested` / `unverifiable`. Pre- and post-burn blocks are cryptographically indistinguishable from forgeries once the key is public, so a timestamp cutoff offers only heuristic, not cryptographic, assurance.
+- Continue to *store and display* such blocks if it wishes (burning is not deletion) but surface their contested status in the UI.
+- Optionally apply user-chosen heuristics (e.g. "trust blocks I personally saw mirrored before the burn"), understanding these are social, not cryptographic, judgments.
+
+### 5.5 Revocation vs Poisoning
 
 Traditional revocation is binary and trusted: "This key is revoked via registry."
 Burning is subjective and decentralized: "This key is now public. Trust at your own risk."
@@ -71,10 +106,10 @@ There is no global truth. Only context. This is the essence of the Post-Truth St
 
 ## 7. Implementation Recommendations
 
-- Protocols should support identity burn messages as a first-class type.
-- Clients should maintain local trust models for burned identities.
+- BlockParty supports identity burn as the first-class [`identity.burn`](./block-types.md) block type (§5.2).
+- Clients should maintain local trust models for burned identities, verifying disclosure per §5.3 and applying the post-truth behavior in §5.4.
 - Blocks signed by burned keys may remain technically valid, but clients should annotate them as "unverifiable" or "contested."
-- Time-based heuristics (e.g., trusting pre-burn blocks but not post-burn ones) may be implemented per user preference.
+- Time-based heuristics (e.g., trusting pre-burn blocks but not post-burn ones) may be implemented per user preference, with the caveat in §5.4 that they are social rather than cryptographic.
 
 ## 8. Use Cases
 

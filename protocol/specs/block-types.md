@@ -1,7 +1,7 @@
 ---
 Title: Block Types and Type Identifiers
 Version: 0.1.0
-Last Updated: 2025-05-01
+Last Updated: 2026-06-28
 Status: Draft
 License: CC0
 Canonical URL: https://bpprotocol.org/specs/block-types
@@ -70,14 +70,14 @@ Acknowledgement of a tag request.
 ### `content.chunked.manifest`
 **Type:** `bpprotocol.org/v1/types/content.chunked.manifest`
 
-A manifest for progressively loadable content.
+A manifest for progressively loadable streamable content (application layer; see §"Chunked Data"). `chunks` is an ordered list of `content.chunked.block` block IDs.
 ```json
 {
   "headers": {
-    "Content-Type": "video/mp4"
+    "bpprotocol.org/v1/content-type": "video/mp4"
   },
-  "chunks": ["chunk1_id", "chunk2_id"],
-  "sha512": "<full_data_hash>"
+  "chunks": ["<chunk_block_id_1>", "<chunk_block_id_2>"],
+  "sha512": "<digest of reassembled bytes>"
 }
 ```
 
@@ -151,55 +151,59 @@ The quoted block is not duplicated or mirrored unless already visible. This bloc
 
 ## 🤝 Connections & Relationships
 
+These blocks form the post-quantum connection handshake. The full protocol — key agreement, private-audience derivation, replay protection, and rotation — is specified in [Connections](./connections.md); the schemas below are the on-the-wire payloads.
+
 ### `connect.request`
 **Type:** `bpprotocol.org/v1/types/connect.request`
 
-A request to initiate a private connection.
+Initiates a private connection. Sent to the target's inbox audience. `init_kem_pub` is the initiator's ephemeral ML-KEM768 public key; `kem_ciphertext` is encapsulated to the target's static `kyberKey.pub`.
 ```json
 {
   "target": "<identity_address>",
-  "nonce": "<random_number>"
+  "init_kem_pub": "<base64 ephemeral ML-KEM768 public key>",
+  "kem_ciphertext": "<base64 ML-KEM768 ciphertext>",
+  "nonce": "<base64 random(32)>"
 }
 ```
 
 ### `connect.response`
 **Type:** `bpprotocol.org/v1/types/connect.response`
 
-Completes the connection by responding to the request.
+Completes the handshake. `kem_ciphertext` is encapsulated to the initiator's `init_kem_pub`; both parties then derive the shared connection secret and private audience.
 ```json
 {
   "request": "<connect_request_block_id>",
-  "nonce_response": "<derived_number>"
+  "kem_ciphertext": "<base64 ML-KEM768 ciphertext>",
+  "nonce_response": "<base64 random(32)>"
 }
 ```
 
 ### `connect.identity`
 **Type:** `bpprotocol.org/v1/types/connect.identity`
 
-Reveals private metadata after connection.
+Reveals private metadata, **encrypted to the newly derived private audience**. `keys` are any additional public keys shared within the connection.
 ```json
 {
-  "identity": {
-    "name": "Alice",
-    "keys": ["<channel_key>"]
-  }
+  "name": "Alice",
+  "keys": ["<additional_pubkey>", "..."]
 }
 ```
 
 ### `connect.rotate`
 **Type:** `bpprotocol.org/v1/types/connect.rotate`
 
-Signals a rotation of keys or private audiences.
+Advances the connection to a new epoch with fresh KEM entropy (forward ratchet). `new_channel` is the hex audience code of the next epoch; `kem_ciphertext` is the fresh contribution. See [Connections](./connections.md) §"Rotation".
 ```json
 {
-  "new_channel": "<new_key>"
+  "new_channel": "<hex audience_code of next epoch>",
+  "kem_ciphertext": "<base64 ML-KEM768 ciphertext>"
 }
 ```
 
 ### `connect.close`
 **Type:** `bpprotocol.org/v1/types/connect.close`
 
-Notifies the peer of relationship closure.
+Notifies the peer of relationship closure. `reason` ∈ `rotated_keys` | `closed` | `compromised` | `expired` | `other`.
 ```json
 {
   "target": "<identity_address>",
@@ -214,44 +218,64 @@ Notifies the peer of relationship closure.
 ### `identity`
 **Type:** `bpprotocol.org/v1/types/identity`
 
-Declares an identity and its metadata.
+Declares an identity and its public keys. Normally a [plaintext block](./encryption.md) on a [public audience](./audiences.md). `public_keys` are the identity's `dilithiumKey.pub` and `kyberKey.pub` (the material peers need to verify authorship and open [connections](./connections.md)).
 ```json
 {
   "name": "Alice",
-  "public_keys": ["<key1>", "<key2>"]
+  "public_keys": ["<dilithium_pub>", "<kyber_pub>"]
 }
 ```
 
 ### `identity.burn`
 **Type:** `bpprotocol.org/v1/types/identity.burn`
 
-Burns the root key, entering a post-truth state.
+Burns the identity by **revealing its root private keys**, entering the post-truth state. Verification and client behavior are specified in the [Identity Burn RFC](./identity-burn-rfc.md) §5. Normally a plaintext block on a public audience so it is world-readable.
 ```json
 {
   "identity": "<identity_address>",
+  "revealed_dilithium": "<base64 dilithiumKey.private>",
+  "revealed_kyber": "<base64 kyberKey.private>",
   "burn_notice": "voluntary"
 }
 ```
+- `burn_notice` ∈ `voluntary` | `compromised` | `rotated` | `other`.
 
 ---
 
-## 🔗 Chunked Data (Non-Streamed)
+## 🔗 Chunked Data
+
+BlockParty defines **two** chunking systems with distinct roles — choose by layer:
+
+| System | Purpose | Carries MIME headers? |
+|--------|---------|-----------------------|
+| `chunk.*` | **Transport/storage layer** — fragment any serialized block or blob that is too large for a single transport unit (QR frame, BLE MTU, etc.), to be reassembled verbatim. Opaque bytes. | No |
+| `content.chunked.*` | **Application layer** — a *streamable content item* (large video, audio) with MIME headers, progressively loadable as a post. | Yes (manifest) |
+
+### Reassembly (both systems)
+
+In both, the manifest's `chunks` array is an **ordered list of the block IDs** of the corresponding chunk blocks. To reconstruct:
+
+1. Resolve each block ID in `chunks` order.
+2. Concatenate each chunk block's `data` payload in that order.
+3. Verify `SHA-512` of the concatenated bytes equals the manifest's `sha512`; reject on mismatch.
+
+Per-chunk integrity is provided by the chunk block IDs themselves (content-binding, per [Derivations](./derivations.md) `GetBlockID`). A missing chunk leaves the content incomplete; clients may retry retrieval or surface a partial/unavailable state.
 
 ### `chunk.manifest`
 **Type:** `bpprotocol.org/v1/types/chunk.manifest`
 
-Describes a reassemblable blob.
+Describes a reassemblable blob (transport/storage layer).
 ```json
 {
-  "chunks": ["chunk1", "chunk2"],
-  "sha512": "<digest>"
+  "chunks": ["<chunk_block_id_1>", "<chunk_block_id_2>"],
+  "sha512": "<digest of reassembled bytes>"
 }
 ```
 
 ### `chunk.block`
 **Type:** `bpprotocol.org/v1/types/chunk.block`
 
-Contains binary payload data.
+Contains one fragment of binary payload data.
 ```json
 {
   "data": "<binary_data>"
@@ -303,7 +327,9 @@ A response to a previous `rpc.request`, using the same ID for correlation.
 ### `rpc.render`  
 **Type:** `bpprotocol.org/v1/types/rpc.render`
 
-A dynamic, local-only render instruction. The block describes a method and parameters. If the client recognizes the method, it generates a `content.post`-compatible structure and renders it **as if it were a post**. No response block is created — this is a one-way, ephemeral local render.
+A dynamic, **local-only** render instruction. It reuses the block *shape* for uniformity but is never an on-the-wire block: a client constructs it internally (or derives it from local state) and, if it recognizes the `method`, generates a `content.post`-compatible structure and renders it **as if it were a post**. No response block is created — this is a one-way, ephemeral local render.
+
+> ⚠️ A `rpc.render` is **never serialized, signed, encrypted, or transmitted**. It carries no `world_sig`/`author_sig` because it never leaves the client. If a client receives something claiming to be a `rpc.render` over a transport, it MUST discard it. To send instructions to a peer, use [`rpc.request`](#rpc-request) instead.
 
 ```json
 {
@@ -316,7 +342,7 @@ A dynamic, local-only render instruction. The block describes a method and param
 ```
 
 - `id` *(optional)*: Correlation or invocation ID  
-- `method`: A **canonical domain-scoped identifier** specifying the rendering logic  
+- `method`: A **canonical domain-scoped identifier** specifying the rendering logic. There is **no global method registry** — render methods are defined by whoever implements them (under their own namespace) and clients support whichever they choose; unknown methods are ignored.
 - `params`: Arbitrary key-value data passed to the render handler
 
 **Client behavior:**  

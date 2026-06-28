@@ -1,7 +1,7 @@
 ---
 Title: Core RPC Methods
 Version: 0.1.0
-Last Updated: 2025-05-02
+Last Updated: 2026-06-28
 Status: Draft
 License: CC0
 Canonical URL: https://bpprotocol.org/specs/rpc
@@ -61,6 +61,7 @@ A client sends a ping at `1746396000` and receives a response at `1746396005`:
 ## 📘 Future Notes
 - Other core methods may be defined later but should be minimal and optional
 - Complex APIs and streaming protocols should be negotiated via rallypoints using domain-specific `protocol` strings
+- **`rpc.request` vs `rpc.render`:** an [`rpc.request`](./block-types.md#-rpc-interaction) is a real signed block sent to a peer (which may answer with `rpc.response`); an [`rpc.render`](./block-types.md) is a **local-only** instruction a client renders into a `content.post`-shaped view and never transmits. Render methods have no global registry — clients support whichever they implement.
 
 > "Ping is not a feature. It's a signal that connection is still possible."
 

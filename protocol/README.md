@@ -24,9 +24,13 @@ protocol/
 
 ## ✦ Key Specifications
 
-- 🔐 [Block Structure](./specs/block.md) — Core schema for all blocks
+- 🔐 [Block Structure](./specs/block.md) — Core schema, signatures, and co-signatures for all blocks
 - 🧠 [Deterministic Derivations](./specs/derivations.md) — How identities, audiences, types, and block IDs are computed
 - 🧱 [Block Types](./specs/block-types.md) — Canonical domain-scoped block types and their structures
+- 🔒 [Block Encryption](./specs/encryption.md) — Audience-scoped AEAD (ML-KEM768 → HKDF → XChaCha20-Poly1305)
+- 🧬 [Identity](./specs/identity.md) & [Identity Burn RFC](./specs/identity-burn-rfc.md) — Key derivation, address, and the post-truth state
+- 🤝 [Connections](./specs/connections.md) — The `connect.*` post-quantum handshake and private audiences
+- 👥 [Audiences](./specs/audiences.md) — Audience model and public-audience derivation
 - 📎 [MIME Header Conventions](./specs/mime-header-conventions.md) — For typed `content.post` and `chunked` messages
 
 All documents in this directory are versioned and follow semver via the `VERSION` file.

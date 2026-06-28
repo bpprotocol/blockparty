@@ -1,7 +1,7 @@
 ---
 Title: BlockParty Protocol Whitepaper
 Version: 0.1.0
-Last Updated: 2025-05-04
+Last Updated: 2026-06-28
 Status: Draft
 License: CC0
 Canonical URL: https://bpprotocol.org/whitepaper
@@ -140,9 +140,10 @@ bpprotocol.org/v1/audience/public-3
 - **Open Access:** Anyone knowing the public audience derivation can publish to and read from these spaces.
 - **Discovery:** New clients may prioritize connecting to public audiences to bootstrap social interactions.
 - **Extensibility:** New public audiences can be added by simple numeric extension.
+- **World-scoped:** Public audiences are still derived through the World's audience salt, so `public-1` in one World is cryptographically unrelated to `public-1` in another. They are open *within* a World, not globally.
 - **No Enforcement:** Participation is based on voluntary mirroring; there are no central servers or coordinators.
 
-Public audiences act as distributed "town squares" without compromising the decentralized, censorship-resistant nature of the protocol.
+Public audiences act as distributed "town squares" without compromising the decentralized, censorship-resistant nature of the protocol. The reserved set (`public-1` … `public-16`), their derivation, and bootstrapping are specified in the [Audiences specification](https://bpprotocol.org/specs/audiences).
 
 Audience codes are deterministically derived using the scoped world's audience salt. Each audience defines a cryptographic context that governs which keys are used to encrypt and decrypt associated blocks. Access to content is determined by knowledge of the correct audience derivation, not enforced by the protocol itself. Without the right audience knowledge, blocks remain unintelligible.
 
@@ -172,36 +173,36 @@ Identities in BlockParty are derived deterministically from a user-provided pass
 
 The process works as follows:
 
-- Generate a world password from the passphrase and the world's wallet salt.
-- Derive a root keypair for post-quantum encryption (ML-KEM768) using the world password.
-- Derive a root signature keypair for post-quantum signing (Dilithium) using the same password.
-- Generate an address by converting the public encryption key into a shortened address format.
+- Derive a world password from the passphrase and the World's wallet salt (so the same passphrase yields a different identity in each World).
+- Derive a root keypair for post-quantum encryption (ML-KEM768) from a `mlkem`-domain-separated seed.
+- Derive a root signature keypair for post-quantum signing (Dilithium) from a `dilithium`-domain-separated seed.
+- Generate the address by hashing **both** public keys into a shortened, content-binding address.
 
 #### Pseudocode
 
 ```text
 func OpenIdentity(world, walletOptions):
-  worldPassword = GenerateDeterministicSeed(walletOptions.password, world.walletSalt)
+  worldPassword = HKDF(walletOptions.passphrase, world.walletSalt, "bpprotocol.org/v1/identity")
 
-  mlKeyPair = MakeKeyPairMLKEM768("mlkem:" + walletOptions.phrase, worldPassword)
-  dilithiumKeyPair = MakeKeyPairDilithium("dilithium:" + walletOptions.phrase, worldPassword)
+  kyberKey     = MakeKyberPair(HKDF(worldPassword, "", "mlkem"))
+  dilithiumKey = MakeDilithiumPair(HKDF(worldPassword, "", "dilithium"))
 
   return Identity{
-    address: BytesToAddress(mlKeyPair.public),
-    rootKEM: mlKeyPair,
-    rootSig: dilithiumKeyPair,
+    address: BytesToAddress(dilithiumKey.public, kyberKey.public),
+    rootKEM: kyberKey,
+    rootSig: dilithiumKey,
   }
 end
 ```
 
-This model ensures that identities are portable, regenerable, and revocable, while tying them securely to specific World contexts.
+This model ensures that identities are portable, regenerable, and revocable, while tying them securely to specific World contexts. The canonical algorithm — including `BytesToAddress`, which binds both public keys — is defined in the [Identity](https://bpprotocol.org/specs/identity) and [Derivations](https://bpprotocol.org/specs/derivations) specifications.
 
 ### Identity Lifecycle
 
 - **Create:** An identity block is generated and published, announcing the identity address and optional metadata to an audience. Identities themselves exist independently of the block; the block simply makes the existence of the identity discoverable and contextual within a World.
-- **Connect:** Through secure key exchange mechanisms, private audiences are established between users, allowing scoped communication.
-- **Rotate:** Users may rotate their keys and redefine audience scopes, severing stale or compromised relationships without abandoning their entire identity.
-- **Burn:** If the root key is intentionally exposed, it marks the entire identity lineage as invalid, achieving a "post-truth" state and enabling repudiation of past activity.
+- **Connect:** A two-message post-quantum handshake (ML-KEM768 key agreement) establishes a shared secret from which a private audience is derived, allowing scoped, confidential communication. See the [Connections specification](https://bpprotocol.org/specs/connections).
+- **Rotate:** Users advance a connection to a new epoch with fresh key material (`connect.rotate`), severing stale or compromised relationships without abandoning their entire identity.
+- **Burn:** Publishing an `identity.burn` block that reveals the identity's root private keys marks the entire identity lineage as contested, achieving a "post-truth" state and enabling repudiation of past activity. See the [Identity Burn RFC](https://bpprotocol.org/specs/identity-burn-rfc).
 
 ### Trust Philosophy
 
@@ -265,18 +266,18 @@ Storage and transmission are fundamentally treated the same—serialization of b
 
 BlockParty integrates cryptography that anticipates both current and post-quantum threat models:
 
-Each block's authenticity is layered through two signatures:
+Each block's authenticity is layered through two Dilithium signatures:
 
-- **World Signature**: A Dilithium signature validating that the block belongs to a specific World. It signs over the block ID, version, type code, audience code, timestamp, and encrypted data blob. Any client can verify this signature to confirm world membership without decrypting the block.
-- **Author Signature**: A signature by the author's root signing key, endorsing the previously generated World Signature. This authenticates authorship while preserving the World context.
+- **World Signature**: A Dilithium signature, produced by the World's signing key, validating that the block belongs to a specific World. It signs over the block ID, version, type code, audience code, timestamp, and encrypted data blob. Any client can verify this signature to confirm world membership without decrypting the block.
+- **Author Signature**: A signature by the author's root Dilithium signing key, endorsing the previously generated World Signature. This authenticates authorship while preserving the World context.
 
 Further cryptographic protections include:
 
-- **ML-KEM768 (formerly CRYSTALS-Kyber)** for post-quantum key agreement, enabling block encryption scoped to audience-derived keys.
-- **Dilithium** for post-quantum signatures, providing block-level authenticity.
-- **Per-block encryption** ensures that each block’s payload is accessible only to the intended audience.
+- **ML-KEM768 (formerly CRYSTALS-Kyber)** for post-quantum key agreement, establishing the shared secret from which audience encryption keys are derived.
+- **Dilithium** for post-quantum signatures — author, World, and co-signatures alike.
+- **Per-block AEAD encryption** using XChaCha20-Poly1305, keyed via HKDF-SHA256 from the audience secret, with block metadata bound as additional authenticated data, ensuring each block's payload is accessible only to the intended audience and that metadata is tamper-evident. See the [Block Encryption specification](https://bpprotocol.org/specs/encryption).
 - **World signature + Author signature** are layered onto each block, validating both global (World) context and individual authorship.
-- **Optional co-signatures** enable multi-party validation, allowing blocks to reflect consensus or endorsement beyond a single actor.
+- **Optional co-signatures** let additional identities endorse or witness a block. The core treats each as an independent, per-signer endorsement; threshold, quorum, and multi-party-consensus schemes are built on top of this primitive as extensions, not assumed by the core.
 
 Transport security is external to the protocol; BlockParty focuses strictly on block-level integrity and confidentiality. Block validity is subordinate to trust state. If an identity enters post-truth state, previously valid blocks may be disregarded.
 
@@ -325,7 +326,7 @@ For a deeper exploration of the principles that shape BlockParty, see the [Block
 BlockParty’s minimalist core leaves room for organic, community-driven innovation. Future expansions may deepen functionality while preserving the protocol’s foundational values of decentralization, ephemeralism, and user sovereignty. Key directions include:
 
 ### Dynamic User Experiences
-- **Dynamic components via `rpc.render`**: Enabling clients to generate local, ephemeral content experiences without permanent block creation or server calls. Supports more interactive, personalized interfaces without sacrificing resilience.
+- **Dynamic components via `rpc.render`**: Enabling clients to generate local, ephemeral content experiences without permanent block creation or server calls. A `rpc.render` is a **local-only** instruction — never serialized, signed, or transmitted — that a client turns into a `content.post`-shaped view. Supports more interactive, personalized interfaces without sacrificing resilience.
 
 ### Portable Services and Social Graphs
 - **Portable services**: Developing shared inboxes, friend graphs, and lightweight reputation systems that function across Worlds and transports without central servers.
@@ -430,6 +431,10 @@ The primary risks associated with transport diversity relate to delivery reliabi
   - **Required header**: `bpprotocol.org/v1/content-type`
   - Clients must safely ignore unknown headers.\
     Full standards are provided in the [MIME Header Conventions Specification](https://bpprotocol.org/specs/mime-header-conventions).
+
+- **Block Encryption**\
+  Audience-scoped payloads use ML-KEM768 key agreement → HKDF-SHA256 → XChaCha20-Poly1305 AEAD, with block metadata bound as additional authenticated data. Audience secrets are established per-World for public audiences and per-connection for private ones.\
+  Full details are provided in the [Block Encryption](https://bpprotocol.org/specs/encryption), [Audiences](https://bpprotocol.org/specs/audiences), and [Connections](https://bpprotocol.org/specs/connections) specifications.
 
 ### Recommended Reading
 

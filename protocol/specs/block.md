@@ -1,7 +1,7 @@
 ---
 Title: Block Structure and Semantics
 Version: 0.1.0
-Last Updated: 2025-05-01
+Last Updated: 2026-06-28
 Status: Draft
 License: CC0
 Canonical URL: https://bpprotocol.org/specs/block
@@ -31,38 +31,58 @@ Each block consists of the following fields:
 
 | Field           | Type     | Description |
 |-----------------|----------|-------------|
-| `version`       | String   | Protocol version identifier (e.g. `"1.0.0"`) |
-| `id`            | String   | Deterministically derived block ID (hash of entire block content excluding signatures) |
+| `version`       | uint32   | Numeric protocol version (e.g. `1`). Matches the `version` field in [block.proto](../proto/v1/block.proto). |
+| `id`            | Bytes    | Deterministically derived block ID — see [Derivations](./derivations.md) `GetBlockID` |
 | `type_code`     | Bytes    | Hashed type identifier (world-scoped) |
 | `audience_code` | Bytes    | Hashed audience identifier (world-scoped) |
 | `timestamp`     | Integer  | Unix timestamp in seconds |
-| `data`          | Bytes    | Encrypted or plaintext payload (e.g. JSON) |
-| `world_sig`     | Bytes    | Post-quantum signature from World key |
-| `author_sig`    | Bytes    | Signature from author's root signing key |
+| `data`          | Bytes    | Encrypted or plaintext payload — see [Block Encryption](./encryption.md) |
+| `sigs.world`    | Bytes    | Dilithium signature from the World key |
+| `sigs.author`   | Bytes    | Dilithium signature from the author's root signing key |
+| `sigs.extra[]`  | ExtraSignature | Optional co-signatures (see §"Co-Signatures") |
+
+The wire field names follow [block.proto](../proto/v1/block.proto): the three signatures live in a `Signatures` bundle (`world`, `author`, `extra`).
 
 ---
 
 ## 🔐 Signing and Verification
 
-Each block carries **two signatures**:
+Each block carries **two required Dilithium signatures**:
 
-1. **World Signature (`world_sig`)**  
+1. **World Signature (`sigs.world`)**  
    - Validates that the block is scoped to a particular World  
-   - Signed over: `version`, `id`, `type_code`, `audience_code`, `timestamp`, `data`
+   - Produced by `World.SigningKey` (a Dilithium keypair — see [Derivations](./derivations.md) §"World Key + Salts")  
+   - Signed over: `version`, `id`, `type_code`, `audience_code`, `timestamp`, `data`  
+   - Any holder of the World seed can verify world membership without decrypting `data`.
 
-2. **Author Signature (`author_sig`)**  
+2. **Author Signature (`sigs.author`)**  
    - Validates that the author endorses this block  
-   - Signed over: the full content including `world_sig`
+   - Produced by the author's `dilithiumKey` (see [Identity](./identity.md))  
+   - Signed over: the full content including `sigs.world`
 
-**Note:** Some block types (e.g. identity burn, RPC) may use additional co-signatures or proofs in future extensions.
+Clients **must verify** both signatures before trusting a block.
+
+### Co-Signatures
+
+The optional `sigs.extra[]` array carries **co-signatures** — additional Dilithium signatures by other identities over the canonical block bytes (including `sigs.author`). Each `ExtraSignature` has:
+
+- `type` — a namespaced string giving the co-signature's meaning (e.g. `bpprotocol.org/v1/cosign.endorse`, `bpprotocol.org/v1/cosign.witness`).
+- `sig` — the Dilithium signature bytes.
+
+Verification rules:
+
+- Each co-signature is verified **independently** against its signer's public key; an unverifiable co-signature is simply ignored, never invalidating the block.
+- The core protocol assigns **no consensus semantics** to co-signatures — they are per-signer endorsements, not Byzantine agreement. Threshold, quorum, or multi-party-consensus schemes are **extension-layer** constructs built on top of this primitive (see [Extensions](./extensions/index.md), e.g. chainlets), not part of the core.
 
 ---
 
 ## 🧮 ID and Code Derivation
 
-- **Block ID** is computed as the hash (e.g. Keccak-256) of all block fields *except* the `id` and signatures.  
-- **Type Code** is the hash of the block’s canonical type string, salted by the World’s type salt.  
-- **Audience Code** is the hash of the intended audience string, salted by the World’s audience salt.
+All three are defined canonically in [Derivations](./derivations.md); this spec does not redefine them:
+
+- **Block ID** — `GetBlockID(version, timestamp, audience_code, address, type_code, data)`. It binds the payload (`Keccak256(data)`), so it is content-binding: any change to `data` changes the `id`.
+- **Type Code** — `GetTypeCode(world, canonicalType)`: Keccak-256 over the type URN salted by the World's `TypeSalt`.
+- **Audience Code** — `GetAudienceCode(world, audienceID)`: Keccak-256 over the audience identifier salted by the World's `AudienceSalt`.
 
 Deterministic derivation ensures interoperability without central coordination.
 
@@ -70,12 +90,13 @@ Deterministic derivation ensures interoperability without central coordination.
 
 ## 🔒 Encryption and Privacy
 
-The `data` field is **audience-scoped encrypted** using a symmetric or derived key:
+The `data` field is **audience-scoped encrypted**. The full scheme is defined in [Block Encryption](./encryption.md): an ML-KEM768 key agreement establishes an audience secret, HKDF-SHA256 derives a per-block content key, and XChaCha20-Poly1305 (AEAD) encrypts the payload with `version‖type_code‖audience_code‖timestamp` bound as additional authenticated data.
 
-- If the recipient lacks the audience key, they cannot decrypt the payload.
-- Metadata such as `timestamp`, `type_code`, and `audience_code` are visible, but not meaningful without type mappings or keys.
+- If the recipient cannot derive the audience secret, they cannot decrypt the payload, and the block appears as an opaque stub.
+- Metadata such as `timestamp`, `type_code`, and `audience_code` are visible but not meaningful without type/audience mappings; because they are bound as AEAD AAD, tampering with them causes decryption to fail.
+- A block type MAY define a [plaintext block](./encryption.md) where the payload is inherently public (e.g. `identity`, `identity.burn`).
 
-Payloads are typically JSON-encoded before encryption, unless the block type defines a binary format.
+Payloads are serialized (Protobuf, or JSON where a block type defines it) before encryption.
 
 ---
 
@@ -101,7 +122,7 @@ The protocol does not define a transport layer — blocks may be transmitted via
 
 **⚠️ Canonical Encoding Requirement:**
 All BlockParty blocks **must be serialized as Protocol Buffers** for transmission or storage.
-This ensures consistent wire compatibility and interoperability across clients. The Protobuf schema is defined in [block.proto](./proto/blockparty/v1/block.proto)
+This ensures consistent wire compatibility and interoperability across clients. The Protobuf schema is defined in [block.proto](../proto/v1/block.proto).
 
 ---
 
@@ -109,8 +130,11 @@ This ensures consistent wire compatibility and interoperability across clients. 
 
 - [Block Types and Type Identifiers](./block-types.md)
 - [Derivations](./derivations.md)
+- [Block Encryption](./encryption.md)
+- [Audiences](./audiences.md)
+- [Connections](./connections.md)
 - [MIME Header Conventions](./mime-header-conventions.md)
-- [Whitepaper](../docs/whitepaper.md)
+- [Whitepaper](../whitepaper.md)
 
 ---
 

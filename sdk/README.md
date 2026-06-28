@@ -16,6 +16,7 @@ Module path: `github.com/bpprotocol/blockparty/sdk`
 | [`blockpb`](./blockpb) | ✅ generated | #4 |
 | [`block`](./block) | ✅ implemented | #4 |
 | [`encryption`](./encryption) | ✅ implemented | #5 |
+| [`audiences`](./audiences) | ✅ implemented | #6 |
 
 ### `crypto` — primitives & deterministic key generation (#2)
 
@@ -62,6 +63,14 @@ Faithful to [`protocol/specs/encryption.md`](../protocol/specs/encryption.md):
 - **`ContentKey`** — per-block key via HKDF-SHA256 from the audience secret, mixing in the block nonce.
 - **`EncryptData` / `DecryptData`** — XChaCha20-Poly1305; `data = 24-byte nonce ‖ ciphertext+tag`; block metadata (`version‖type_code‖audience_code‖timestamp`) bound as **AAD**, so tampering it fails decryption.
 - Agnostic to where the audience secret comes from (public audiences → #6, connections → #7). Inherently public block types skip this layer and store plaintext.
+
+### `audiences` — public audiences & inbox rendezvous (#6)
+
+Faithful to [`protocol/specs/audiences.md`](../protocol/specs/audiences.md):
+
+- **Public audiences** `public-1 … public-16` (world-scoped): `PublicAudience` / `PublicAudienceSecret` derive code + 32-byte secret; only World-seed holders can derive the secret. Feeds the `encryption` AEAD layer.
+- **Inbox audiences** (`…/inbox/<address>`): per-identity rendezvous; `InboxAudience` derives a code (no secret).
+- **`Registry`** — the local code → audience map for resolving a received block's `audience_code` to its secret.
 
 ## Develop
 

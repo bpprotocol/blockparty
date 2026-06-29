@@ -4,7 +4,7 @@ Headless daemon that participates in a **single World's** block-exchange network
 
 It is an **application built on the Go reference SDK** ([`../implementations/go`](../implementations/go)) — its own Go module (`github.com/bpprotocol/blockparty/node`) so heavy networking/storage deps stay out of the lean SDK. The SDK provides all protocol logic; the node adds networking, persistence, and the client API.
 
-> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)) + keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)). Config, mode selection, the operational API server, graceful lifecycle, the block store/index, and the personal-mode keystore are in place. libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
+> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)) + keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)) + World guard ([#31](https://github.com/bpprotocol/blockparty/issues/31)). Config, mode selection, the operational API server, graceful lifecycle, the block store/index, the personal-mode keystore, and the ingress validation pipeline are in place. libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
 
 ## Modes
 
@@ -84,6 +84,7 @@ node/
     ├── world/         # which World the node serves (personal vs relay)
     ├── keystore/      # encrypted-at-rest secret store; derives keys in memory (#28)
     ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
+    ├── guard/         # ingress validation: world_sig gate → dedupe → author → store (#31)
     ├── api/           # net/http server: /healthz, /statusz (Connect handlers land in #38)
     └── app/           # daemon: wiring + Run(ctx) + graceful shutdown
 ```

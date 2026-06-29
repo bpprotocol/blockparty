@@ -74,6 +74,33 @@ func Verify(b *blockpb.Block, world derive.World, authorPub sign.PublicKey) erro
 	return nil
 }
 
+// VerifyWorld checks only the world signature, against a World public key. This
+// is the World-membership proof and needs nothing but the public key — so a
+// relay that holds no World secret can still validate ingress. A missing
+// world_sig returns ErrMissingSignatures; an invalid one ErrWorldSignature.
+func VerifyWorld(b *blockpb.Block, worldPub sign.PublicKey) error {
+	if b.Sigs == nil || len(b.Sigs.World) == 0 {
+		return ErrMissingSignatures
+	}
+	if !crypto.VerifyMLDSA(worldPub, worldPreimage(b), b.Sigs.World) {
+		return ErrWorldSignature
+	}
+	return nil
+}
+
+// VerifyAuthor checks only the author signature, against an author public key.
+// A missing author_sig returns ErrMissingSignatures; an invalid one
+// ErrAuthorSignature.
+func VerifyAuthor(b *blockpb.Block, authorPub sign.PublicKey) error {
+	if b.Sigs == nil || len(b.Sigs.Author) == 0 {
+		return ErrMissingSignatures
+	}
+	if !crypto.VerifyMLDSA(authorPub, authorPreimage(b), b.Sigs.Author) {
+		return ErrAuthorSignature
+	}
+	return nil
+}
+
 // AddCoSignature appends a co-signature of the given namespaced type, signed by
 // signer over the block's fields plus its world and author signatures. The
 // block must already be signed (Sign) so author_sig is present.

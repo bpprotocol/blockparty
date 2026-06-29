@@ -50,6 +50,35 @@ func TestSignAndVerify(t *testing.T) {
 	}
 }
 
+func TestVerifyWorldAndAuthorSeparately(t *testing.T) {
+	f := newFixture()
+	other := derive.OpenWorld("a-different-world")
+	stranger := identity.OpenIdentity(f.world, "stranger-pass")
+	b := f.signed([]byte("hello"))
+
+	// World signature verifies with only the World public key.
+	if err := VerifyWorld(b, f.world.SigningKey.Public); err != nil {
+		t.Errorf("VerifyWorld on valid block: %v", err)
+	}
+	if err := VerifyWorld(b, other.SigningKey.Public); err != ErrWorldSignature {
+		t.Errorf("VerifyWorld with wrong World = %v, want ErrWorldSignature", err)
+	}
+
+	// Author signature verifies independently of the World.
+	if err := VerifyAuthor(b, f.author.MLDSA.Public); err != nil {
+		t.Errorf("VerifyAuthor on valid block: %v", err)
+	}
+	if err := VerifyAuthor(b, stranger.MLDSA.Public); err != ErrAuthorSignature {
+		t.Errorf("VerifyAuthor with wrong author = %v, want ErrAuthorSignature", err)
+	}
+
+	// Tampering the payload breaks the world signature (it covers data).
+	b.Data = []byte("tampered")
+	if err := VerifyWorld(b, f.world.SigningKey.Public); err != ErrWorldSignature {
+		t.Errorf("VerifyWorld after tamper = %v, want ErrWorldSignature", err)
+	}
+}
+
 func TestNewSetsContentBindingID(t *testing.T) {
 	f := newFixture()
 	a := New(f.author.Address, f.typeCode, f.audCode, testTimestamp, []byte("hello"))

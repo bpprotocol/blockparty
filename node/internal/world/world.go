@@ -8,7 +8,10 @@ package world
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
+
+	"github.com/cloudflare/circl/sign"
 
 	"github.com/bpprotocol/blockparty/implementations/go/crypto"
 	"github.com/bpprotocol/blockparty/implementations/go/derive"
@@ -84,3 +87,12 @@ func (s *State) Mode() config.Mode { return s.mode }
 // PublicKey returns the World ML-DSA-65 public key bytes, or nil if no World is
 // loaded. The slice is owned by the State and must not be mutated.
 func (s *State) PublicKey() []byte { return s.pub }
+
+// SigPublicKey parses the World public key into a verifying key, usable in both
+// modes (personal and relay) to check world_sig. It errors if no World is loaded.
+func (s *State) SigPublicKey() (sign.PublicKey, error) {
+	if len(s.pub) == 0 {
+		return nil, errors.New("world: no World loaded")
+	}
+	return crypto.SigScheme().UnmarshalBinaryPublicKey(s.pub)
+}

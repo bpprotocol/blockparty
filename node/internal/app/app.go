@@ -12,10 +12,17 @@ import (
 
 	"github.com/bpprotocol/blockparty/node/internal/api"
 	"github.com/bpprotocol/blockparty/node/internal/config"
+	"github.com/bpprotocol/blockparty/node/internal/guard"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
 	"github.com/bpprotocol/blockparty/node/internal/store"
 	"github.com/bpprotocol/blockparty/node/internal/world"
+)
+
+// Per-peer ingress limits applied by the World guard.
+const (
+	ingressRatePerSec = 50
+	ingressBurst      = 100
 )
 
 // Version is the bpnode build version.
@@ -32,6 +39,7 @@ type Daemon struct {
 	world    *world.State
 	keystore *keystore.Keystore
 	store    *store.Store
+	guard    *guard.Guard
 	api      *api.Server
 	start    time.Time
 }
@@ -115,6 +123,22 @@ func (d *Daemon) Run(ctx context.Context) error {
 	d.store = st
 	if n, err := st.Count(); err == nil {
 		d.log.Info("storage open", "data_dir", d.cfg.DataDir, "blocks", n)
+	}
+
+	// The World guard (#31) validates all ingress; it needs a loaded World.
+	if d.world.Loaded {
+		pub, err := d.world.SigPublicKey()
+		if err != nil {
+			_ = d.store.Close()
+			return fmt.Errorf("world public key: %w", err)
+		}
+		d.guard = guard.New(pub, d.store,
+			guard.WithRateLimiter(guard.NewRateLimiter(ingressRatePerSec, ingressBurst)),
+			guard.WithLogger(d.log),
+		)
+		d.log.Info("world guard ready", "world", d.world.Fingerprint)
+	} else {
+		d.log.Warn("world guard inactive: no World loaded; ingress validation unavailable until bootstrap", "issue", 38)
 	}
 
 	// The p2p host (#32) is wired in by its issue.

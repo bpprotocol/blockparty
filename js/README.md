@@ -46,7 +46,7 @@ is validated against the shared conformance vectors in
 | `crypto`              | ✅ implemented | #12   |
 | `derive` / `identity` | ✅ implemented | #13   |
 | `block`               | ✅ implemented | #14   |
-| encryption            | ⬜             | #15   |
+| `encryption`          | ✅ implemented | #15   |
 | audiences             | ⬜             | #16   |
 | connections           | ⬜             | #17   |
 | block types           | ⬜             | #18   |
@@ -76,3 +76,9 @@ All derivations reproduce `vectors.json` exactly (salts, codes, address, block I
 The block envelope: `newBlock`/`signBlock`/`verifyBlock`, `addCoSignature`/`verifyCoSignature`, `encode`/`decode`. Wire types are generated from [`../protocol/proto/v1`](../protocol/proto/v1) with [protobuf-es](https://github.com/bufbuild/protobuf-es) into `src/blockpb` (regenerate via `pnpm --filter @blockparty/sdk gen:proto`; needs `protoc`). Signatures are over a domain-separated, length-prefixed preimage shared verbatim with Go.
 
 **Full byte-level interop with Go:** the cross-impl test builds and signs a block and reproduces the Go reference's signed-block `idHex` **and** canonical-encoding fingerprint from `vectors.json` exactly — a Node block is byte-identical to a Go block, so each verifies the other's.
+
+### `encryption` (#15)
+
+Audience-scoped AEAD via [`@noble/ciphers`](https://github.com/paulmillr/noble-ciphers): `contentKey` (HKDF), `aad`, `encryptData`/`decryptData`/`encryptForBlock` using XChaCha20-Poly1305 (`data = 24-byte nonce ‖ ciphertext+tag`, block metadata bound as AAD).
+
+**Cross-impl ciphertext interop both ways:** the test reproduces the Go-sealed ciphertext from `vectors.json` byte-for-byte (Node → Go) **and** decrypts that Go ciphertext back to the plaintext (Go → Node).

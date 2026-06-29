@@ -63,6 +63,13 @@ func EncryptForBlock(audienceSecret []byte, version uint32, typeCode, audienceCo
 	return EncryptData(audienceSecret, audienceCode, plaintext, AAD(version, typeCode, audienceCode, timestamp))
 }
 
+// SealWithNonce is the deterministic core of EncryptData: it performs the AEAD
+// seal with a caller-supplied nonce. Exposed for conformance vectors and
+// deterministic testing; normal callers use EncryptData / EncryptForBlock.
+func SealWithNonce(audienceSecret, audienceCode, nonce, plaintext, aad []byte) ([]byte, error) {
+	return sealWithNonce(audienceSecret, audienceCode, nonce, plaintext, aad)
+}
+
 // sealWithNonce performs the AEAD seal with a caller-supplied nonce. It is the
 // deterministic core of EncryptData, used directly only by tests/vectors.
 func sealWithNonce(audienceSecret, audienceCode, nonce, plaintext, aad []byte) ([]byte, error) {

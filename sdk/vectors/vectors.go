@@ -80,8 +80,10 @@ type AudienceVectors struct {
 type AEADVectors struct {
 	SecretSeed string `json:"secretSeed"`
 	Nonce      string `json:"nonce"`
+	Plaintext  string `json:"plaintext"`
 	ContentKey string `json:"contentKey"`
 	AAD        string `json:"aad"`
+	Data       string `json:"data"` // nonce || ciphertext, deterministic with Nonce
 }
 
 // BlockVectors is a fully-signed block over fixed inputs. The author is the
@@ -114,6 +116,12 @@ func Compute() *Vectors {
 	aeadSecret := crypto.Keccak256([]byte(AEADSecretSeed))
 	contentKey := encryption.ContentKey(aeadSecret, []byte(audCode), []byte(AEADNonce))
 	aad := encryption.AAD(Version, []byte(typeCode), []byte(audCode), Timestamp)
+
+	const aeadPlaintext = "hello, audience"
+	aeadData, err := encryption.SealWithNonce(aeadSecret, []byte(audCode), []byte(AEADNonce), []byte(aeadPlaintext), aad)
+	if err != nil {
+		panic("vectors: sealing AEAD fixture: " + err.Error())
+	}
 
 	const blockData = "hello"
 
@@ -160,8 +168,10 @@ func Compute() *Vectors {
 		AEAD: AEADVectors{
 			SecretSeed: AEADSecretSeed,
 			Nonce:      AEADNonce,
+			Plaintext:  aeadPlaintext,
 			ContentKey: hex.EncodeToString(contentKey),
 			AAD:        hex.EncodeToString(aad),
+			Data:       hex.EncodeToString(aeadData),
 		},
 		Block: BlockVectors{
 			Passphrase:    Passphrase,

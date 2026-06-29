@@ -11,6 +11,8 @@ import (
 
 	"connectrpc.com/connect"
 
+	"github.com/bpprotocol/blockparty/implementations/go/derive"
+	"github.com/bpprotocol/blockparty/node/internal/connections"
 	"github.com/bpprotocol/blockparty/node/internal/core"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
@@ -129,6 +131,76 @@ func (s *Service) SubscribeBlocks(ctx context.Context, req *connect.Request[node
 	}
 }
 
+func (s *Service) GetIdentity(_ context.Context, _ *connect.Request[nodepb.GetIdentityRequest]) (*connect.Response[nodepb.GetIdentityResponse], error) {
+	card, err := s.core.IdentityCard()
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.GetIdentityResponse{
+		Address:  card.Address,
+		KyberPub: card.KyberPub,
+		MldsaPub: card.MLDSAPub,
+	}), nil
+}
+
+func (s *Service) AddPeer(_ context.Context, req *connect.Request[nodepb.AddPeerRequest]) (*connect.Response[nodepb.AddPeerResponse], error) {
+	if err := s.core.AddConnectionPeer(req.Msg.Address, req.Msg.KyberPub, req.Msg.MldsaPub); err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.AddPeerResponse{}), nil
+}
+
+func (s *Service) StartConnection(_ context.Context, req *connect.Request[nodepb.StartConnectionRequest]) (*connect.Response[nodepb.StartConnectionResponse], error) {
+	id, err := s.core.StartConnection(derive.Address(req.Msg.Address))
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.StartConnectionResponse{RequestId: id}), nil
+}
+
+func (s *Service) ListConnections(_ context.Context, _ *connect.Request[nodepb.ListConnectionsRequest]) (*connect.Response[nodepb.ListConnectionsResponse], error) {
+	conns := s.core.Connections()
+	out := make([]*nodepb.ConnectionInfo, 0, len(conns))
+	for _, c := range conns {
+		out = append(out, &nodepb.ConnectionInfo{Peer: c.Peer, Epoch: c.Epoch, AudienceCode: c.AudienceCode})
+	}
+	return connect.NewResponse(&nodepb.ListConnectionsResponse{Connections: out}), nil
+}
+
+func (s *Service) RotateConnection(_ context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	if err := s.core.RotateConnection(req.Msg.Address); err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.ConnectionResult{}), nil
+}
+
+func (s *Service) CloseConnection(_ context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	if err := s.core.CloseConnection(req.Msg.Address); err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.ConnectionResult{}), nil
+}
+
+func (s *Service) SendPrivateText(_ context.Context, req *connect.Request[nodepb.SendPrivateTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {
+	id, err := s.core.SendPrivateText(req.Msg.Address, req.Msg.Text)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.PostTextResponse{Id: id}), nil
+}
+
+func (s *Service) ListConnectionMessages(_ context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error) {
+	msgs, err := s.core.ConnectionMessages(req.Msg.Address)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	out := make([]*nodepb.PrivateMessage, 0, len(msgs))
+	for _, m := range msgs {
+		out = append(out, &nodepb.PrivateMessage{Author: m.Author, Text: m.Text, Timestamp: m.Timestamp})
+	}
+	return connect.NewResponse(&nodepb.ListConnectionMessagesResponse{Messages: out}), nil
+}
+
 func summary(rec *store.Record) *nodepb.BlockSummary {
 	b := rec.Block
 	return &nodepb.BlockSummary{
@@ -152,6 +224,8 @@ func mapErr(err error) error {
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, core.ErrRelayBootstrap):
 		return connect.NewError(connect.CodePermissionDenied, err)
+	case errors.Is(err, connections.ErrNoConnection):
+		return connect.NewError(connect.CodeFailedPrecondition, err)
 	default:
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}

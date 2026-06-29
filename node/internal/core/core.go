@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cloudflare/circl/kem"
 	"github.com/cloudflare/circl/sign"
 
 	"github.com/bpprotocol/blockparty/implementations/go/audiences"
 	"github.com/bpprotocol/blockparty/implementations/go/block"
 	"github.com/bpprotocol/blockparty/implementations/go/blockpb"
 	"github.com/bpprotocol/blockparty/implementations/go/blocktypes"
+	"github.com/bpprotocol/blockparty/implementations/go/crypto"
 	"github.com/bpprotocol/blockparty/implementations/go/derive"
 	bpnode "github.com/bpprotocol/blockparty/implementations/go/node"
 	"github.com/bpprotocol/blockparty/node/internal/config"
@@ -372,16 +372,126 @@ func (c *Core) ListBlocks(f Filter) ([]*store.IndexEntry, error) {
 	}
 }
 
-// AddConnectionPeer registers a known peer (address + public keys) so the node
-// can connect to it and recognize it as the author of an incoming request.
-func (c *Core) AddConnectionPeer(addr derive.Address, kyberPub kem.PublicKey, mldsaPub sign.PublicKey) error {
+// IdentityCard is a node's shareable connection card: its address and public
+// keys, which a peer needs to open a connection.
+type IdentityCard struct {
+	Address  string
+	KyberPub string // hex
+	MLDSAPub string // hex
+}
+
+// PrivateMessage is a decrypted message on a connection's private audience.
+type PrivateMessage struct {
+	Author    string
+	Text      string
+	Timestamp int64
+}
+
+// IdentityCard returns this node's connection card.
+func (c *Core) IdentityCard() (IdentityCard, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.ks == nil {
+		return IdentityCard{}, ErrCannotAuthor
+	}
+	id := c.ks.Identity()
+	return IdentityCard{
+		Address:  string(id.Address),
+		KyberPub: hex.EncodeToString(id.Kyber.PublicBytes()),
+		MLDSAPub: hex.EncodeToString(id.MLDSA.PublicBytes()),
+	}, nil
+}
+
+// AddConnectionPeer registers a known peer from its hex-encoded card.
+func (c *Core) AddConnectionPeer(addr, kyberPubHex, mldsaPubHex string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.conns == nil {
 		return ErrCannotAuthor
 	}
-	c.conns.AddPeer(addr, kyberPub, mldsaPub)
+	kyberBytes, err := hex.DecodeString(kyberPubHex)
+	if err != nil {
+		return fmt.Errorf("core: kyber pub: %w", err)
+	}
+	kyberPub, err := crypto.KEMScheme().UnmarshalBinaryPublicKey(kyberBytes)
+	if err != nil {
+		return fmt.Errorf("core: kyber pub: %w", err)
+	}
+	mldsaBytes, err := hex.DecodeString(mldsaPubHex)
+	if err != nil {
+		return fmt.Errorf("core: mldsa pub: %w", err)
+	}
+	mldsaPub, err := crypto.SigScheme().UnmarshalBinaryPublicKey(mldsaBytes)
+	if err != nil {
+		return fmt.Errorf("core: mldsa pub: %w", err)
+	}
+	c.conns.AddPeer(derive.Address(addr), kyberPub, mldsaPub)
 	return nil
+}
+
+// RotateConnection advances a connection to a new epoch.
+func (c *Core) RotateConnection(addr string) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return ErrCannotAuthor
+	}
+	return c.conns.Rotate(derive.Address(addr))
+}
+
+// CloseConnection tears a connection down.
+func (c *Core) CloseConnection(addr string) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return ErrCannotAuthor
+	}
+	return c.conns.Close(derive.Address(addr))
+}
+
+// SendPrivateText posts an encrypted message on a connection's private audience.
+func (c *Core) SendPrivateText(addr, text string) (string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return "", ErrCannotAuthor
+	}
+	return c.conns.SendText(derive.Address(addr), text)
+}
+
+// ConnectionMessages returns the decrypted messages on a connection's current
+// private audience.
+func (c *Core) ConnectionMessages(addr string) ([]PrivateMessage, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return nil, ErrCannotAuthor
+	}
+	var audHex string
+	for _, ci := range c.conns.Connections() {
+		if ci.Peer == addr {
+			audHex = ci.AudienceCode
+			break
+		}
+	}
+	if audHex == "" {
+		return nil, nil // no connection / no messages yet
+	}
+	entries, err := c.store.ByAudience(audHex)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]PrivateMessage, 0, len(entries))
+	for _, e := range entries {
+		rec, err := c.store.Get(e.ID)
+		if err != nil {
+			continue
+		}
+		if text, ok := c.conns.OpenPrivatePost(rec.Block); ok {
+			out = append(out, PrivateMessage{Author: rec.Author, Text: text, Timestamp: rec.Block.Timestamp})
+		}
+	}
+	return out, nil
 }
 
 // StartConnection initiates a connection handshake to a registered peer.

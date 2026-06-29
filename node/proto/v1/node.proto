@@ -34,6 +34,35 @@ service NodeService {
   // audience after subscription — the live feed (#44). Pair with ListBlocks for
   // the initial backlog.
   rpc SubscribeBlocks(SubscribeBlocksRequest) returns (stream BlockEvent);
+
+  // --- Connections (#46, personal mode) ---
+
+  // GetIdentity returns this node's connection card (address + public keys) to
+  // share out-of-band so a peer can connect.
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+
+  // AddPeer registers a known peer's card so the node can connect to it and
+  // recognize its handshake blocks.
+  rpc AddPeer(AddPeerRequest) returns (AddPeerResponse);
+
+  // StartConnection initiates a connect.request handshake to a registered peer.
+  rpc StartConnection(StartConnectionRequest) returns (StartConnectionResponse);
+
+  // ListConnections lists the node's active connections.
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
+
+  // RotateConnection advances a connection to a new epoch (re-keys the channel).
+  rpc RotateConnection(ConnectionRef) returns (ConnectionResult);
+
+  // CloseConnection tears a connection down and notifies the peer.
+  rpc CloseConnection(ConnectionRef) returns (ConnectionResult);
+
+  // SendPrivateText posts an encrypted message on a connection's private audience.
+  rpc SendPrivateText(SendPrivateTextRequest) returns (PostTextResponse);
+
+  // ListConnectionMessages returns the decrypted messages on a connection's
+  // current private audience.
+  rpc ListConnectionMessages(ConnectionRef) returns (ListConnectionMessagesResponse);
 }
 
 message GetStatusRequest {}
@@ -109,4 +138,54 @@ message SubscribeBlocksRequest {
 
 message BlockEvent {
   BlockSummary summary = 1;
+}
+
+message GetIdentityRequest {}
+message GetIdentityResponse {
+  string address = 1;
+  string kyber_pub = 2; // hex
+  string mldsa_pub = 3; // hex
+}
+
+message AddPeerRequest {
+  string address = 1;
+  string kyber_pub = 2; // hex
+  string mldsa_pub = 3; // hex
+}
+message AddPeerResponse {}
+
+message StartConnectionRequest {
+  string address = 1; // peer address
+}
+message StartConnectionResponse {
+  string request_id = 1; // connect.request block id (correlates the response)
+}
+
+message ConnectionInfo {
+  string peer = 1;
+  uint64 epoch = 2;
+  string audience_code = 3; // current private audience, hex
+}
+message ListConnectionsRequest {}
+message ListConnectionsResponse {
+  repeated ConnectionInfo connections = 1;
+}
+
+message ConnectionRef {
+  string address = 1; // peer address
+}
+message ConnectionResult {}
+
+message SendPrivateTextRequest {
+  string address = 1; // peer address
+  string text = 2;
+}
+
+message PrivateMessage {
+  string author = 1; // hex address ("" if unresolved)
+  string text = 2;
+  int64 timestamp = 3;
+}
+message ListConnectionMessagesResponse {
+  repeated PrivateMessage messages = 1;
 }

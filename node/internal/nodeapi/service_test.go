@@ -12,6 +12,7 @@ import (
 	"connectrpc.com/connect"
 
 	"github.com/bpprotocol/blockparty/implementations/go/audiences"
+	"github.com/bpprotocol/blockparty/implementations/go/blockpb"
 	"github.com/bpprotocol/blockparty/implementations/go/derive"
 	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/config"
@@ -252,6 +253,87 @@ func TestSubscribeBlocksStreamsLivePost(t *testing.T) {
 	}
 	if ev.Summary.AudienceCode != audCode {
 		t.Errorf("event audience = %s, want %s", ev.Summary.AudienceCode, audCode)
+	}
+}
+
+type noopGossiper struct{}
+
+func (noopGossiper) Follow(string) error                  { return nil }
+func (noopGossiper) Publish(string, *blockpb.Block) error { return nil }
+
+// serveCore mounts a token-protected server for an existing core and returns an
+// authenticated client.
+func serveCore(t *testing.T, c *core.Core) nodepbconnect.NodeServiceClient {
+	t.Helper()
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c))
+	mux := http.NewServeMux()
+	mux.Handle(path, authz.RequireToken(token, slog.New(slog.NewTextHandler(io.Discard, nil)))(handler))
+	srv := httptest.NewServer(mux)
+	t.Cleanup(srv.Close)
+	return nodepbconnect.NewNodeServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(authInterceptor{token}))
+}
+
+func TestConnectionRPCs(t *testing.T) {
+	dir := t.TempDir()
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	st, err := store.Open(dir, log)
+	if err != nil {
+		t.Fatalf("store.Open: %v", err)
+	}
+	t.Cleanup(func() { st.Close() })
+
+	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
+	w, _ := world.Load(cfg)
+	c, _ := core.New(cfg, "test", log, st, w, nil)
+	c.SetGossiper(noopGossiper{}) // so the connection manager is built on bootstrap
+
+	client := serveCore(t, c)
+	ctx := context.Background()
+	if _, err := client.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed: seed, IdentityPassphrase: idPass, KeystorePassphrase: ksPass,
+	})); err != nil {
+		t.Fatalf("BootstrapWorld: %v", err)
+	}
+
+	// GetIdentity returns a usable card.
+	card, err := client.GetIdentity(ctx, connect.NewRequest(&nodepb.GetIdentityRequest{}))
+	if err != nil {
+		t.Fatalf("GetIdentity: %v", err)
+	}
+	if card.Msg.Address == "" || card.Msg.KyberPub == "" || card.Msg.MldsaPub == "" {
+		t.Fatalf("incomplete identity card: %+v", card.Msg)
+	}
+
+	// AddPeer accepts that card; a bad hex key is rejected.
+	if _, err := client.AddPeer(ctx, connect.NewRequest(&nodepb.AddPeerRequest{
+		Address: card.Msg.Address, KyberPub: card.Msg.KyberPub, MldsaPub: card.Msg.MldsaPub,
+	})); err != nil {
+		t.Fatalf("AddPeer: %v", err)
+	}
+	if _, err := client.AddPeer(ctx, connect.NewRequest(&nodepb.AddPeerRequest{
+		Address: card.Msg.Address, KyberPub: "zz", MldsaPub: card.Msg.MldsaPub,
+	})); err == nil {
+		t.Error("expected AddPeer with bad key to fail")
+	}
+
+	// StartConnection to a registered peer returns a request id (no peer responds
+	// here, so no connection forms).
+	start, err := client.StartConnection(ctx, connect.NewRequest(&nodepb.StartConnectionRequest{Address: card.Msg.Address}))
+	if err != nil {
+		t.Fatalf("StartConnection: %v", err)
+	}
+	if start.Msg.RequestId == "" {
+		t.Error("expected a request id")
+	}
+	if conns, _ := client.ListConnections(ctx, connect.NewRequest(&nodepb.ListConnectionsRequest{})); len(conns.Msg.Connections) != 0 {
+		t.Errorf("expected no established connections, got %d", len(conns.Msg.Connections))
+	}
+
+	// Operations on a non-existent connection fail cleanly.
+	if _, err := client.SendPrivateText(ctx, connect.NewRequest(&nodepb.SendPrivateTextRequest{
+		Address: card.Msg.Address, Text: "hi",
+	})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Errorf("SendPrivateText(no conn) code = %v, want failed_precondition", connect.CodeOf(err))
 	}
 }
 

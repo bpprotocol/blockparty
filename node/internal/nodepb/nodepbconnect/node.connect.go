@@ -47,6 +47,28 @@ const (
 	// NodeServiceSubscribeBlocksProcedure is the fully-qualified name of the NodeService's
 	// SubscribeBlocks RPC.
 	NodeServiceSubscribeBlocksProcedure = "/blockparty.node.v1.NodeService/SubscribeBlocks"
+	// NodeServiceGetIdentityProcedure is the fully-qualified name of the NodeService's GetIdentity RPC.
+	NodeServiceGetIdentityProcedure = "/blockparty.node.v1.NodeService/GetIdentity"
+	// NodeServiceAddPeerProcedure is the fully-qualified name of the NodeService's AddPeer RPC.
+	NodeServiceAddPeerProcedure = "/blockparty.node.v1.NodeService/AddPeer"
+	// NodeServiceStartConnectionProcedure is the fully-qualified name of the NodeService's
+	// StartConnection RPC.
+	NodeServiceStartConnectionProcedure = "/blockparty.node.v1.NodeService/StartConnection"
+	// NodeServiceListConnectionsProcedure is the fully-qualified name of the NodeService's
+	// ListConnections RPC.
+	NodeServiceListConnectionsProcedure = "/blockparty.node.v1.NodeService/ListConnections"
+	// NodeServiceRotateConnectionProcedure is the fully-qualified name of the NodeService's
+	// RotateConnection RPC.
+	NodeServiceRotateConnectionProcedure = "/blockparty.node.v1.NodeService/RotateConnection"
+	// NodeServiceCloseConnectionProcedure is the fully-qualified name of the NodeService's
+	// CloseConnection RPC.
+	NodeServiceCloseConnectionProcedure = "/blockparty.node.v1.NodeService/CloseConnection"
+	// NodeServiceSendPrivateTextProcedure is the fully-qualified name of the NodeService's
+	// SendPrivateText RPC.
+	NodeServiceSendPrivateTextProcedure = "/blockparty.node.v1.NodeService/SendPrivateText"
+	// NodeServiceListConnectionMessagesProcedure is the fully-qualified name of the NodeService's
+	// ListConnectionMessages RPC.
+	NodeServiceListConnectionMessagesProcedure = "/blockparty.node.v1.NodeService/ListConnectionMessages"
 )
 
 // NodeServiceClient is a client for the blockparty.node.v1.NodeService service.
@@ -71,6 +93,25 @@ type NodeServiceClient interface {
 	// audience after subscription — the live feed (#44). Pair with ListBlocks for
 	// the initial backlog.
 	SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest]) (*connect.ServerStreamForClient[nodepb.BlockEvent], error)
+	// GetIdentity returns this node's connection card (address + public keys) to
+	// share out-of-band so a peer can connect.
+	GetIdentity(context.Context, *connect.Request[nodepb.GetIdentityRequest]) (*connect.Response[nodepb.GetIdentityResponse], error)
+	// AddPeer registers a known peer's card so the node can connect to it and
+	// recognize its handshake blocks.
+	AddPeer(context.Context, *connect.Request[nodepb.AddPeerRequest]) (*connect.Response[nodepb.AddPeerResponse], error)
+	// StartConnection initiates a connect.request handshake to a registered peer.
+	StartConnection(context.Context, *connect.Request[nodepb.StartConnectionRequest]) (*connect.Response[nodepb.StartConnectionResponse], error)
+	// ListConnections lists the node's active connections.
+	ListConnections(context.Context, *connect.Request[nodepb.ListConnectionsRequest]) (*connect.Response[nodepb.ListConnectionsResponse], error)
+	// RotateConnection advances a connection to a new epoch (re-keys the channel).
+	RotateConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error)
+	// CloseConnection tears a connection down and notifies the peer.
+	CloseConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error)
+	// SendPrivateText posts an encrypted message on a connection's private audience.
+	SendPrivateText(context.Context, *connect.Request[nodepb.SendPrivateTextRequest]) (*connect.Response[nodepb.PostTextResponse], error)
+	// ListConnectionMessages returns the decrypted messages on a connection's
+	// current private audience.
+	ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error)
 }
 
 // NewNodeServiceClient constructs a client for the blockparty.node.v1.NodeService service. By
@@ -120,17 +161,73 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(nodeServiceMethods.ByName("SubscribeBlocks")),
 			connect.WithClientOptions(opts...),
 		),
+		getIdentity: connect.NewClient[nodepb.GetIdentityRequest, nodepb.GetIdentityResponse](
+			httpClient,
+			baseURL+NodeServiceGetIdentityProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("GetIdentity")),
+			connect.WithClientOptions(opts...),
+		),
+		addPeer: connect.NewClient[nodepb.AddPeerRequest, nodepb.AddPeerResponse](
+			httpClient,
+			baseURL+NodeServiceAddPeerProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("AddPeer")),
+			connect.WithClientOptions(opts...),
+		),
+		startConnection: connect.NewClient[nodepb.StartConnectionRequest, nodepb.StartConnectionResponse](
+			httpClient,
+			baseURL+NodeServiceStartConnectionProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("StartConnection")),
+			connect.WithClientOptions(opts...),
+		),
+		listConnections: connect.NewClient[nodepb.ListConnectionsRequest, nodepb.ListConnectionsResponse](
+			httpClient,
+			baseURL+NodeServiceListConnectionsProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ListConnections")),
+			connect.WithClientOptions(opts...),
+		),
+		rotateConnection: connect.NewClient[nodepb.ConnectionRef, nodepb.ConnectionResult](
+			httpClient,
+			baseURL+NodeServiceRotateConnectionProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("RotateConnection")),
+			connect.WithClientOptions(opts...),
+		),
+		closeConnection: connect.NewClient[nodepb.ConnectionRef, nodepb.ConnectionResult](
+			httpClient,
+			baseURL+NodeServiceCloseConnectionProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("CloseConnection")),
+			connect.WithClientOptions(opts...),
+		),
+		sendPrivateText: connect.NewClient[nodepb.SendPrivateTextRequest, nodepb.PostTextResponse](
+			httpClient,
+			baseURL+NodeServiceSendPrivateTextProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("SendPrivateText")),
+			connect.WithClientOptions(opts...),
+		),
+		listConnectionMessages: connect.NewClient[nodepb.ConnectionRef, nodepb.ListConnectionMessagesResponse](
+			httpClient,
+			baseURL+NodeServiceListConnectionMessagesProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ListConnectionMessages")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // nodeServiceClient implements NodeServiceClient.
 type nodeServiceClient struct {
-	getStatus       *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
-	bootstrapWorld  *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
-	postText        *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
-	getBlock        *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
-	listBlocks      *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
-	subscribeBlocks *connect.Client[nodepb.SubscribeBlocksRequest, nodepb.BlockEvent]
+	getStatus              *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
+	bootstrapWorld         *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
+	postText               *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
+	getBlock               *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
+	listBlocks             *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
+	subscribeBlocks        *connect.Client[nodepb.SubscribeBlocksRequest, nodepb.BlockEvent]
+	getIdentity            *connect.Client[nodepb.GetIdentityRequest, nodepb.GetIdentityResponse]
+	addPeer                *connect.Client[nodepb.AddPeerRequest, nodepb.AddPeerResponse]
+	startConnection        *connect.Client[nodepb.StartConnectionRequest, nodepb.StartConnectionResponse]
+	listConnections        *connect.Client[nodepb.ListConnectionsRequest, nodepb.ListConnectionsResponse]
+	rotateConnection       *connect.Client[nodepb.ConnectionRef, nodepb.ConnectionResult]
+	closeConnection        *connect.Client[nodepb.ConnectionRef, nodepb.ConnectionResult]
+	sendPrivateText        *connect.Client[nodepb.SendPrivateTextRequest, nodepb.PostTextResponse]
+	listConnectionMessages *connect.Client[nodepb.ConnectionRef, nodepb.ListConnectionMessagesResponse]
 }
 
 // GetStatus calls blockparty.node.v1.NodeService.GetStatus.
@@ -163,6 +260,46 @@ func (c *nodeServiceClient) SubscribeBlocks(ctx context.Context, req *connect.Re
 	return c.subscribeBlocks.CallServerStream(ctx, req)
 }
 
+// GetIdentity calls blockparty.node.v1.NodeService.GetIdentity.
+func (c *nodeServiceClient) GetIdentity(ctx context.Context, req *connect.Request[nodepb.GetIdentityRequest]) (*connect.Response[nodepb.GetIdentityResponse], error) {
+	return c.getIdentity.CallUnary(ctx, req)
+}
+
+// AddPeer calls blockparty.node.v1.NodeService.AddPeer.
+func (c *nodeServiceClient) AddPeer(ctx context.Context, req *connect.Request[nodepb.AddPeerRequest]) (*connect.Response[nodepb.AddPeerResponse], error) {
+	return c.addPeer.CallUnary(ctx, req)
+}
+
+// StartConnection calls blockparty.node.v1.NodeService.StartConnection.
+func (c *nodeServiceClient) StartConnection(ctx context.Context, req *connect.Request[nodepb.StartConnectionRequest]) (*connect.Response[nodepb.StartConnectionResponse], error) {
+	return c.startConnection.CallUnary(ctx, req)
+}
+
+// ListConnections calls blockparty.node.v1.NodeService.ListConnections.
+func (c *nodeServiceClient) ListConnections(ctx context.Context, req *connect.Request[nodepb.ListConnectionsRequest]) (*connect.Response[nodepb.ListConnectionsResponse], error) {
+	return c.listConnections.CallUnary(ctx, req)
+}
+
+// RotateConnection calls blockparty.node.v1.NodeService.RotateConnection.
+func (c *nodeServiceClient) RotateConnection(ctx context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	return c.rotateConnection.CallUnary(ctx, req)
+}
+
+// CloseConnection calls blockparty.node.v1.NodeService.CloseConnection.
+func (c *nodeServiceClient) CloseConnection(ctx context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	return c.closeConnection.CallUnary(ctx, req)
+}
+
+// SendPrivateText calls blockparty.node.v1.NodeService.SendPrivateText.
+func (c *nodeServiceClient) SendPrivateText(ctx context.Context, req *connect.Request[nodepb.SendPrivateTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {
+	return c.sendPrivateText.CallUnary(ctx, req)
+}
+
+// ListConnectionMessages calls blockparty.node.v1.NodeService.ListConnectionMessages.
+func (c *nodeServiceClient) ListConnectionMessages(ctx context.Context, req *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error) {
+	return c.listConnectionMessages.CallUnary(ctx, req)
+}
+
 // NodeServiceHandler is an implementation of the blockparty.node.v1.NodeService service.
 type NodeServiceHandler interface {
 	// GetStatus reports node mode, whether a World is loaded, the identity, and
@@ -185,6 +322,25 @@ type NodeServiceHandler interface {
 	// audience after subscription — the live feed (#44). Pair with ListBlocks for
 	// the initial backlog.
 	SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest], *connect.ServerStream[nodepb.BlockEvent]) error
+	// GetIdentity returns this node's connection card (address + public keys) to
+	// share out-of-band so a peer can connect.
+	GetIdentity(context.Context, *connect.Request[nodepb.GetIdentityRequest]) (*connect.Response[nodepb.GetIdentityResponse], error)
+	// AddPeer registers a known peer's card so the node can connect to it and
+	// recognize its handshake blocks.
+	AddPeer(context.Context, *connect.Request[nodepb.AddPeerRequest]) (*connect.Response[nodepb.AddPeerResponse], error)
+	// StartConnection initiates a connect.request handshake to a registered peer.
+	StartConnection(context.Context, *connect.Request[nodepb.StartConnectionRequest]) (*connect.Response[nodepb.StartConnectionResponse], error)
+	// ListConnections lists the node's active connections.
+	ListConnections(context.Context, *connect.Request[nodepb.ListConnectionsRequest]) (*connect.Response[nodepb.ListConnectionsResponse], error)
+	// RotateConnection advances a connection to a new epoch (re-keys the channel).
+	RotateConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error)
+	// CloseConnection tears a connection down and notifies the peer.
+	CloseConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error)
+	// SendPrivateText posts an encrypted message on a connection's private audience.
+	SendPrivateText(context.Context, *connect.Request[nodepb.SendPrivateTextRequest]) (*connect.Response[nodepb.PostTextResponse], error)
+	// ListConnectionMessages returns the decrypted messages on a connection's
+	// current private audience.
+	ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error)
 }
 
 // NewNodeServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -230,6 +386,54 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(nodeServiceMethods.ByName("SubscribeBlocks")),
 		connect.WithHandlerOptions(opts...),
 	)
+	nodeServiceGetIdentityHandler := connect.NewUnaryHandler(
+		NodeServiceGetIdentityProcedure,
+		svc.GetIdentity,
+		connect.WithSchema(nodeServiceMethods.ByName("GetIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceAddPeerHandler := connect.NewUnaryHandler(
+		NodeServiceAddPeerProcedure,
+		svc.AddPeer,
+		connect.WithSchema(nodeServiceMethods.ByName("AddPeer")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceStartConnectionHandler := connect.NewUnaryHandler(
+		NodeServiceStartConnectionProcedure,
+		svc.StartConnection,
+		connect.WithSchema(nodeServiceMethods.ByName("StartConnection")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceListConnectionsHandler := connect.NewUnaryHandler(
+		NodeServiceListConnectionsProcedure,
+		svc.ListConnections,
+		connect.WithSchema(nodeServiceMethods.ByName("ListConnections")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceRotateConnectionHandler := connect.NewUnaryHandler(
+		NodeServiceRotateConnectionProcedure,
+		svc.RotateConnection,
+		connect.WithSchema(nodeServiceMethods.ByName("RotateConnection")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceCloseConnectionHandler := connect.NewUnaryHandler(
+		NodeServiceCloseConnectionProcedure,
+		svc.CloseConnection,
+		connect.WithSchema(nodeServiceMethods.ByName("CloseConnection")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceSendPrivateTextHandler := connect.NewUnaryHandler(
+		NodeServiceSendPrivateTextProcedure,
+		svc.SendPrivateText,
+		connect.WithSchema(nodeServiceMethods.ByName("SendPrivateText")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceListConnectionMessagesHandler := connect.NewUnaryHandler(
+		NodeServiceListConnectionMessagesProcedure,
+		svc.ListConnectionMessages,
+		connect.WithSchema(nodeServiceMethods.ByName("ListConnectionMessages")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/blockparty.node.v1.NodeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case NodeServiceGetStatusProcedure:
@@ -244,6 +448,22 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceListBlocksHandler.ServeHTTP(w, r)
 		case NodeServiceSubscribeBlocksProcedure:
 			nodeServiceSubscribeBlocksHandler.ServeHTTP(w, r)
+		case NodeServiceGetIdentityProcedure:
+			nodeServiceGetIdentityHandler.ServeHTTP(w, r)
+		case NodeServiceAddPeerProcedure:
+			nodeServiceAddPeerHandler.ServeHTTP(w, r)
+		case NodeServiceStartConnectionProcedure:
+			nodeServiceStartConnectionHandler.ServeHTTP(w, r)
+		case NodeServiceListConnectionsProcedure:
+			nodeServiceListConnectionsHandler.ServeHTTP(w, r)
+		case NodeServiceRotateConnectionProcedure:
+			nodeServiceRotateConnectionHandler.ServeHTTP(w, r)
+		case NodeServiceCloseConnectionProcedure:
+			nodeServiceCloseConnectionHandler.ServeHTTP(w, r)
+		case NodeServiceSendPrivateTextProcedure:
+			nodeServiceSendPrivateTextHandler.ServeHTTP(w, r)
+		case NodeServiceListConnectionMessagesProcedure:
+			nodeServiceListConnectionMessagesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -275,4 +495,36 @@ func (UnimplementedNodeServiceHandler) ListBlocks(context.Context, *connect.Requ
 
 func (UnimplementedNodeServiceHandler) SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest], *connect.ServerStream[nodepb.BlockEvent]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.SubscribeBlocks is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) GetIdentity(context.Context, *connect.Request[nodepb.GetIdentityRequest]) (*connect.Response[nodepb.GetIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.GetIdentity is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) AddPeer(context.Context, *connect.Request[nodepb.AddPeerRequest]) (*connect.Response[nodepb.AddPeerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.AddPeer is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) StartConnection(context.Context, *connect.Request[nodepb.StartConnectionRequest]) (*connect.Response[nodepb.StartConnectionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.StartConnection is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ListConnections(context.Context, *connect.Request[nodepb.ListConnectionsRequest]) (*connect.Response[nodepb.ListConnectionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.ListConnections is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) RotateConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.RotateConnection is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) CloseConnection(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ConnectionResult], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.CloseConnection is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) SendPrivateText(context.Context, *connect.Request[nodepb.SendPrivateTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.SendPrivateText is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.ListConnectionMessages is not implemented"))
 }

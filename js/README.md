@@ -49,7 +49,7 @@ is validated against the shared conformance vectors in
 | `encryption`          | ✅ implemented | #15   |
 | `audiences`           | ✅ implemented | #16   |
 | `connections`         | ✅ implemented | #17   |
-| block types           | ⬜             | #18   |
+| `blocktypes`          | ✅ implemented | #18   |
 
 ### `crypto` (#12)
 
@@ -92,3 +92,11 @@ Audience-scoped AEAD via [`@noble/ciphers`](https://github.com/paulmillr/noble-c
 ### `connections` (#17)
 
 The `connect.*` handshake: `startRequest` → `acceptRequest` → `complete` (two-message ML-KEM768 exchange), `Connection.rotate`/`applyRotate` (forward ratchet), `buildClose`, and a `ReplayGuard`. The per-epoch derivations (`connectionSecret0`, `audienceCode`, `rotatedSecret`) reproduce `vectors.json` exactly; tests prove two parties derive the **same** private audience and exchange an encrypted block over it.
+
+### `blocktypes` (#18)
+
+Type-URN constants + a `Resolver` mapping `type_code → URN`, `decodePayload` (with the **`rpc.render` transport guard**), chunk reassembly (SHA-512), `identity.burn` (`buildBurn`/`verifyBurn` + `TrustState`), and `core.ping`. The generated payload types/schemas and protobuf-es helpers (`create`/`toBinary`/`fromBinary`) are re-exported from the SDK root.
+
+`verifyBurn` re-derives the address from the revealed private keys via `getPublicKey` — and a Node burn's revealed keys are **byte-identical to Go's** (the test checks against the shared fixture), so burns interoperate.
+
+The SDK is now complete: crypto → derivations → identity → blocks → encryption → audiences → connections → block types, every layer cross-impl-verified against the Go reference.

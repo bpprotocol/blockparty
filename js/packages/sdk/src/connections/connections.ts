@@ -15,7 +15,9 @@ import { codeHex } from "../derive/index.js";
 import type { Identity } from "../identity/index.js";
 import { audienceCode, audienceSecret, connectionSecret0, rotatedSecret } from "./derive.js";
 
-export type { ConnectRequest, ConnectResponse, ConnectRotate, ConnectClose };
+// The connect.* payload types (ConnectRequest, etc.) are exported from the SDK
+// root via the generated block_types_pb; we reference them here without
+// re-exporting to avoid a duplicate-export conflict.
 
 /** Length of the handshake nonces. */
 export const HANDSHAKE_NONCE_SIZE = 32;

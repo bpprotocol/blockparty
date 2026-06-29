@@ -62,3 +62,13 @@ export function encapsulate(publicKey: Uint8Array): Encapsulation {
 export function decapsulate(ciphertext: Uint8Array, secretKey: Uint8Array): Uint8Array {
   return ml_kem768.decapsulate(ciphertext, secretKey);
 }
+
+/** Recover the ML-DSA-65 public key from its secret key (e.g. to verify a burn). */
+export function mldsaPublicFromSecret(secretKey: Uint8Array): Uint8Array {
+  return ml_dsa65.getPublicKey(secretKey);
+}
+
+/** Recover the ML-KEM768 public key from its secret key. */
+export function kyberPublicFromSecret(secretKey: Uint8Array): Uint8Array {
+  return ml_kem768.getPublicKey(secretKey);
+}

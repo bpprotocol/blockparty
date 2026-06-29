@@ -57,5 +57,12 @@
     "connectionSecret0": "29e33a2370510ba0d382c9acd53b5cb1022c9291ef3e15eab5e8855e9786e5b1",
     "audienceCode0": "df1b068f174fba21e8d4fb34c3a03a88",
     "audienceCode1": "23dd77260c274f6135c9181773353eba"
+  },
+  "burn": {
+    "passphrase": "correct horse battery staple",
+    "identity": "51fdf6cd0baf5eb11bd1d1aa367e838eb6f8f685",
+    "mldsaSkKeccak": "ec8bc037557d4b6a24bef0337ff59bc601f962057f54db2db89932ce910dc1f3",
+    "kyberSkKeccak": "f2b8219d068177884f2aba1c619aa5029791ac8102489fbb4bf83646ab1b367d",
+    "burnNotice": "voluntary"
   }
 }

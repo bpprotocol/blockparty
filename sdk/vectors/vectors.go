@@ -42,6 +42,19 @@ type Vectors struct {
 	AEAD       AEADVectors       `json:"aead"`
 	Block      BlockVectors      `json:"block"`
 	Connection ConnectionVectors `json:"connection"`
+	Burn       BurnVectors       `json:"burn"`
+}
+
+// BurnVectors locks an identity.burn over the test identity. The revealed
+// private keys are fingerprinted with Keccak-256 (each is several KB); a
+// conforming implementation that builds the same burn reproduces them, and one
+// that verifies the burn re-derives Identity from the revealed keys.
+type BurnVectors struct {
+	Passphrase    string `json:"passphrase"`
+	Identity      string `json:"identity"`
+	MLDSASkKeccak string `json:"mldsaSkKeccak"`
+	KyberSkKeccak string `json:"kyberSkKeccak"`
+	BurnNotice    string `json:"burnNotice"`
 }
 
 type CryptoVectors struct {
@@ -153,6 +166,15 @@ func Compute() *Vectors {
 
 	const blockData = "hello"
 
+	mldsaSk, err := id.MLDSA.Private.MarshalBinary()
+	if err != nil {
+		panic("vectors: marshalling ML-DSA private key: " + err.Error())
+	}
+	kyberSk, err := id.Kyber.Private.MarshalBinary()
+	if err != nil {
+		panic("vectors: marshalling ML-KEM private key: " + err.Error())
+	}
+
 	const blockFixtureData = "block fixture payload"
 	blk := block.New(id.Address, typeCode, audCode, Timestamp, []byte(blockFixtureData))
 	block.Sign(blk, w, id.MLDSA)
@@ -209,6 +231,13 @@ func Compute() *Vectors {
 			Data:          blockFixtureData,
 			IDHex:         block.IDHex(blk),
 			EncodedKeccak: hexKeccak(encoded),
+		},
+		Burn: BurnVectors{
+			Passphrase:    Passphrase,
+			Identity:      string(id.Address),
+			MLDSASkKeccak: hexKeccak(mldsaSk),
+			KyberSkKeccak: hexKeccak(kyberSk),
+			BurnNotice:    "voluntary",
 		},
 		Connection: ConnectionVectors{
 			SS1:               hex.EncodeToString(cSS1),

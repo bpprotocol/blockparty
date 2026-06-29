@@ -5,7 +5,28 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & connection/health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)). The app talks to a running node and shows its health. Node lifecycle (#42), onboarding (#43), feed (#44), and the rest follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)). The app manages (or attaches to) the local node and shows its health. Onboarding (#43), feed (#44), and the rest follow.
+
+## Node lifecycle (#42)
+
+The main process owns the node process via a **supervisor** (`electron/node-supervisor.ts`):
+
+- **Managed mode** (default): spawns the bundled `bpnode`, waits until its API is ready, captures its logs, restarts it with backoff on a crash, and stops it cleanly (SIGTERM → SIGKILL) when the app quits.
+- **Attach mode** (`BPNODE_ATTACH=1`): skips spawning and connects to an externally-run daemon at a given endpoint.
+
+The node API token and endpoint are resolved by the supervisor and handed to the API client in the main process — never to the renderer. Lifecycle state (mode, running/crashed, restarts, endpoint) is surfaced to the renderer via `window.bpDesktop.lifecycle`.
+
+Knobs (env-overridable for development):
+
+| Env               | Default                     | Purpose                             |
+| ----------------- | --------------------------- | ----------------------------------- |
+| `BPNODE_ATTACH`   | —                           | `1` → attach mode (don't spawn)     |
+| `BPNODE_BIN`      | `<resources>/bpnode`        | path to the bpnode binary (managed) |
+| `BPNODE_API_ADDR` | `127.0.0.1:4400`            | node API address                    |
+| `BPNODE_DATA_DIR` | `<appData>/blockparty/node` | node data dir (holds `api.token`)   |
+| `BPNODE_MODE`     | `personal`                  | node mode                           |
+
+The packaged app bundles the per-platform `bpnode` into its resources dir (built by the packaging step, #48).
 
 ## Node API client (#41)
 
@@ -58,8 +79,9 @@ clients/desktop/
 │   ├── preload.ts       # the typed window.bpDesktop bridge
 │   ├── bridge.ts        # renderer↔main contract (NodeApi + DTOs)
 │   ├── node-client.ts   # Connect client over HTTP (holds the token)
-│   ├── node-config.ts   # locate node API + read its token
-│   ├── ipc.ts           # ipcMain handlers per RPC
+│   ├── node-supervisor.ts # spawn/supervise bpnode, or attach (#42)
+│   ├── node-config.ts   # resolve managed/attach options
+│   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
 ├── app.vue              # renderer root (connection/health UI)
 ├── types/window.d.ts    # attaches the bridge type to Window

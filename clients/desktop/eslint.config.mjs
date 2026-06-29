@@ -12,6 +12,7 @@ export default ts.config(
       'release/**',
       'node_modules/**',
       'electron/gen/**',
+      'electron/testdata/**',
     ],
   },
   js.configs.recommended,

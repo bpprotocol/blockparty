@@ -6,6 +6,13 @@ files:
   - dist-electron/**/*
   - .output/public/**/*
   - package.json
+# The bundled bpnode binary lands in the app's resources dir (process.resourcesPath),
+# where the supervisor looks for it by default. The per-platform binary is built
+# into resources/ by the packaging step (#48).
+extraResources:
+  - from: resources
+    to: .
+    filter: ['bpnode', 'bpnode.exe']
 asar: true
 mac:
   target: dmg

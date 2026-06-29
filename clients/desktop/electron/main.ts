@@ -1,10 +1,28 @@
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'node:path'
-import { registerNodeIpc } from './ipc'
-import { resolveNodeConnection } from './node-config'
+import type { NodeApi, Result } from './bridge'
+import { registerLifecycleIpc, registerNodeIpc } from './ipc'
+import { resolveSupervisorOptions } from './node-config'
 import { NodeClient, nodeTransport } from './node-client'
+import { NodeSupervisor } from './node-supervisor'
 
 const isDev = process.env.NODE_ENV === 'development'
+
+let supervisor: NodeSupervisor | undefined
+let quitting = false
+
+// disconnectedNodeApi answers every call with a connection error, used when the
+// node could not be started/attached so the UI shows a disconnected state.
+function disconnectedNodeApi(reason: string): NodeApi {
+  const fail = async (): Promise<Result<never>> => ({ ok: false, error: reason })
+  return {
+    getStatus: fail,
+    bootstrapWorld: fail,
+    postText: fail,
+    getBlock: fail,
+    listBlocks: fail,
+  }
+}
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -13,8 +31,6 @@ function createWindow(): void {
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      // Secure defaults (#40): the renderer cannot touch Node or the main world;
-      // all privileged access goes through the typed preload bridge.
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -23,8 +39,6 @@ function createWindow(): void {
   })
 
   win.once('ready-to-show', () => win.show())
-
-  // Open external links in the user's browser, never in-app.
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
     return { action: 'deny' }
@@ -37,16 +51,35 @@ function createWindow(): void {
   }
 }
 
-void app.whenReady().then(() => {
-  // Wire the node API (#41): the main process holds the bearer token and talks
-  // to the local node over HTTP; the renderer reaches it only through IPC.
-  const conn = resolveNodeConnection(app.getPath('appData'))
-  registerNodeIpc(new NodeClient(nodeTransport(conn.baseUrl, conn.token)))
+async function startNode(): Promise<NodeApi> {
+  supervisor = new NodeSupervisor(
+    resolveSupervisorOptions(app.getPath('appData'), process.resourcesPath),
+  )
+  registerLifecycleIpc(supervisor)
+  try {
+    const conn = await supervisor.start()
+    return new NodeClient(nodeTransport(conn.baseUrl, conn.token))
+  } catch (e) {
+    return disconnectedNodeApi(`node unavailable: ${e instanceof Error ? e.message : String(e)}`)
+  }
+}
+
+void app.whenReady().then(async () => {
+  // Manage (or attach to) the local node, then expose it to the renderer (#42).
+  registerNodeIpc(await startNode())
 
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+// Stop a managed node cleanly before the app exits.
+app.on('before-quit', (e) => {
+  if (quitting || !supervisor) return
+  e.preventDefault()
+  quitting = true
+  void supervisor.stop().finally(() => app.quit())
 })
 
 app.on('window-all-closed', () => {

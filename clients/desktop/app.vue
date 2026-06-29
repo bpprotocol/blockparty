@@ -1,22 +1,25 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import type { NodeStatus } from './electron/bridge'
+import type { LifecycleState, NodeStatus } from './electron/bridge'
 
 const status = ref<NodeStatus | null>(null)
+const lifecycle = ref<LifecycleState | null>(null)
 const error = ref<string | null>(null)
 const connected = ref(false)
 const checking = ref(false)
 let timer: ReturnType<typeof setInterval> | undefined
 
 async function refresh(): Promise<void> {
-  const api = typeof window !== 'undefined' ? window.bpDesktop?.node : undefined
-  if (!api) {
+  const bridge = typeof window !== 'undefined' ? window.bpDesktop : undefined
+  if (!bridge) {
     connected.value = false
     error.value = 'Preload bridge unavailable (running outside Electron)'
     return
   }
+  lifecycle.value = await bridge.lifecycle.getState()
+
   checking.value = true
-  const r = await api.getStatus()
+  const r = await bridge.node.getStatus()
   checking.value = false
   if (r.ok) {
     status.value = r.value
@@ -71,6 +74,12 @@ function short(s: string): string {
       <p v-if="error" class="err">{{ error }}</p>
       <button :disabled="checking" @click="refresh">{{ checking ? 'Checking…' : 'Retry' }}</button>
     </section>
+
+    <footer v-if="lifecycle" class="lifecycle">
+      node process: {{ lifecycle.mode }} · {{ lifecycle.state }}
+      <span v-if="lifecycle.restarts > 0">· {{ lifecycle.restarts }} restart(s)</span>
+      · {{ lifecycle.endpoint }}
+    </footer>
   </main>
 </template>
 
@@ -129,5 +138,11 @@ dd {
 button {
   margin-top: 0.5rem;
   padding: 0.4rem 0.9rem;
+}
+.lifecycle {
+  margin-top: 2rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  opacity: 0.55;
 }
 </style>

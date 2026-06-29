@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -58,13 +59,29 @@ func setup(t *testing.T) nodepbconnect.NodeServiceClient {
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 
-	auth := connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
-		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			req.Header().Set("Authorization", "Bearer "+token)
-			return next(ctx, req)
-		}
-	})
-	return nodepbconnect.NewNodeServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(auth))
+	return nodepbconnect.NewNodeServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(authInterceptor{token}))
+}
+
+// authInterceptor adds the bearer token to unary and streaming client calls.
+type authInterceptor struct{ token string }
+
+func (a authInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
+	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		req.Header().Set("Authorization", "Bearer "+a.token)
+		return next(ctx, req)
+	}
+}
+
+func (a authInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		conn.RequestHeader().Set("Authorization", "Bearer "+a.token)
+		return conn
+	}
+}
+
+func (a authInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+	return next
 }
 
 func TestUnauthenticatedRejected(t *testing.T) {
@@ -183,6 +200,58 @@ func TestBootstrapPostReadFlow(t *testing.T) {
 	_, err = client.GetBlock(ctx, connect.NewRequest(&nodepb.GetBlockRequest{Id: "deadbeef"}))
 	if connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("GetBlock(missing) code = %v, want not_found", connect.CodeOf(err))
+	}
+}
+
+func TestSubscribeBlocksStreamsLivePost(t *testing.T) {
+	client := setup(t)
+	ctx := context.Background()
+
+	if _, err := client.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed: seed, IdentityPassphrase: idPass, KeystorePassphrase: ksPass,
+	})); err != nil {
+		t.Fatalf("BootstrapWorld: %v", err)
+	}
+	audCode := derive.GetAudienceCode(derive.OpenWorld(seed), audiences.PublicAudienceID(1)).Hex()
+
+	streamCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	// Post from a goroutine after the subscription has had time to register:
+	// the connect-go client establishes the server stream lazily (first frame),
+	// so the post must run concurrently with the subscribe/receive.
+	postedID := make(chan string, 1)
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		p, err := client.PostText(ctx, connect.NewRequest(&nodepb.PostTextRequest{PublicAudience: 1, Text: "live!"}))
+		if err != nil {
+			postedID <- ""
+			return
+		}
+		postedID <- p.Msg.Id
+	}()
+
+	stream, err := client.SubscribeBlocks(streamCtx, connect.NewRequest(&nodepb.SubscribeBlocksRequest{
+		AudienceCode: audCode,
+	}))
+	if err != nil {
+		t.Fatalf("SubscribeBlocks: %v", err)
+	}
+	defer stream.Close()
+
+	if !stream.Receive() {
+		t.Fatalf("stream closed before an event: %v", stream.Err())
+	}
+	ev := stream.Msg()
+	wantID := <-postedID
+	if wantID == "" {
+		t.Fatal("post failed")
+	}
+	if ev.Summary.Id != wantID {
+		t.Errorf("event id = %s, want posted %s", ev.Summary.Id, wantID)
+	}
+	if ev.Summary.AudienceCode != audCode {
+		t.Errorf("event audience = %s, want %s", ev.Summary.AudienceCode, audCode)
 	}
 }
 

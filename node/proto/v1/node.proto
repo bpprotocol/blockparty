@@ -29,6 +29,11 @@ service NodeService {
 
   // ListBlocks queries the local index by audience, type, author, or time range.
   rpc ListBlocks(ListBlocksRequest) returns (ListBlocksResponse);
+
+  // SubscribeBlocks streams a BlockEvent for each block accepted onto an
+  // audience after subscription — the live feed (#44). Pair with ListBlocks for
+  // the initial backlog.
+  rpc SubscribeBlocks(SubscribeBlocksRequest) returns (stream BlockEvent);
 }
 
 message GetStatusRequest {}
@@ -96,4 +101,12 @@ message ListBlocksRequest {
 
 message ListBlocksResponse {
   repeated BlockSummary blocks = 1;
+}
+
+message SubscribeBlocksRequest {
+  string audience_code = 1; // hex; empty = all audiences the node follows
+}
+
+message BlockEvent {
+  BlockSummary summary = 1;
 }

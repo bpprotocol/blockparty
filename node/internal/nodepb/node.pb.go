@@ -676,6 +676,94 @@ func (x *ListBlocksResponse) GetBlocks() []*BlockSummary {
 	return nil
 }
 
+type SubscribeBlocksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AudienceCode  string                 `protobuf:"bytes,1,opt,name=audience_code,json=audienceCode,proto3" json:"audience_code,omitempty"` // hex; empty = all audiences the node follows
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubscribeBlocksRequest) Reset() {
+	*x = SubscribeBlocksRequest{}
+	mi := &file_node_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubscribeBlocksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubscribeBlocksRequest) ProtoMessage() {}
+
+func (x *SubscribeBlocksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubscribeBlocksRequest.ProtoReflect.Descriptor instead.
+func (*SubscribeBlocksRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SubscribeBlocksRequest) GetAudienceCode() string {
+	if x != nil {
+		return x.AudienceCode
+	}
+	return ""
+}
+
+type BlockEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Summary       *BlockSummary          `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BlockEvent) Reset() {
+	*x = BlockEvent{}
+	mi := &file_node_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BlockEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BlockEvent) ProtoMessage() {}
+
+func (x *BlockEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BlockEvent.ProtoReflect.Descriptor instead.
+func (*BlockEvent) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *BlockEvent) GetSummary() *BlockSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
 var File_node_proto protoreflect.FileDescriptor
 
 const file_node_proto_rawDesc = "" +
@@ -728,14 +816,20 @@ const file_node_proto_rawDesc = "" +
 	"\x04from\x18\x04 \x01(\x03R\x04from\x12\x0e\n" +
 	"\x02to\x18\x05 \x01(\x03R\x02to\"N\n" +
 	"\x12ListBlocksResponse\x128\n" +
-	"\x06blocks\x18\x01 \x03(\v2 .blockparty.node.v1.BlockSummaryR\x06blocks2\xdb\x03\n" +
+	"\x06blocks\x18\x01 \x03(\v2 .blockparty.node.v1.BlockSummaryR\x06blocks\"=\n" +
+	"\x16SubscribeBlocksRequest\x12#\n" +
+	"\raudience_code\x18\x01 \x01(\tR\faudienceCode\"H\n" +
+	"\n" +
+	"BlockEvent\x12:\n" +
+	"\asummary\x18\x01 \x01(\v2 .blockparty.node.v1.BlockSummaryR\asummary2\xbc\x04\n" +
 	"\vNodeService\x12X\n" +
 	"\tGetStatus\x12$.blockparty.node.v1.GetStatusRequest\x1a%.blockparty.node.v1.GetStatusResponse\x12g\n" +
 	"\x0eBootstrapWorld\x12).blockparty.node.v1.BootstrapWorldRequest\x1a*.blockparty.node.v1.BootstrapWorldResponse\x12U\n" +
 	"\bPostText\x12#.blockparty.node.v1.PostTextRequest\x1a$.blockparty.node.v1.PostTextResponse\x12U\n" +
 	"\bGetBlock\x12#.blockparty.node.v1.GetBlockRequest\x1a$.blockparty.node.v1.GetBlockResponse\x12[\n" +
 	"\n" +
-	"ListBlocks\x12%.blockparty.node.v1.ListBlocksRequest\x1a&.blockparty.node.v1.ListBlocksResponseB>Z<github.com/bpprotocol/blockparty/node/internal/nodepb;nodepbb\x06proto3"
+	"ListBlocks\x12%.blockparty.node.v1.ListBlocksRequest\x1a&.blockparty.node.v1.ListBlocksResponse\x12_\n" +
+	"\x0fSubscribeBlocks\x12*.blockparty.node.v1.SubscribeBlocksRequest\x1a\x1e.blockparty.node.v1.BlockEvent0\x01B>Z<github.com/bpprotocol/blockparty/node/internal/nodepb;nodepbb\x06proto3"
 
 var (
 	file_node_proto_rawDescOnce sync.Once
@@ -749,7 +843,7 @@ func file_node_proto_rawDescGZIP() []byte {
 	return file_node_proto_rawDescData
 }
 
-var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_node_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),       // 0: blockparty.node.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),      // 1: blockparty.node.v1.GetStatusResponse
@@ -762,25 +856,30 @@ var file_node_proto_goTypes = []any{
 	(*GetBlockResponse)(nil),       // 8: blockparty.node.v1.GetBlockResponse
 	(*ListBlocksRequest)(nil),      // 9: blockparty.node.v1.ListBlocksRequest
 	(*ListBlocksResponse)(nil),     // 10: blockparty.node.v1.ListBlocksResponse
+	(*SubscribeBlocksRequest)(nil), // 11: blockparty.node.v1.SubscribeBlocksRequest
+	(*BlockEvent)(nil),             // 12: blockparty.node.v1.BlockEvent
 }
 var file_node_proto_depIdxs = []int32{
 	6,  // 0: blockparty.node.v1.GetBlockResponse.summary:type_name -> blockparty.node.v1.BlockSummary
 	6,  // 1: blockparty.node.v1.ListBlocksResponse.blocks:type_name -> blockparty.node.v1.BlockSummary
-	0,  // 2: blockparty.node.v1.NodeService.GetStatus:input_type -> blockparty.node.v1.GetStatusRequest
-	2,  // 3: blockparty.node.v1.NodeService.BootstrapWorld:input_type -> blockparty.node.v1.BootstrapWorldRequest
-	4,  // 4: blockparty.node.v1.NodeService.PostText:input_type -> blockparty.node.v1.PostTextRequest
-	7,  // 5: blockparty.node.v1.NodeService.GetBlock:input_type -> blockparty.node.v1.GetBlockRequest
-	9,  // 6: blockparty.node.v1.NodeService.ListBlocks:input_type -> blockparty.node.v1.ListBlocksRequest
-	1,  // 7: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
-	3,  // 8: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
-	5,  // 9: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
-	8,  // 10: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
-	10, // 11: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
-	7,  // [7:12] is the sub-list for method output_type
-	2,  // [2:7] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+	6,  // 2: blockparty.node.v1.BlockEvent.summary:type_name -> blockparty.node.v1.BlockSummary
+	0,  // 3: blockparty.node.v1.NodeService.GetStatus:input_type -> blockparty.node.v1.GetStatusRequest
+	2,  // 4: blockparty.node.v1.NodeService.BootstrapWorld:input_type -> blockparty.node.v1.BootstrapWorldRequest
+	4,  // 5: blockparty.node.v1.NodeService.PostText:input_type -> blockparty.node.v1.PostTextRequest
+	7,  // 6: blockparty.node.v1.NodeService.GetBlock:input_type -> blockparty.node.v1.GetBlockRequest
+	9,  // 7: blockparty.node.v1.NodeService.ListBlocks:input_type -> blockparty.node.v1.ListBlocksRequest
+	11, // 8: blockparty.node.v1.NodeService.SubscribeBlocks:input_type -> blockparty.node.v1.SubscribeBlocksRequest
+	1,  // 9: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
+	3,  // 10: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
+	5,  // 11: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
+	8,  // 12: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
+	10, // 13: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
+	12, // 14: blockparty.node.v1.NodeService.SubscribeBlocks:output_type -> blockparty.node.v1.BlockEvent
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_node_proto_init() }
@@ -794,7 +893,7 @@ func file_node_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

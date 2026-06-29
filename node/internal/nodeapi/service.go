@@ -101,6 +101,34 @@ func (s *Service) ListBlocks(_ context.Context, req *connect.Request[nodepb.List
 	return connect.NewResponse(&nodepb.ListBlocksResponse{Blocks: out}), nil
 }
 
+func (s *Service) SubscribeBlocks(ctx context.Context, req *connect.Request[nodepb.SubscribeBlocksRequest], stream *connect.ServerStream[nodepb.BlockEvent]) error {
+	ch, cancel := s.core.SubscribeBlocks(req.Msg.AudienceCode)
+	defer cancel()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case ev, ok := <-ch:
+			if !ok {
+				return nil
+			}
+			err := stream.Send(&nodepb.BlockEvent{
+				Summary: &nodepb.BlockSummary{
+					Id:           ev.ID,
+					AudienceCode: ev.Audience,
+					TypeCode:     ev.Type,
+					Author:       ev.Author,
+					Timestamp:    ev.Timestamp,
+					ReceivedAt:   ev.ReceivedAt,
+				},
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
 func summary(rec *store.Record) *nodepb.BlockSummary {
 	b := rec.Block
 	return &nodepb.BlockSummary{

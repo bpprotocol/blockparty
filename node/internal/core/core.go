@@ -89,6 +89,25 @@ type Core struct {
 	conns         *connections.Manager // personal mode connection handshakes (#37)
 	resolver      *blocktypes.Resolver // personal mode, for reading plaintext
 	publicSecrets map[string][]byte    // audience_code hex → secret (public audiences)
+
+	feedMu     sync.Mutex
+	feeds      map[int]*feedSub // live block subscribers (#44)
+	nextFeedID int
+}
+
+// FeedEvent is a live notification that a block was accepted onto an audience.
+type FeedEvent struct {
+	ID         string
+	Audience   string
+	Type       string
+	Author     string
+	Timestamp  int64
+	ReceivedAt int64
+}
+
+type feedSub struct {
+	audience string // "" = all audiences
+	ch       chan FeedEvent
 }
 
 // New builds a Core seeded with the startup-resolved World/keystore (either may
@@ -102,6 +121,7 @@ func New(cfg config.Config, version string, log *slog.Logger, st *store.Store, w
 		now:     func() int64 { return time.Now().Unix() },
 		world:   w,
 		ks:      ks,
+		feeds:   make(map[int]*feedSub),
 	}
 	if w.Loaded {
 		if err := c.activate(); err != nil {
@@ -152,6 +172,8 @@ func (c *Core) activate() error {
 	if c.conns != nil {
 		opts = append(opts, guard.WithAcceptHook(c.conns.OnBlock))
 	}
+	// Fan accepted blocks out to live feed subscribers (#44).
+	opts = append(opts, guard.WithAcceptHook(c.onAccepted))
 	c.guard = guard.New(pub, c.store, opts...)
 	c.followAudiencesLocked()
 	return nil
@@ -380,6 +402,55 @@ func (c *Core) Connections() []connections.ConnInfo {
 		return nil
 	}
 	return c.conns.Connections()
+}
+
+// SubscribeBlocks registers a live subscriber for an audience ("" = all). It
+// returns a buffered channel of events and an unsubscribe function that must be
+// called to release it.
+func (c *Core) SubscribeBlocks(audienceHex string) (<-chan FeedEvent, func()) {
+	c.feedMu.Lock()
+	defer c.feedMu.Unlock()
+	id := c.nextFeedID
+	c.nextFeedID++
+	sub := &feedSub{audience: audienceHex, ch: make(chan FeedEvent, 64)}
+	c.feeds[id] = sub
+	return sub.ch, func() {
+		c.feedMu.Lock()
+		defer c.feedMu.Unlock()
+		if _, ok := c.feeds[id]; ok {
+			delete(c.feeds, id)
+			close(sub.ch)
+		}
+	}
+}
+
+// onAccepted is the guard accept hook: it fans an accepted block out to matching
+// live subscribers. It runs in its own goroutine (the guard invokes hooks async).
+func (c *Core) onAccepted(b *blockpb.Block) {
+	audHex := hex.EncodeToString(b.AudienceCode)
+	ev := FeedEvent{
+		ID:        hex.EncodeToString(b.Id),
+		Audience:  audHex,
+		Type:      hex.EncodeToString(b.TypeCode),
+		Timestamp: b.Timestamp,
+	}
+	// Author + receivedAt come from the just-stored record.
+	if rec, err := c.store.Get(ev.ID); err == nil {
+		ev.Author = rec.Author
+		ev.ReceivedAt = rec.ReceivedAt
+	}
+
+	c.feedMu.Lock()
+	defer c.feedMu.Unlock()
+	for _, s := range c.feeds {
+		if s.audience != "" && s.audience != audHex {
+			continue
+		}
+		select {
+		case s.ch <- ev:
+		default: // slow subscriber: drop rather than block ingestion
+		}
+	}
 }
 
 // Lock zeroizes secret material in the current keystore (shutdown).

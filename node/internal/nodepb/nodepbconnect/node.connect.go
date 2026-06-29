@@ -44,6 +44,9 @@ const (
 	NodeServiceGetBlockProcedure = "/blockparty.node.v1.NodeService/GetBlock"
 	// NodeServiceListBlocksProcedure is the fully-qualified name of the NodeService's ListBlocks RPC.
 	NodeServiceListBlocksProcedure = "/blockparty.node.v1.NodeService/ListBlocks"
+	// NodeServiceSubscribeBlocksProcedure is the fully-qualified name of the NodeService's
+	// SubscribeBlocks RPC.
+	NodeServiceSubscribeBlocksProcedure = "/blockparty.node.v1.NodeService/SubscribeBlocks"
 )
 
 // NodeServiceClient is a client for the blockparty.node.v1.NodeService service.
@@ -64,6 +67,10 @@ type NodeServiceClient interface {
 	GetBlock(context.Context, *connect.Request[nodepb.GetBlockRequest]) (*connect.Response[nodepb.GetBlockResponse], error)
 	// ListBlocks queries the local index by audience, type, author, or time range.
 	ListBlocks(context.Context, *connect.Request[nodepb.ListBlocksRequest]) (*connect.Response[nodepb.ListBlocksResponse], error)
+	// SubscribeBlocks streams a BlockEvent for each block accepted onto an
+	// audience after subscription — the live feed (#44). Pair with ListBlocks for
+	// the initial backlog.
+	SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest]) (*connect.ServerStreamForClient[nodepb.BlockEvent], error)
 }
 
 // NewNodeServiceClient constructs a client for the blockparty.node.v1.NodeService service. By
@@ -107,16 +114,23 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(nodeServiceMethods.ByName("ListBlocks")),
 			connect.WithClientOptions(opts...),
 		),
+		subscribeBlocks: connect.NewClient[nodepb.SubscribeBlocksRequest, nodepb.BlockEvent](
+			httpClient,
+			baseURL+NodeServiceSubscribeBlocksProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("SubscribeBlocks")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // nodeServiceClient implements NodeServiceClient.
 type nodeServiceClient struct {
-	getStatus      *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
-	bootstrapWorld *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
-	postText       *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
-	getBlock       *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
-	listBlocks     *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
+	getStatus       *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
+	bootstrapWorld  *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
+	postText        *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
+	getBlock        *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
+	listBlocks      *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
+	subscribeBlocks *connect.Client[nodepb.SubscribeBlocksRequest, nodepb.BlockEvent]
 }
 
 // GetStatus calls blockparty.node.v1.NodeService.GetStatus.
@@ -144,6 +158,11 @@ func (c *nodeServiceClient) ListBlocks(ctx context.Context, req *connect.Request
 	return c.listBlocks.CallUnary(ctx, req)
 }
 
+// SubscribeBlocks calls blockparty.node.v1.NodeService.SubscribeBlocks.
+func (c *nodeServiceClient) SubscribeBlocks(ctx context.Context, req *connect.Request[nodepb.SubscribeBlocksRequest]) (*connect.ServerStreamForClient[nodepb.BlockEvent], error) {
+	return c.subscribeBlocks.CallServerStream(ctx, req)
+}
+
 // NodeServiceHandler is an implementation of the blockparty.node.v1.NodeService service.
 type NodeServiceHandler interface {
 	// GetStatus reports node mode, whether a World is loaded, the identity, and
@@ -162,6 +181,10 @@ type NodeServiceHandler interface {
 	GetBlock(context.Context, *connect.Request[nodepb.GetBlockRequest]) (*connect.Response[nodepb.GetBlockResponse], error)
 	// ListBlocks queries the local index by audience, type, author, or time range.
 	ListBlocks(context.Context, *connect.Request[nodepb.ListBlocksRequest]) (*connect.Response[nodepb.ListBlocksResponse], error)
+	// SubscribeBlocks streams a BlockEvent for each block accepted onto an
+	// audience after subscription — the live feed (#44). Pair with ListBlocks for
+	// the initial backlog.
+	SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest], *connect.ServerStream[nodepb.BlockEvent]) error
 }
 
 // NewNodeServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -201,6 +224,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(nodeServiceMethods.ByName("ListBlocks")),
 		connect.WithHandlerOptions(opts...),
 	)
+	nodeServiceSubscribeBlocksHandler := connect.NewServerStreamHandler(
+		NodeServiceSubscribeBlocksProcedure,
+		svc.SubscribeBlocks,
+		connect.WithSchema(nodeServiceMethods.ByName("SubscribeBlocks")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/blockparty.node.v1.NodeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case NodeServiceGetStatusProcedure:
@@ -213,6 +242,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceGetBlockHandler.ServeHTTP(w, r)
 		case NodeServiceListBlocksProcedure:
 			nodeServiceListBlocksHandler.ServeHTTP(w, r)
+		case NodeServiceSubscribeBlocksProcedure:
+			nodeServiceSubscribeBlocksHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -240,4 +271,8 @@ func (UnimplementedNodeServiceHandler) GetBlock(context.Context, *connect.Reques
 
 func (UnimplementedNodeServiceHandler) ListBlocks(context.Context, *connect.Request[nodepb.ListBlocksRequest]) (*connect.Response[nodepb.ListBlocksResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.ListBlocks is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) SubscribeBlocks(context.Context, *connect.Request[nodepb.SubscribeBlocksRequest], *connect.ServerStream[nodepb.BlockEvent]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.SubscribeBlocks is not implemented"))
 }

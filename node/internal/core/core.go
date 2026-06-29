@@ -13,14 +13,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cloudflare/circl/kem"
 	"github.com/cloudflare/circl/sign"
 
 	"github.com/bpprotocol/blockparty/implementations/go/audiences"
 	"github.com/bpprotocol/blockparty/implementations/go/block"
 	"github.com/bpprotocol/blockparty/implementations/go/blockpb"
 	"github.com/bpprotocol/blockparty/implementations/go/blocktypes"
+	"github.com/bpprotocol/blockparty/implementations/go/derive"
 	bpnode "github.com/bpprotocol/blockparty/implementations/go/node"
 	"github.com/bpprotocol/blockparty/node/internal/config"
+	"github.com/bpprotocol/blockparty/node/internal/connections"
 	"github.com/bpprotocol/blockparty/node/internal/guard"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/store"
@@ -83,6 +86,7 @@ type Core struct {
 	ks            *keystore.Keystore
 	guard         *guard.Guard
 	gossiper      Gossiper
+	conns         *connections.Manager // personal mode connection handshakes (#37)
 	resolver      *blocktypes.Resolver // personal mode, for reading plaintext
 	publicSecrets map[string][]byte    // audience_code hex → secret (public audiences)
 }
@@ -138,20 +142,33 @@ func (c *Core) activate() error {
 			a := audiences.PublicAudience(w, n)
 			c.publicSecrets[a.Code.Hex()] = a.Secret
 		}
+
+		// Build the connection manager once the gossip transport is wired (#37).
+		if c.gossiper != nil && c.conns == nil {
+			c.conns = connections.New(c.ks, c.gossiper, c.log)
+		}
+	}
+	// The connection manager reacts to handshake blocks as they are accepted.
+	if c.conns != nil {
+		opts = append(opts, guard.WithAcceptHook(c.conns.OnBlock))
 	}
 	c.guard = guard.New(pub, c.store, opts...)
 	c.followAudiencesLocked()
 	return nil
 }
 
-// SetGossiper wires the gossip layer in. If a World is already loaded, it follows
-// that World's audiences immediately. Called once at startup, after gossip is
-// built (it depends on the host/exchange, which come up after the core).
+// SetGossiper wires the gossip layer in. If a World is already loaded, it
+// (re)activates so the guard picks up the connection manager and the node
+// follows its audiences. Called once at startup, after gossip is built.
 func (c *Core) SetGossiper(g Gossiper) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.gossiper = g
-	c.followAudiencesLocked()
+	if c.world.Loaded {
+		if err := c.activate(); err != nil {
+			c.log.Error("core: re-activate after gossiper failed", "err", err)
+		}
+	}
 }
 
 // followAudiencesLocked subscribes to the World's public audiences and the
@@ -331,6 +348,38 @@ func (c *Core) ListBlocks(f Filter) ([]*store.IndexEntry, error) {
 	default:
 		return nil, errors.New("core: a list filter is required")
 	}
+}
+
+// AddConnectionPeer registers a known peer (address + public keys) so the node
+// can connect to it and recognize it as the author of an incoming request.
+func (c *Core) AddConnectionPeer(addr derive.Address, kyberPub kem.PublicKey, mldsaPub sign.PublicKey) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return ErrCannotAuthor
+	}
+	c.conns.AddPeer(addr, kyberPub, mldsaPub)
+	return nil
+}
+
+// StartConnection initiates a connection handshake to a registered peer.
+func (c *Core) StartConnection(addr derive.Address) (string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return "", ErrCannotAuthor
+	}
+	return c.conns.Start(addr)
+}
+
+// Connections lists the node's active connections.
+func (c *Core) Connections() []connections.ConnInfo {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.conns == nil {
+		return nil
+	}
+	return c.conns.Connections()
 }
 
 // Lock zeroizes secret material in the current keystore (shutdown).

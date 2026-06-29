@@ -63,14 +63,19 @@ type Result struct {
 // block is still accepted on world_sig alone. Wired in by later issues (#16/#18).
 type AuthorResolver func(b *blockpb.Block) (pub sign.PublicKey, address string, ok bool)
 
+// AcceptHook is called (asynchronously) for each newly-accepted block, so layers
+// like connection handling (#37) can react to relevant block types.
+type AcceptHook func(*blockpb.Block)
+
 // Guard validates and stores ingress blocks for a single World.
 type Guard struct {
-	worldPub sign.PublicKey
-	store    *store.Store
-	resolver AuthorResolver
-	limiter  *RateLimiter
-	now      func() int64
-	log      *slog.Logger
+	worldPub    sign.PublicKey
+	store       *store.Store
+	resolver    AuthorResolver
+	limiter     *RateLimiter
+	now         func() int64
+	log         *slog.Logger
+	acceptHooks []AcceptHook
 }
 
 // Option configures a Guard.
@@ -87,6 +92,12 @@ func WithClock(now func() int64) Option { return func(g *Guard) { g.now = now } 
 
 // WithLogger sets the logger.
 func WithLogger(l *slog.Logger) Option { return func(g *Guard) { g.log = l } }
+
+// WithAcceptHook registers a callback fired (in a goroutine) for each block that
+// is newly accepted and stored.
+func WithAcceptHook(h AcceptHook) Option {
+	return func(g *Guard) { g.acceptHooks = append(g.acceptHooks, h) }
+}
 
 // New builds a Guard validating against worldPub and storing into st.
 func New(worldPub sign.PublicKey, st *store.Store, opts ...Option) *Guard {
@@ -163,6 +174,9 @@ func (g *Guard) validateAndStore(b *blockpb.Block) (Result, error) {
 	}
 
 	g.log.Debug("block accepted", "id", id, "author_verified", authorVerified, "cosigs", coSigs)
+	for _, h := range g.acceptHooks {
+		go h(b)
+	}
 	return Result{
 		Outcome:        Accepted,
 		ID:             id,

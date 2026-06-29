@@ -35,11 +35,31 @@ pnpm -r lint      # ESLint
 pnpm -r typecheck # tsc --noEmit
 ```
 
-## Status
+## Modules
 
-Scaffold only (#11). The protocol modules land in #12–#18, each mirroring the
-Go reference in [`../sdk`](../sdk) and validated against the shared conformance
-vectors in [`../sdk/vectors/vectors.json`](../sdk/vectors/vectors.json).
+Each `@blockparty/sdk` module mirrors the Go reference in [`../sdk`](../sdk) and
+is validated against the shared conformance vectors in
+[`../sdk/vectors/vectors.json`](../sdk/vectors/vectors.json).
 
-Cryptography target (resolved in #20): **ML-DSA-65** (FIPS 204) for signatures
-and **ML-KEM768** (FIPS 203) for the KEM.
+| Module                 | Status         | Issue |
+| ---------------------- | -------------- | ----- |
+| `crypto`               | ✅ implemented | #12   |
+| derivations / identity | ⬜             | #13   |
+| blocks                 | ⬜             | #14   |
+| encryption             | ⬜             | #15   |
+| audiences              | ⬜             | #16   |
+| connections            | ⬜             | #17   |
+| block types            | ⬜             | #18   |
+
+### `crypto` (#12)
+
+Post-quantum primitives via [`@noble/post-quantum`](https://github.com/paulmillr/noble-post-quantum) and [`@noble/hashes`](https://github.com/paulmillr/noble-hashes):
+
+- **Hashing / KDF:** `keccak256`, `sha256`, `sha512`, `hmacSha256`, `hkdfSha256`.
+- **Deterministic RNG:** `deterministicRNG` (SHAKE256 XOF) for reproducible keygen.
+- **Keys:** `makeKyberPair` (ML-KEM768), `makeMldsaPair` (ML-DSA-65); `signMldsa`/`verifyMldsa` (deterministic signing) and `encapsulate`/`decapsulate`.
+
+Keygen is **byte-identical to the Go reference** — the crypto test asserts both PQ public-key fingerprints reproduce `vectors.json` exactly.
+
+Cryptography (resolved in #20): **ML-DSA-65** (FIPS 204) for signatures and
+**ML-KEM768** (FIPS 203) for the KEM.

@@ -85,10 +85,22 @@ export interface LifecycleApi {
   recentLogs(): Promise<string[]>
 }
 
+// --- Live feed (#44) ---
+
+// FeedApi streams block events from the node. subscribe starts a server stream
+// for an audience ("" = all the node follows); onEvent registers a listener and
+// returns an unsubscribe function.
+export interface FeedApi {
+  subscribe(audienceCode: string): Promise<Result<void>>
+  unsubscribe(): Promise<void>
+  onEvent(cb: (summary: BlockSummary) => void): () => void
+}
+
 export interface BpDesktop {
   versions: () => { electron: string; chrome: string; node: string }
   node: NodeApi
   lifecycle: LifecycleApi
+  feed: FeedApi
 }
 
 // IPC channel names.
@@ -103,4 +115,10 @@ export const NODE_CHANNELS = {
 export const LIFECYCLE_CHANNELS = {
   getState: 'lifecycle:getState',
   recentLogs: 'lifecycle:recentLogs',
+} as const
+
+export const FEED_CHANNELS = {
+  subscribe: 'feed:subscribe',
+  unsubscribe: 'feed:unsubscribe',
+  event: 'feed:event', // main → renderer push
 } as const

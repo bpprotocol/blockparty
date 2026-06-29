@@ -12,7 +12,7 @@ import type { Message } from '@bufbuild/protobuf'
 export const file_node: GenFile =
   /*@__PURE__*/
   fileDesc(
-    'Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJInwKDEJsb2NrU3VtbWFyeRIKCgJpZBgBIAEoCRIVCg1hdWRpZW5jZV9jb2RlGAIgASgJEhEKCXR5cGVfY29kZRgDIAEoCRIOCgZhdXRob3IYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEhMKC3JlY2VpdmVkX2F0GAYgASgDIh0KD0dldEJsb2NrUmVxdWVzdBIKCgJpZBgBIAEoCSJ0ChBHZXRCbG9ja1Jlc3BvbnNlEjEKB3N1bW1hcnkYASABKAsyIC5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tTdW1tYXJ5EgwKBGRhdGEYAiABKAwSEQoJZGVjcnlwdGVkGAMgASgIEgwKBHRleHQYBCABKAkiZwoRTGlzdEJsb2Nrc1JlcXVlc3QSFQoNYXVkaWVuY2VfY29kZRgBIAEoCRIRCgl0eXBlX2NvZGUYAiABKAkSDgoGYXV0aG9yGAMgASgJEgwKBGZyb20YBCABKAMSCgoCdG8YBSABKAMiRgoSTGlzdEJsb2Nrc1Jlc3BvbnNlEjAKBmJsb2NrcxgBIAMoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnky2wMKC05vZGVTZXJ2aWNlElgKCUdldFN0YXR1cxIkLmJsb2NrcGFydHkubm9kZS52MS5HZXRTdGF0dXNSZXF1ZXN0GiUuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1Jlc3BvbnNlEmcKDkJvb3RzdHJhcFdvcmxkEikuYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Cb290c3RyYXBXb3JsZFJlc3BvbnNlElUKCFBvc3RUZXh0EiMuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5Qb3N0VGV4dFJlc3BvbnNlElUKCEdldEJsb2NrEiMuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5HZXRCbG9ja1Jlc3BvbnNlElsKCkxpc3RCbG9ja3MSJS5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1JlcXVlc3QaJi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1Jlc3BvbnNlQj5aPGdpdGh1Yi5jb20vYnBwcm90b2NvbC9ibG9ja3BhcnR5L25vZGUvaW50ZXJuYWwvbm9kZXBiO25vZGVwYmIGcHJvdG8z',
+    'Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJInwKDEJsb2NrU3VtbWFyeRIKCgJpZBgBIAEoCRIVCg1hdWRpZW5jZV9jb2RlGAIgASgJEhEKCXR5cGVfY29kZRgDIAEoCRIOCgZhdXRob3IYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEhMKC3JlY2VpdmVkX2F0GAYgASgDIh0KD0dldEJsb2NrUmVxdWVzdBIKCgJpZBgBIAEoCSJ0ChBHZXRCbG9ja1Jlc3BvbnNlEjEKB3N1bW1hcnkYASABKAsyIC5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tTdW1tYXJ5EgwKBGRhdGEYAiABKAwSEQoJZGVjcnlwdGVkGAMgASgIEgwKBHRleHQYBCABKAkiZwoRTGlzdEJsb2Nrc1JlcXVlc3QSFQoNYXVkaWVuY2VfY29kZRgBIAEoCRIRCgl0eXBlX2NvZGUYAiABKAkSDgoGYXV0aG9yGAMgASgJEgwKBGZyb20YBCABKAMSCgoCdG8YBSABKAMiRgoSTGlzdEJsb2Nrc1Jlc3BvbnNlEjAKBmJsb2NrcxgBIAMoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiLwoWU3Vic2NyaWJlQmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJIj8KCkJsb2NrRXZlbnQSMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkyvAQKC05vZGVTZXJ2aWNlElgKCUdldFN0YXR1cxIkLmJsb2NrcGFydHkubm9kZS52MS5HZXRTdGF0dXNSZXF1ZXN0GiUuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1Jlc3BvbnNlEmcKDkJvb3RzdHJhcFdvcmxkEikuYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Cb290c3RyYXBXb3JsZFJlc3BvbnNlElUKCFBvc3RUZXh0EiMuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5Qb3N0VGV4dFJlc3BvbnNlElUKCEdldEJsb2NrEiMuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5HZXRCbG9ja1Jlc3BvbnNlElsKCkxpc3RCbG9ja3MSJS5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1JlcXVlc3QaJi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1Jlc3BvbnNlEl8KD1N1YnNjcmliZUJsb2NrcxIqLmJsb2NrcGFydHkubm9kZS52MS5TdWJzY3JpYmVCbG9ja3NSZXF1ZXN0Gh4uYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrRXZlbnQwAUI+WjxnaXRodWIuY29tL2JwcHJvdG9jb2wvYmxvY2twYXJ0eS9ub2RlL2ludGVybmFsL25vZGVwYjtub2RlcGJiBnByb3RvMw',
   )
 
 /**
@@ -362,6 +362,42 @@ export const ListBlocksResponseSchema: GenMessage<ListBlocksResponse> =
   messageDesc(file_node, 10)
 
 /**
+ * @generated from message blockparty.node.v1.SubscribeBlocksRequest
+ */
+export type SubscribeBlocksRequest = Message<'blockparty.node.v1.SubscribeBlocksRequest'> & {
+  /**
+   * hex; empty = all audiences the node follows
+   *
+   * @generated from field: string audience_code = 1;
+   */
+  audienceCode: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.SubscribeBlocksRequest.
+ * Use `create(SubscribeBlocksRequestSchema)` to create a new message.
+ */
+export const SubscribeBlocksRequestSchema: GenMessage<SubscribeBlocksRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 11)
+
+/**
+ * @generated from message blockparty.node.v1.BlockEvent
+ */
+export type BlockEvent = Message<'blockparty.node.v1.BlockEvent'> & {
+  /**
+   * @generated from field: blockparty.node.v1.BlockSummary summary = 1;
+   */
+  summary?: BlockSummary | undefined
+}
+
+/**
+ * Describes the message blockparty.node.v1.BlockEvent.
+ * Use `create(BlockEventSchema)` to create a new message.
+ */
+export const BlockEventSchema: GenMessage<BlockEvent> = /*@__PURE__*/ messageDesc(file_node, 12)
+
+/**
  * NodeService is the bpnode client API (#38), consumed by the desktop client
  * (#26) over Connect. This is the Phase-1 local slice: world status & bootstrap,
  * post, and read. Live subscription (server-streaming) lands with gossip (#35)
@@ -425,5 +461,17 @@ export const NodeService: GenService<{
     methodKind: 'unary'
     input: typeof ListBlocksRequestSchema
     output: typeof ListBlocksResponseSchema
+  }
+  /**
+   * SubscribeBlocks streams a BlockEvent for each block accepted onto an
+   * audience after subscription — the live feed (#44). Pair with ListBlocks for
+   * the initial backlog.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.SubscribeBlocks
+   */
+  subscribeBlocks: {
+    methodKind: 'server_streaming'
+    input: typeof SubscribeBlocksRequestSchema
+    output: typeof BlockEventSchema
   }
 }> = /*@__PURE__*/ serviceDesc(file_node, 0)

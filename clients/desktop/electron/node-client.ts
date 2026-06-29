@@ -92,6 +92,14 @@ export class NodeClient implements NodeApi {
       return r.blocks.map(summaryDTO)
     })
   }
+
+  // streamBlocks yields a BlockSummary for each block accepted onto an audience
+  // ("" = all) after subscription, until the signal is aborted (#44).
+  async *streamBlocks(audienceCode: string, signal: AbortSignal): AsyncGenerator<BlockSummary> {
+    for await (const ev of this.client.subscribeBlocks({ audienceCode }, { signal })) {
+      if (ev.summary) yield summaryDTO(ev.summary)
+    }
+  }
 }
 
 function summaryDTO(s: { [k: string]: unknown } | undefined): BlockSummary {

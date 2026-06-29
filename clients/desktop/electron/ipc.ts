@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import {
+  FEED_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BootstrapRequest,
@@ -7,6 +8,7 @@ import {
   type ListFilter,
   type NodeApi,
   type PostTextRequest,
+  type Result,
 } from './bridge'
 
 // registerNodeIpc exposes the node API to the renderer over IPC. Each handler
@@ -31,4 +33,23 @@ export interface Lifecycle {
 export function registerLifecycleIpc(supervisor: Lifecycle): void {
   ipcMain.handle(LIFECYCLE_CHANNELS.getState, () => supervisor.getState())
   ipcMain.handle(LIFECYCLE_CHANNELS.recentLogs, () => supervisor.recentLogs())
+}
+
+// Feed is the subset of the feed manager exposed to the renderer (#44).
+export interface Feed {
+  subscribe(audienceCode: string): Result<void>
+  unsubscribe(): void
+}
+
+// registerFeedIpc exposes the live block feed; a nil feed (no node) answers with
+// a connection error.
+export function registerFeedIpc(getFeed: () => Feed | undefined): void {
+  ipcMain.handle(FEED_CHANNELS.subscribe, (_e, audienceCode: string): Result<void> => {
+    const feed = getFeed()
+    if (!feed) return { ok: false, error: 'node not connected' }
+    return feed.subscribe(audienceCode)
+  })
+  ipcMain.handle(FEED_CHANNELS.unsubscribe, () => {
+    getFeed()?.unsubscribe()
+  })
 }

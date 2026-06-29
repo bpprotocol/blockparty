@@ -4,6 +4,7 @@ import type { BootstrapRequest } from './electron/bridge'
 import { useNode } from './composables/useNode'
 import OnboardingView from './components/OnboardingView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
+import FeedView from './components/FeedView.vue'
 
 const { status, lifecycle, error, busy, view, refresh, bootstrap } = useNode()
 const bootstrapError = ref<string | null>(null)
@@ -35,7 +36,10 @@ onUnmounted(() => {
       </span>
     </header>
 
-    <NodeDashboard v-if="view === 'ready' && status" :status="status" />
+    <template v-if="view === 'ready' && status">
+      <NodeDashboard :status="status" />
+      <FeedView />
+    </template>
 
     <OnboardingView v-else-if="view === 'onboarding'" :busy="busy" @submit="onBootstrap" />
 

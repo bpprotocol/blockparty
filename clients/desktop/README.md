@@ -5,7 +5,16 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)). The app manages the node, and on first run guides the user through setting up a World. Feed (#44), composing (#45), and the rest follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)). The app manages the node, guides first-run setup, and shows a live feed of posts. Composing (#45) and the rest follow.
+
+## Feed (#44)
+
+The dashboard shows a live feed of the readable posts the node holds:
+
+- **Backlog** via `listBlocks` + `getBlock` (the node decrypts posts on audiences it can open).
+- **Live updates** via the node's server-streaming `SubscribeBlocks` RPC. The main process opens the stream (`FeedManager`) and pushes each event to the renderer over IPC (`window.bpDesktop.feed.onEvent`); the renderer fetches the post text and merges it newest-first, de-duplicated by id.
+
+The merge/ordering logic (`mergeItem`) lives in `composables/useFeed.ts` and is unit-tested; the live stream was verified end-to-end against a running node.
 
 ## Onboarding (#43)
 
@@ -93,11 +102,12 @@ clients/desktop/
 │   ├── node-client.ts   # Connect client over HTTP (holds the token)
 │   ├── node-supervisor.ts # spawn/supervise bpnode, or attach (#42)
 │   ├── node-config.ts   # resolve managed/attach options
-│   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle)
+│   ├── feed-manager.ts  # owns the live SubscribeBlocks stream → renderer (#44)
+│   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle + feed)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
 ├── app.vue              # renderer root (routes connecting/onboarding/dashboard)
-├── composables/useNode.ts   # node state + onboarding routing (deriveView)
-├── components/          # OnboardingView.vue, NodeDashboard.vue
+├── composables/         # useNode (onboarding routing), useFeed (live feed)
+├── components/          # OnboardingView, NodeDashboard, FeedView
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml

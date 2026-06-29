@@ -14,6 +14,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/config"
 	"github.com/bpprotocol/blockparty/node/internal/core"
+	"github.com/bpprotocol/blockparty/node/internal/exchange"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/nodeapi"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
@@ -39,6 +40,7 @@ type Daemon struct {
 	store    *store.Store
 	core     *core.Core
 	p2p      *p2p.Host
+	exchange *exchange.Exchange
 	token    string
 	api      *api.Server
 	start    time.Time
@@ -157,6 +159,12 @@ func (d *Daemon) Run(ctx context.Context) error {
 	}
 	d.p2p = ph
 
+	// Block exchange (#34): serve blocks to peers and fetch by ID, validating
+	// every fetched block through the core's guard before storage.
+	d.exchange = exchange.New(d.p2p.Host(), d.store, d.core.Guard, d.log)
+	d.exchange.Start()
+	d.log.Info("block exchange ready", "protocol", exchange.ProtocolID)
+
 	if err := d.api.Start(); err != nil {
 		_ = d.store.Close()
 		return fmt.Errorf("start api server: %w", err)
@@ -171,6 +179,9 @@ func (d *Daemon) Run(ctx context.Context) error {
 	apiErr := d.api.Shutdown(shutCtx)
 	if apiErr != nil {
 		d.log.Error("api server shutdown", "err", apiErr)
+	}
+	if d.exchange != nil {
+		d.exchange.Stop()
 	}
 	if d.p2p != nil {
 		if err := d.p2p.Close(); err != nil {

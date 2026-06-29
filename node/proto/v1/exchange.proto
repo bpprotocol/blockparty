@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package blockparty.node.v1;
+
+option go_package = "github.com/bpprotocol/blockparty/node/internal/exchangepb;exchangepb";
+
+// Wire messages for the block-exchange stream protocol (/bp/exchange/1.0.0, #34).
+// A requester sends a Want; the responder replies with a WantResponse. Blocks
+// are opaque encrypted envelopes — no decryption is needed to relay them.
+
+message Want {
+  repeated bytes ids = 1; // block IDs (32 bytes each) the requester wants
+  bool have_only = 2;     // if true, respond with availability only (no block bytes)
+}
+
+message BlockItem {
+  bytes id = 1;
+  bytes block = 2; // canonical block bytes (empty when have_only or absent)
+  bool have = 3;   // the responder has this block
+}
+
+message WantResponse {
+  repeated BlockItem items = 1;
+}

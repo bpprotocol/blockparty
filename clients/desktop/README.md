@@ -5,7 +5,11 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)). The app manages the node, guides first-run setup, and shows a live feed of posts. Composing (#45) and the rest follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)) + compose ([#45](https://github.com/bpprotocol/blockparty/issues/45)). The app manages the node, guides setup, and you can post to a public audience and watch it appear in the live feed. Connections (#46) and identity (#47) follow.
+
+## Compose (#45)
+
+When the node can author (personal mode), the dashboard shows a compose box: write text, pick a public audience (1–16), and post. The renderer sends only the **intent** (`{ publicAudience, text }`) to the node via `postText` — the node signs (`world_sig` + `author_sig`) and encrypts; the client holds no keys. `content.post` is not a dangerous op, so it needs no confirmation gate (#29). The post then arrives in the live feed (#44) over the block stream. Validation (`validatePost`) lives in `composables/useCompose.ts` and is unit-tested.
 
 ## Feed (#44)
 
@@ -106,8 +110,8 @@ clients/desktop/
 │   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle + feed)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
 ├── app.vue              # renderer root (routes connecting/onboarding/dashboard)
-├── composables/         # useNode (onboarding routing), useFeed (live feed)
-├── components/          # OnboardingView, NodeDashboard, FeedView
+├── composables/         # useNode (routing), useFeed (feed), useCompose (post)
+├── components/          # OnboardingView, NodeDashboard, ComposeView, FeedView
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml

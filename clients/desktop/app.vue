@@ -4,6 +4,7 @@ import type { BootstrapRequest } from './electron/bridge'
 import { useNode } from './composables/useNode'
 import OnboardingView from './components/OnboardingView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
+import ComposeView from './components/ComposeView.vue'
 import FeedView from './components/FeedView.vue'
 
 const { status, lifecycle, error, busy, view, refresh, bootstrap } = useNode()
@@ -38,6 +39,7 @@ onUnmounted(() => {
 
     <template v-if="view === 'ready' && status">
       <NodeDashboard :status="status" />
+      <ComposeView v-if="status.canAuthor" />
       <FeedView />
     </template>
 

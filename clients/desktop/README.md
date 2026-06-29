@@ -5,7 +5,23 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)). Secure Electron shell, Nuxt SPA renderer, and the dev/build pipeline are in place. The node API client (#41), node lifecycle (#42), onboarding (#43), feed (#44), and the rest follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & connection/health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)). The app talks to a running node and shows its health. Node lifecycle (#42), onboarding (#43), feed (#44), and the rest follow.
+
+## Node API client (#41)
+
+The renderer never talks to the node directly. The **main process** owns the [Connect](https://connectrpc.com/) client — it holds the bearer token ([#29](https://github.com/bpprotocol/blockparty/issues/29)) and talks to the node over HTTP — and exposes a typed surface to the renderer over IPC:
+
+```
+renderer  ──IPC──▶  main (NodeClient + token)  ──HTTP/Connect──▶  bpnode
+window.bpDesktop.node.getStatus()
+```
+
+- **`electron/gen/node_pb.ts`** — generated from [`node/proto/v1/node.proto`](../../node/proto/v1/node.proto) with `protoc-gen-es` (regenerate: `pnpm gen:proto`). The same proto the node serves, so the client is always in sync.
+- **`electron/node-client.ts`** — wraps the generated Connect client, attaches the token, and converts wire messages to plain DTOs (no protobuf types or bigints cross IPC). Errors become `{ ok: false }` so the UI renders connection problems instead of throwing.
+- **`electron/bridge.ts`** — the single typed contract (`NodeApi`, DTOs) shared by main, preload, and renderer.
+- **`electron/node-config.ts`** — locates the node API (`BPNODE_API_ADDR`, default `127.0.0.1:4400`) and reads its token from the node data dir (`BPNODE_DATA_DIR`). #42 provides these when it manages the bundled `bpnode`.
+
+The renderer's connection/health panel polls `getStatus` and shows node version, mode, World, identity, and block count (or a disconnected state with retry).
 
 ## Architecture
 
@@ -37,10 +53,17 @@ pnpm format         # prettier
 
 ```
 clients/desktop/
-├── electron/          # main + preload (compiled by tsc → dist-electron/)
-├── app.vue            # renderer root (Nuxt SPA)
-├── types/window.d.ts  # renderer-side type for the preload bridge
-├── nuxt.config.ts     # ssr: false static SPA
+├── electron/
+│   ├── main.ts          # window lifecycle + wires the node IPC
+│   ├── preload.ts       # the typed window.bpDesktop bridge
+│   ├── bridge.ts        # renderer↔main contract (NodeApi + DTOs)
+│   ├── node-client.ts   # Connect client over HTTP (holds the token)
+│   ├── node-config.ts   # locate node API + read its token
+│   ├── ipc.ts           # ipcMain handlers per RPC
+│   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
+├── app.vue              # renderer root (connection/health UI)
+├── types/window.d.ts    # attaches the bridge type to Window
+├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml
 └── eslint.config.mjs
 ```

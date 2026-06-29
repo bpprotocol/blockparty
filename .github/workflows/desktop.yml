@@ -30,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      - run: pnpm test # vitest (node client over an in-memory transport)
       - run: pnpm build:renderer # nuxt generate → static SPA
       - run: pnpm build:main # tsc → dist-electron (main + preload)
       - run: pnpm format:check

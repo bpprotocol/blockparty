@@ -16,11 +16,14 @@
     "build": "pnpm build:renderer && pnpm build:main && electron-builder",
     "pack": "pnpm build:renderer && pnpm build:main && electron-builder --dir",
     "typecheck": "nuxt prepare && vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "test": "vitest run",
+    "gen:proto": "protoc --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es --es_out=electron/gen --es_opt=target=ts,import_extension=none --proto_path=../../node/proto/v1 node.proto",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^2.12.1",
     "@eslint/js": "^9.0.0",
     "@types/node": "^22.0.0",
     "concurrently": "^9.0.0",
@@ -34,8 +37,14 @@
     "prettier": "^3.0.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.0.0",
+    "vitest": "^4.1.9",
     "vue": "^3.5.0",
     "vue-tsc": "^2.1.0",
     "wait-on": "^8.0.0"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.12.1",
+    "@connectrpc/connect": "^2.1.2",
+    "@connectrpc/connect-node": "^2.1.2"
   }
 }

@@ -1,5 +1,8 @@
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'node:path'
+import { registerNodeIpc } from './ipc'
+import { resolveNodeConnection } from './node-config'
+import { NodeClient, nodeTransport } from './node-client'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -35,6 +38,11 @@ function createWindow(): void {
 }
 
 void app.whenReady().then(() => {
+  // Wire the node API (#41): the main process holds the bearer token and talks
+  // to the local node over HTTP; the renderer reaches it only through IPC.
+  const conn = resolveNodeConnection(app.getPath('appData'))
+  registerNodeIpc(new NodeClient(nodeTransport(conn.baseUrl, conn.token)))
+
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

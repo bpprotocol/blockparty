@@ -5,7 +5,14 @@ import prettier from 'eslint-config-prettier/flat'
 
 export default ts.config(
   {
-    ignores: ['.nuxt/**', '.output/**', 'dist-electron/**', 'release/**', 'node_modules/**'],
+    ignores: [
+      '.nuxt/**',
+      '.output/**',
+      'dist-electron/**',
+      'release/**',
+      'node_modules/**',
+      'electron/gen/**',
+    ],
   },
   js.configs.recommended,
   ...ts.configs.recommended,

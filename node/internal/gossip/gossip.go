@@ -125,6 +125,17 @@ func (gs *Gossip) FollowedCount() int {
 	return len(gs.topics)
 }
 
+// FollowedAudiences returns the audience_code hexes currently followed.
+func (gs *Gossip) FollowedAudiences() []string {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+	out := make([]string, 0, len(gs.topics))
+	for aud := range gs.topics {
+		out = append(out, aud)
+	}
+	return out
+}
+
 // Publish announces a block on its audience topic, inlining the block when small
 // enough. Auto-follows the topic if not already.
 func (gs *Gossip) Publish(audienceHex string, b *blockpb.Block) error {

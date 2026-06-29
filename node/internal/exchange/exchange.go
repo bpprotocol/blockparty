@@ -32,6 +32,10 @@ import (
 // ProtocolID is the libp2p stream protocol for block exchange.
 const ProtocolID = protocol.ID("/bp/exchange/1.0.0")
 
+// DigestProtocolID is the stream protocol for per-audience block-ID digests
+// (the "who has what" query that drives anti-entropy, #36).
+const DigestProtocolID = protocol.ID("/bp/digest/1.0.0")
+
 const (
 	maxWantIDs      = 256
 	maxMessageBytes = 16 << 20 // per-message read cap (backpressure)
@@ -55,11 +59,67 @@ func New(h host.Host, st *store.Store, g GuardFunc, log *slog.Logger) *Exchange 
 	return &Exchange{host: h, store: st, guard: g, log: log}
 }
 
-// Start registers the stream handler (responder side).
-func (e *Exchange) Start() { e.host.SetStreamHandler(ProtocolID, e.handleStream) }
+// Start registers the stream handlers (responder side).
+func (e *Exchange) Start() {
+	e.host.SetStreamHandler(ProtocolID, e.handleStream)
+	e.host.SetStreamHandler(DigestProtocolID, e.handleDigestStream)
+}
 
-// Stop removes the stream handler.
-func (e *Exchange) Stop() { e.host.RemoveStreamHandler(ProtocolID) }
+// Stop removes the stream handlers.
+func (e *Exchange) Stop() {
+	e.host.RemoveStreamHandler(ProtocolID)
+	e.host.RemoveStreamHandler(DigestProtocolID)
+}
+
+// Digest asks peer p for the block IDs it holds for an audience.
+func (e *Exchange) Digest(ctx context.Context, p peer.ID, audienceCode []byte) ([][]byte, error) {
+	s, err := e.host.NewStream(ctx, p, DigestProtocolID)
+	if err != nil {
+		return nil, fmt.Errorf("exchange: open digest stream: %w", err)
+	}
+	defer s.Close()
+	setDeadline(ctx, s)
+
+	if _, err := protodelim.MarshalTo(s, &exchangepb.Digest{AudienceCode: audienceCode}); err != nil {
+		_ = s.Reset()
+		return nil, fmt.Errorf("exchange: write digest: %w", err)
+	}
+	_ = s.CloseWrite()
+
+	r := bufio.NewReader(io.LimitReader(s, maxMessageBytes))
+	var resp exchangepb.DigestResponse
+	if err := protodelim.UnmarshalFrom(r, &resp); err != nil {
+		_ = s.Reset()
+		return nil, fmt.Errorf("exchange: read digest: %w", err)
+	}
+	return resp.Ids, nil
+}
+
+func (e *Exchange) handleDigestStream(s network.Stream) {
+	defer s.Close()
+	_ = s.SetDeadline(time.Now().Add(streamTimeout))
+
+	r := bufio.NewReader(io.LimitReader(s, maxMessageBytes))
+	var req exchangepb.Digest
+	if err := protodelim.UnmarshalFrom(r, &req); err != nil {
+		_ = s.Reset()
+		return
+	}
+	entries, err := e.store.ByAudience(hex.EncodeToString(req.AudienceCode))
+	if err != nil {
+		_ = s.Reset()
+		return
+	}
+	resp := &exchangepb.DigestResponse{}
+	for _, en := range entries {
+		if id, err := hex.DecodeString(en.ID); err == nil {
+			resp.Ids = append(resp.Ids, id)
+		}
+	}
+	if _, err := protodelim.MarshalTo(s, resp); err != nil {
+		_ = s.Reset()
+	}
+}
 
 // FetchResult summarizes a fetch.
 type FetchResult struct {

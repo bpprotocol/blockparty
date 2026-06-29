@@ -22,3 +22,13 @@ message BlockItem {
 message WantResponse {
   repeated BlockItem items = 1;
 }
+
+// Digest asks a peer for the block IDs it holds for an audience — the "who has
+// what" query that drives anti-entropy reconciliation (#36).
+message Digest {
+  bytes audience_code = 1;
+}
+
+message DigestResponse {
+  repeated bytes ids = 1; // block IDs the responder holds for the audience
+}

@@ -22,6 +22,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/obs"
 	"github.com/bpprotocol/blockparty/node/internal/p2p"
 	"github.com/bpprotocol/blockparty/node/internal/store"
+	syncpkg "github.com/bpprotocol/blockparty/node/internal/sync"
 	"github.com/bpprotocol/blockparty/node/internal/world"
 )
 
@@ -182,6 +183,12 @@ func (d *Daemon) Run(ctx context.Context) error {
 	d.gossip = gsp
 	d.core.SetGossiper(gsp)
 	d.log.Info("gossip ready", "audiences", gsp.FollowedCount())
+
+	// Anti-entropy (#36): periodically reconcile followed audiences with peers,
+	// healing missing blocks without explicit requests.
+	reconciler := syncpkg.New(d.p2p, d.exchange, d.store, gsp.FollowedAudiences, d.log)
+	go reconciler.Run(ctx)
+	d.log.Info("anti-entropy reconciler started")
 
 	if err := d.api.Start(); err != nil {
 		_ = d.store.Close()

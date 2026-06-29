@@ -179,6 +179,14 @@ func (ph *Host) ConnectedCount() int {
 // Host exposes the underlying libp2p host for the exchange/gossip layers.
 func (ph *Host) Host() host.Host { return ph.h }
 
+// Connect dials a peer.
+func (ph *Host) Connect(ctx context.Context, pi peer.AddrInfo) error {
+	return ph.h.Connect(ctx, pi)
+}
+
+// ConnectedIDs returns the peer IDs the host is currently connected to.
+func (ph *Host) ConnectedIDs() []peer.ID { return ph.h.Network().Peers() }
+
 // FullAddrs returns the host's addresses with the /p2p/<id> suffix — the form
 // other nodes use as a bootstrap peer.
 func (ph *Host) FullAddrs() []string {

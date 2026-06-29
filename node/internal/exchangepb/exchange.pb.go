@@ -177,6 +177,96 @@ func (x *WantResponse) GetItems() []*BlockItem {
 	return nil
 }
 
+// Digest asks a peer for the block IDs it holds for an audience — the "who has
+// what" query that drives anti-entropy reconciliation (#36).
+type Digest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AudienceCode  []byte                 `protobuf:"bytes,1,opt,name=audience_code,json=audienceCode,proto3" json:"audience_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Digest) Reset() {
+	*x = Digest{}
+	mi := &file_exchange_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Digest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Digest) ProtoMessage() {}
+
+func (x *Digest) ProtoReflect() protoreflect.Message {
+	mi := &file_exchange_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Digest.ProtoReflect.Descriptor instead.
+func (*Digest) Descriptor() ([]byte, []int) {
+	return file_exchange_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Digest) GetAudienceCode() []byte {
+	if x != nil {
+		return x.AudienceCode
+	}
+	return nil
+}
+
+type DigestResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ids           [][]byte               `protobuf:"bytes,1,rep,name=ids,proto3" json:"ids,omitempty"` // block IDs the responder holds for the audience
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DigestResponse) Reset() {
+	*x = DigestResponse{}
+	mi := &file_exchange_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DigestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DigestResponse) ProtoMessage() {}
+
+func (x *DigestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_exchange_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DigestResponse.ProtoReflect.Descriptor instead.
+func (*DigestResponse) Descriptor() ([]byte, []int) {
+	return file_exchange_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *DigestResponse) GetIds() [][]byte {
+	if x != nil {
+		return x.Ids
+	}
+	return nil
+}
+
 var File_exchange_proto protoreflect.FileDescriptor
 
 const file_exchange_proto_rawDesc = "" +
@@ -190,7 +280,11 @@ const file_exchange_proto_rawDesc = "" +
 	"\x05block\x18\x02 \x01(\fR\x05block\x12\x12\n" +
 	"\x04have\x18\x03 \x01(\bR\x04have\"C\n" +
 	"\fWantResponse\x123\n" +
-	"\x05items\x18\x01 \x03(\v2\x1d.blockparty.node.v1.BlockItemR\x05itemsBFZDgithub.com/bpprotocol/blockparty/node/internal/exchangepb;exchangepbb\x06proto3"
+	"\x05items\x18\x01 \x03(\v2\x1d.blockparty.node.v1.BlockItemR\x05items\"-\n" +
+	"\x06Digest\x12#\n" +
+	"\raudience_code\x18\x01 \x01(\fR\faudienceCode\"\"\n" +
+	"\x0eDigestResponse\x12\x10\n" +
+	"\x03ids\x18\x01 \x03(\fR\x03idsBFZDgithub.com/bpprotocol/blockparty/node/internal/exchangepb;exchangepbb\x06proto3"
 
 var (
 	file_exchange_proto_rawDescOnce sync.Once
@@ -204,11 +298,13 @@ func file_exchange_proto_rawDescGZIP() []byte {
 	return file_exchange_proto_rawDescData
 }
 
-var file_exchange_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_exchange_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_exchange_proto_goTypes = []any{
-	(*Want)(nil),         // 0: blockparty.node.v1.Want
-	(*BlockItem)(nil),    // 1: blockparty.node.v1.BlockItem
-	(*WantResponse)(nil), // 2: blockparty.node.v1.WantResponse
+	(*Want)(nil),           // 0: blockparty.node.v1.Want
+	(*BlockItem)(nil),      // 1: blockparty.node.v1.BlockItem
+	(*WantResponse)(nil),   // 2: blockparty.node.v1.WantResponse
+	(*Digest)(nil),         // 3: blockparty.node.v1.Digest
+	(*DigestResponse)(nil), // 4: blockparty.node.v1.DigestResponse
 }
 var file_exchange_proto_depIdxs = []int32{
 	1, // 0: blockparty.node.v1.WantResponse.items:type_name -> blockparty.node.v1.BlockItem
@@ -230,7 +326,7 @@ func file_exchange_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_exchange_proto_rawDesc), len(file_exchange_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -5,7 +5,7 @@
 // (../../../sdk/vectors/vectors.json):
 //
 //   #12 crypto ✓ · #13 derivations/identity ✓ · #14 blocks ✓ · #15 encryption ✓
-//   #16 audiences ✓ · #17 connections · #18 block types
+//   #16 audiences ✓ · #17 connections ✓ · #18 block types
 //
 // Signature scheme: ML-DSA-65 (FIPS 204); KEM: ML-KEM768 (FIPS 203) — see #20.
 
@@ -19,3 +19,4 @@ export * from "./identity/index.js";
 export * from "./block/index.js";
 export * from "./encryption/index.js";
 export * from "./audiences/index.js";
+export * from "./connections/index.js";

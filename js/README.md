@@ -48,7 +48,7 @@ is validated against the shared conformance vectors in
 | `block`               | ✅ implemented | #14   |
 | `encryption`          | ✅ implemented | #15   |
 | `audiences`           | ✅ implemented | #16   |
-| connections           | ⬜             | #17   |
+| `connections`         | ✅ implemented | #17   |
 | block types           | ⬜             | #18   |
 
 ### `crypto` (#12)
@@ -88,3 +88,7 @@ Audience-scoped AEAD via [`@noble/ciphers`](https://github.com/paulmillr/noble-c
 - **Public audiences** `public-1 … public-16` (world-scoped): `publicAudience` / `publicAudienceSecret` derive code + 32-byte secret (matching `vectors.json`); only World-seed holders can derive the secret.
 - **Inbox audiences** (`…/inbox/<address>`): per-identity rendezvous code with no secret.
 - **`Registry`** — local `code → audience` map for resolving a received block's `audience_code`.
+
+### `connections` (#17)
+
+The `connect.*` handshake: `startRequest` → `acceptRequest` → `complete` (two-message ML-KEM768 exchange), `Connection.rotate`/`applyRotate` (forward ratchet), `buildClose`, and a `ReplayGuard`. The per-epoch derivations (`connectionSecret0`, `audienceCode`, `rotatedSecret`) reproduce `vectors.json` exactly; tests prove two parties derive the **same** private audience and exchange an encrypted block over it.

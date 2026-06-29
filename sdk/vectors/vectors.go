@@ -6,10 +6,12 @@
 package vectors
 
 import (
+	"bytes"
 	"encoding/hex"
 
 	"github.com/bpprotocol/blockparty/sdk/audiences"
 	"github.com/bpprotocol/blockparty/sdk/block"
+	"github.com/bpprotocol/blockparty/sdk/connections"
 	"github.com/bpprotocol/blockparty/sdk/crypto"
 	"github.com/bpprotocol/blockparty/sdk/derive"
 	"github.com/bpprotocol/blockparty/sdk/encryption"
@@ -32,13 +34,14 @@ const (
 // Vectors is the full set of conformance vectors. All byte values are
 // lowercase hex; large keys are fingerprinted with Keccak-256.
 type Vectors struct {
-	Crypto    CryptoVectors   `json:"crypto"`
-	World     WorldVectors    `json:"world"`
-	Identity  IdentityVectors `json:"identity"`
-	BlockID   BlockIDVectors  `json:"blockID"`
-	Audiences AudienceVectors `json:"audiences"`
-	AEAD      AEADVectors     `json:"aead"`
-	Block     BlockVectors    `json:"block"`
+	Crypto     CryptoVectors     `json:"crypto"`
+	World      WorldVectors      `json:"world"`
+	Identity   IdentityVectors   `json:"identity"`
+	BlockID    BlockIDVectors    `json:"blockID"`
+	Audiences  AudienceVectors   `json:"audiences"`
+	AEAD       AEADVectors       `json:"aead"`
+	Block      BlockVectors      `json:"block"`
+	Connection ConnectionVectors `json:"connection"`
 }
 
 type CryptoVectors struct {
@@ -86,6 +89,21 @@ type AEADVectors struct {
 	Data       string `json:"data"` // nonce || ciphertext, deterministic with Nonce
 }
 
+// ConnectionVectors locks the deterministic connection derivations over fixed
+// KEM shared secrets and nonces (the live handshake is non-deterministic).
+// AudienceCode1 is the code after one rotation (to epoch 1).
+type ConnectionVectors struct {
+	SS1               string `json:"ss1"`
+	SS2               string `json:"ss2"`
+	Nonce             string `json:"nonce"`
+	NonceResponse     string `json:"nonceResponse"`
+	SS3               string `json:"ss3"`
+	CT3               string `json:"ct3"`
+	ConnectionSecret0 string `json:"connectionSecret0"`
+	AudienceCode0     string `json:"audienceCode0"`
+	AudienceCode1     string `json:"audienceCode1"`
+}
+
 // BlockVectors is a fully-signed block over fixed inputs. The author is the
 // identity derived from (WorldSeed, Passphrase); the payload is raw bytes (no
 // encryption — this fixture exercises the block envelope, signatures, and
@@ -116,6 +134,16 @@ func Compute() *Vectors {
 	aeadSecret := crypto.Keccak256([]byte(AEADSecretSeed))
 	contentKey := encryption.ContentKey(aeadSecret, []byte(audCode), []byte(AEADNonce))
 	aad := encryption.AAD(Version, []byte(typeCode), []byte(audCode), Timestamp)
+
+	// Connection derivation fixtures over fixed KEM secrets and nonces.
+	cSS1 := bytes.Repeat([]byte{0x11}, 32)
+	cSS2 := bytes.Repeat([]byte{0x22}, 32)
+	cNonce := bytes.Repeat([]byte{0x33}, 32)
+	cNonceResp := bytes.Repeat([]byte{0x44}, 32)
+	cSS3 := bytes.Repeat([]byte{0x55}, 32)
+	cCT3 := bytes.Repeat([]byte{0x66}, 32)
+	cSecret0 := connections.DeriveConnectionSecret0(cSS1, cSS2, cNonce, cNonceResp)
+	cSecret1 := connections.DeriveRotatedSecret(cSecret0, cSS3, cCT3, 1)
 
 	const aeadPlaintext = "hello, audience"
 	aeadData, err := encryption.SealWithNonce(aeadSecret, []byte(audCode), []byte(AEADNonce), []byte(aeadPlaintext), aad)
@@ -181,6 +209,17 @@ func Compute() *Vectors {
 			Data:          blockFixtureData,
 			IDHex:         block.IDHex(blk),
 			EncodedKeccak: hexKeccak(encoded),
+		},
+		Connection: ConnectionVectors{
+			SS1:               hex.EncodeToString(cSS1),
+			SS2:               hex.EncodeToString(cSS2),
+			Nonce:             hex.EncodeToString(cNonce),
+			NonceResponse:     hex.EncodeToString(cNonceResp),
+			SS3:               hex.EncodeToString(cSS3),
+			CT3:               hex.EncodeToString(cCT3),
+			ConnectionSecret0: hex.EncodeToString(cSecret0),
+			AudienceCode0:     connections.DeriveAudienceCode(cSecret0, 0).Hex(),
+			AudienceCode1:     connections.DeriveAudienceCode(cSecret1, 1).Hex(),
 		},
 	}
 }

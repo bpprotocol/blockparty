@@ -14,8 +14,10 @@
 
 This monorepo contains the entire BlockParty ecosystem:
 - The core **protocol** specifications and derivation logic
-- The **reference client** and **reference node** implementations
+- The **reference implementations** (Go and TypeScript) — see [`IMPLEMENTATIONS.md`](./IMPLEMENTATIONS.md)
 - The **blockparty.org site**, documentation, essays, and design philosophy
+
+> Reference implementations are validated against the shared [`conformance/vectors.json`](./conformance/vectors.json), so they interoperate byte-for-byte. See [`IMPLEMENTATIONS.md`](./IMPLEMENTATIONS.md) for the index and how to add a new language.
 
 BlockParty introduces new primitives like **burnable identities**, **audience-scoped encryption**, and **post-truth state transitions** — forming a delay-tolerant, cryptographically grounded foundation for social communication in adversarial or disconnected environments.
 

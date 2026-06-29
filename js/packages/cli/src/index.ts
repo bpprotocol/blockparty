@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { banner } from "./cli.js";
+import { run } from "./cli.js";
 
-console.log(banner());
+process.exit(run(process.argv.slice(2)));

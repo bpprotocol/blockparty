@@ -4,6 +4,22 @@
   "description": "Reusable library for the BlockParty Protocol — crypto, derivations, identity, blocks, encryption, audiences, connections, and block types.",
   "license": "CC0-1.0",
   "type": "module",
+  "keywords": [
+    "blockparty",
+    "post-quantum",
+    "ml-dsa",
+    "ml-kem",
+    "decentralized",
+    "protocol",
+    "cryptography"
+  ],
+  "homepage": "https://github.com/bpprotocol/blockparty/tree/master/js/packages/sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bpprotocol/blockparty.git",
+    "directory": "js/packages/sdk"
+  },
+  "bugs": "https://github.com/bpprotocol/blockparty/issues",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,11 +34,15 @@
     "README.md"
   ],
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "eslint src",
+    "prepublishOnly": "pnpm run build",
     "gen:proto": "protoc --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es --es_out=src/blockpb --es_opt=target=ts,import_extension=js --proto_path=../../../protocol/proto/v1 block.proto block_types.proto"
   },
   "dependencies": {

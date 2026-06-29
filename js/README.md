@@ -24,16 +24,28 @@ pnpm add @blockparty/sdk
 import { PROTOCOL_VERSION } from "@blockparty/sdk";
 ```
 
+## CLI
+
+```sh
+cd js
+./demo.sh                       # two CLI instances exchange an encrypted block + the handshake demo
+pnpm -r build && node packages/cli/dist/index.js demo
+```
+
+`bp` commands: `address`, `send`, `inbox`, `ping`, `demo` — see [`packages/cli`](./packages/cli).
+
 ## Develop
 
 ```sh
 cd js
 pnpm install
 pnpm -r build     # build every package (sdk before cli)
-pnpm -r test      # run unit tests (Vitest)
+pnpm -r test      # unit tests + the cross-client conformance test vs sdk/vectors/vectors.json
 pnpm -r lint      # ESLint
 pnpm -r typecheck # tsc --noEmit
 ```
+
+CI (`.github/workflows/js.yml`) runs install/build/typecheck/lint/test/format across the workspace. `@blockparty/sdk` is publish-ready (`pnpm --filter @blockparty/sdk publish`).
 
 ## Modules
 

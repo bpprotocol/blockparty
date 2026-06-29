@@ -4,7 +4,7 @@ Headless daemon that participates in a **single World's** block-exchange network
 
 It is an **application built on the Go reference SDK** ([`../implementations/go`](../implementations/go)) — its own Go module (`github.com/bpprotocol/blockparty/node`) so heavy networking/storage deps stay out of the lean SDK. The SDK provides all protocol logic; the node adds networking, persistence, and the client API.
 
-> **Status:** the local vertical slice is complete — scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)), storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)), keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)), World guard ([#31](https://github.com/bpprotocol/blockparty/issues/31)), API trust boundary ([#29](https://github.com/bpprotocol/blockparty/issues/29)), and the client API ([#38](https://github.com/bpprotocol/blockparty/issues/38), bootstrap + post + read). A client can spawn the node, bootstrap a World, post a block, and read it back — offline. libp2p discovery (#32), block exchange (#34), gossip (#35), live subscription, and the connection RPCs land in the remaining #25 sub-issues.
+> **Status:** the local vertical slice is complete — scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)), storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)), keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)), World guard ([#31](https://github.com/bpprotocol/blockparty/issues/31)), API trust boundary ([#29](https://github.com/bpprotocol/blockparty/issues/29)), and the client API ([#38](https://github.com/bpprotocol/blockparty/issues/38), bootstrap + post + read). A client can spawn the node, bootstrap a World, post a block, and read it back — offline. The libp2p host with mDNS local-network discovery ([#32](https://github.com/bpprotocol/blockparty/issues/32)) is in place. Block exchange (#34), gossip (#35), live subscription, and the connection RPCs land in the remaining #25 sub-issues.
 
 ## Modes
 
@@ -42,7 +42,7 @@ Resolved from (increasing precedence): **defaults → JSON config file → envir
 | `--log-format` | `BPNODE_LOG_FORMAT` | `text` | `text`\|`json` |
 | `--api-allow-public` | `BPNODE_API_ALLOW_PUBLIC` | `false` | permit binding a non-loopback API address (#29) |
 | `--world-pubkey` | `BPNODE_WORLD_PUBKEY` | — | relay: World ML-DSA-65 public key (hex) |
-| `--p2p-listen` | `BPNODE_P2P_LISTEN` | — | reserved ([#32](https://github.com/bpprotocol/blockparty/issues/32)) |
+| `--p2p-listen` | `BPNODE_P2P_LISTEN` | `/ip4/0.0.0.0/tcp/0` | libp2p listen multiaddrs ([#32](https://github.com/bpprotocol/blockparty/issues/32)) |
 | `--bootstrap` | `BPNODE_BOOTSTRAP` | — | reserved ([#33](https://github.com/bpprotocol/blockparty/issues/33)) |
 | `--config` | `BPNODE_CONFIG` | — | path to a JSON config file |
 | — | `BPNODE_KEYSTORE_PASSPHRASE` | — | personal: unlocks (or, with a seed, first-time initializes) the encrypted keystore. **Secret** — env only. |
@@ -120,6 +120,7 @@ node/
     ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
     ├── guard/         # ingress validation: world_sig gate → dedupe → author → store (#31)
     ├── authz/         # API trust boundary: loopback, bearer token, op confirmation (#29)
+    ├── p2p/           # libp2p host + mDNS local-network peer discovery (#32)
     ├── core/          # stateful controller: World/keystore/guard + read/write ops (#38)
     ├── nodepb/        # generated Connect service (from proto/v1/node.proto)
     ├── nodeapi/       # Connect NodeService implementation over core (#38)

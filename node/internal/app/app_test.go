@@ -21,6 +21,9 @@ func runDaemon(t *testing.T, cfg config.Config) (string, func()) {
 	if cfg.DataDir == "" {
 		cfg.DataDir = t.TempDir()
 	}
+	if cfg.P2PListen == nil {
+		cfg.P2PListen = []string{"/ip4/127.0.0.1/tcp/0"} // hermetic: loopback only
+	}
 	log := obs.NewLogger("error", "text", io.Discard)
 
 	d, err := New(cfg, log)

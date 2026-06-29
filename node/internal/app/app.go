@@ -18,6 +18,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/nodeapi"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
+	"github.com/bpprotocol/blockparty/node/internal/p2p"
 	"github.com/bpprotocol/blockparty/node/internal/store"
 	"github.com/bpprotocol/blockparty/node/internal/world"
 )
@@ -37,6 +38,7 @@ type Daemon struct {
 	keystore *keystore.Keystore
 	store    *store.Store
 	core     *core.Core
+	p2p      *p2p.Host
 	token    string
 	api      *api.Server
 	start    time.Time
@@ -147,8 +149,13 @@ func (d *Daemon) Run(ctx context.Context) error {
 	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(d.core))
 	d.api.Handle(path, handler)
 
-	// The p2p host (#32) is wired in by its issue.
-	d.log.Debug("subsystem pending", "subsystem", "p2p", "issue", 32)
+	// Start the libp2p host with mDNS local-network discovery (#32).
+	ph, err := p2p.New(p2p.Config{DataDir: d.cfg.DataDir, ListenAddrs: d.cfg.P2PListen}, d.log)
+	if err != nil {
+		_ = d.store.Close()
+		return fmt.Errorf("start p2p host: %w", err)
+	}
+	d.p2p = ph
 
 	if err := d.api.Start(); err != nil {
 		_ = d.store.Close()
@@ -164,6 +171,11 @@ func (d *Daemon) Run(ctx context.Context) error {
 	apiErr := d.api.Shutdown(shutCtx)
 	if apiErr != nil {
 		d.log.Error("api server shutdown", "err", apiErr)
+	}
+	if d.p2p != nil {
+		if err := d.p2p.Close(); err != nil {
+			d.log.Error("p2p close", "err", err)
+		}
 	}
 	if err := d.store.Close(); err != nil {
 		d.log.Error("store close", "err", err)
@@ -215,6 +227,10 @@ func (d *Daemon) status() api.Status {
 		s.World = cs.World
 		s.Identity = cs.Identity
 		s.Blocks = cs.BlockCount
+	}
+	if d.p2p != nil {
+		s.PeerID = d.p2p.ID()
+		s.Peers = d.p2p.ConnectedCount()
 	}
 	return s
 }

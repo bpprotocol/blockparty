@@ -30,6 +30,8 @@ type Status struct {
 	World       string           `json:"world,omitempty"`    // World fingerprint when loaded
 	Identity    string           `json:"identity,omitempty"` // identity address (personal mode, keystore unlocked)
 	Blocks      int              `json:"blocks"`             // stored block count (-1 if unavailable)
+	PeerID      string           `json:"peer_id,omitempty"`  // libp2p host peer ID
+	Peers       int              `json:"peers"`              // currently-connected peers
 	StartedAt   string           `json:"started_at"`
 	UptimeSec   float64          `json:"uptime_seconds"`
 	Metrics     map[string]int64 `json:"metrics"`

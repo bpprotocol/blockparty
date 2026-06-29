@@ -15,6 +15,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/api"
 	"github.com/bpprotocol/blockparty/node/internal/config"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
+	"github.com/bpprotocol/blockparty/node/internal/store"
 	"github.com/bpprotocol/blockparty/node/internal/world"
 )
 
@@ -30,6 +31,7 @@ type Daemon struct {
 	log     *slog.Logger
 	metrics *obs.Metrics
 	world   *world.State
+	store   *store.Store
 	api     *api.Server
 	start   time.Time
 }
@@ -58,15 +60,24 @@ func (d *Daemon) Run(ctx context.Context) error {
 	d.start = time.Now()
 	d.logStartup()
 
-	// Stores (#30), keystore (#28), and the p2p host (#32) are wired in by their
-	// issues. Announce their pending state so startup is transparent.
-	d.log.Debug("subsystem pending", "subsystem", "storage", "issue", 30)
+	// Open the local stores (#30): durable block store, in-memory index, blobs.
+	st, err := store.Open(d.cfg.DataDir, d.log)
+	if err != nil {
+		return fmt.Errorf("open store: %w", err)
+	}
+	d.store = st
+	if n, err := st.Count(); err == nil {
+		d.log.Info("storage open", "data_dir", d.cfg.DataDir, "blocks", n)
+	}
+
+	// The keystore (#28) and p2p host (#32) are wired in by their issues.
 	if d.cfg.Mode == config.ModePersonal {
 		d.log.Debug("subsystem pending", "subsystem", "keystore", "issue", 28)
 	}
 	d.log.Debug("subsystem pending", "subsystem", "p2p", "issue", 32)
 
 	if err := d.api.Start(); err != nil {
+		_ = d.store.Close()
 		return fmt.Errorf("start api server: %w", err)
 	}
 	d.log.Info("bpnode ready", "api_addr", d.api.Addr(), "mode", d.cfg.Mode)
@@ -76,9 +87,15 @@ func (d *Daemon) Run(ctx context.Context) error {
 
 	shutCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
-	if err := d.api.Shutdown(shutCtx); err != nil {
-		d.log.Error("api server shutdown", "err", err)
-		return err
+	apiErr := d.api.Shutdown(shutCtx)
+	if apiErr != nil {
+		d.log.Error("api server shutdown", "err", apiErr)
+	}
+	if err := d.store.Close(); err != nil {
+		d.log.Error("store close", "err", err)
+	}
+	if apiErr != nil {
+		return apiErr
 	}
 	d.log.Info("stopped")
 	return nil
@@ -102,11 +119,18 @@ func (d *Daemon) logStartup() {
 }
 
 func (d *Daemon) status() api.Status {
+	blocks := -1
+	if d.store != nil {
+		if n, err := d.store.Count(); err == nil {
+			blocks = n
+		}
+	}
 	return api.Status{
 		Version:     Version,
 		Mode:        string(d.cfg.Mode),
 		WorldLoaded: d.world.Loaded,
 		World:       d.world.Fingerprint,
+		Blocks:      blocks,
 		StartedAt:   d.start.UTC().Format(time.RFC3339),
 		UptimeSec:   time.Since(d.start).Seconds(),
 		Metrics:     d.metrics.Snapshot(),

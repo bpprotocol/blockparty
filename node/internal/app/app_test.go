@@ -18,6 +18,7 @@ import (
 func runDaemon(t *testing.T, cfg config.Config) (string, func()) {
 	t.Helper()
 	cfg.APIAddr = "127.0.0.1:0"
+	cfg.DataDir = t.TempDir()
 	log := obs.NewLogger("error", "text", io.Discard)
 
 	d, err := New(cfg, log)

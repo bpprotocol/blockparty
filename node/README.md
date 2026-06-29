@@ -4,7 +4,7 @@ Headless daemon that participates in a **single World's** block-exchange network
 
 It is an **application built on the Go reference SDK** ([`../implementations/go`](../implementations/go)) — its own Go module (`github.com/bpprotocol/blockparty/node`) so heavy networking/storage deps stay out of the lean SDK. The SDK provides all protocol logic; the node adds networking, persistence, and the client API.
 
-> **Status:** scaffold only ([#27](https://github.com/bpprotocol/blockparty/issues/27)). Config, mode selection, the operational API server, and graceful lifecycle are in place. Storage, keystore, libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
+> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)). Config, mode selection, the operational API server, graceful lifecycle, and the block store/index are in place. Keystore, libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
 
 ## Modes
 
@@ -65,6 +65,7 @@ node/
     ├── config/        # config: defaults → file → env → flags, + validation
     ├── obs/           # slog logger + lightweight metrics counters
     ├── world/         # which World the node serves (personal vs relay)
+    ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
     ├── api/           # net/http server: /healthz, /statusz (Connect handlers land in #38)
     └── app/           # daemon: wiring + Run(ctx) + graceful shutdown
 ```

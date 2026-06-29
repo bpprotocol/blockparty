@@ -5,7 +5,16 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)) + compose ([#45](https://github.com/bpprotocol/blockparty/issues/45)) + connections ([#46](https://github.com/bpprotocol/blockparty/issues/46)). The app manages the node, guides setup, posts to public audiences, and connects to peers for private messaging. Identity (#47) and packaging (#48) follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)) + compose ([#45](https://github.com/bpprotocol/blockparty/issues/45)) + connections ([#46](https://github.com/bpprotocol/blockparty/issues/46)) + identity ([#47](https://github.com/bpprotocol/blockparty/issues/47)). The app manages the node, guides setup, posts, connects to peers, and manages identity keys. Packaging (#48) is the last step.
+
+## Identity & keys (#47)
+
+The dashboard shows the identity card (address, World, signing/KEM public keys) and a **key management** panel for the two dangerous operations:
+
+- **Rotate identity** — set a new passphrase, deriving a new identity (existing connections drop).
+- **Burn identity** — publish an `identity.burn` that reveals the root private keys so peers revoke trust. Irreversible; the UI requires typing `BURN` to confirm.
+
+Both go through the node's confirmation gate ([#29](https://github.com/bpprotocol/blockparty/issues/29)): the renderer must pass `confirm: true`, and the node rejects an unconfirmed call (`failed_precondition`). The node holds the keys and performs the operation; no private key ever reaches the renderer. The flow lives in `composables/useIdentity.ts` (unit-tested) and `components/IdentityView.vue`.
 
 ## Connections (#46)
 
@@ -120,8 +129,8 @@ clients/desktop/
 │   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle + feed)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
 ├── app.vue              # renderer root (routes connecting/onboarding/dashboard)
-├── composables/         # useNode, useFeed, useCompose, useConnections
-├── components/          # Onboarding, NodeDashboard, Compose, Connections, Feed
+├── composables/         # useNode, useFeed, useCompose, useConnections, useIdentity
+├── components/          # Onboarding, NodeDashboard, Compose, Connections, Identity, Feed
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml

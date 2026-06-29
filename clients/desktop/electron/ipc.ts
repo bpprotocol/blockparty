@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import {
   CONNECTION_CHANNELS,
   FEED_CHANNELS,
+  IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BootstrapRequest,
@@ -88,5 +89,19 @@ export function registerConnectionIpc(getClient: () => NodeClient | undefined): 
   ipcMain.handle(
     CONNECTION_CHANNELS.messages,
     (_e, address: string) => getClient()?.connectionMessages(address) ?? noClient(),
+  )
+}
+
+// registerIdentityIpc exposes the gated identity operations (#47).
+export function registerIdentityIpc(getClient: () => NodeClient | undefined): void {
+  ipcMain.handle(
+    IDENTITY_CHANNELS.rotate,
+    (_e, newPassphrase: string, confirm: boolean) =>
+      getClient()?.rotateIdentity(newPassphrase, confirm) ?? noClient(),
+  )
+  ipcMain.handle(
+    IDENTITY_CHANNELS.burn,
+    (_e, notice: string, confirm: boolean) =>
+      getClient()?.burnIdentity(notice, confirm) ?? noClient(),
   )
 }

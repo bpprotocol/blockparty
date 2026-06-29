@@ -166,6 +166,22 @@ export class NodeClient implements NodeApi {
       }))
     })
   }
+
+  // --- Identity & keys (#47) ---
+
+  rotateIdentity(newPassphrase: string, confirm: boolean): Promise<Result<{ identity: string }>> {
+    return wrap(async () => {
+      const r = await this.client.rotateIdentity({ newPassphrase, confirm })
+      return { identity: r.identity }
+    })
+  }
+
+  burnIdentity(notice: string, confirm: boolean): Promise<Result<{ blockId: string }>> {
+    return wrap(async () => {
+      const r = await this.client.burnIdentity({ notice, confirm })
+      return { blockId: r.blockId }
+    })
+  }
 }
 
 function summaryDTO(s: { [k: string]: unknown } | undefined): BlockSummary {

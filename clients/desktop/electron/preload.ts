@@ -2,12 +2,14 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
   CONNECTION_CHANNELS,
   FEED_CHANNELS,
+  IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BlockSummary,
   type BpDesktop,
   type ConnectionsApi,
   type FeedApi,
+  type IdentityApi,
   type LifecycleApi,
   type NodeApi,
 } from './bridge'
@@ -48,6 +50,12 @@ const connections: ConnectionsApi = {
   messages: (address) => ipcRenderer.invoke(CONNECTION_CHANNELS.messages, address),
 }
 
+const identity: IdentityApi = {
+  rotate: (newPassphrase, confirm) =>
+    ipcRenderer.invoke(IDENTITY_CHANNELS.rotate, newPassphrase, confirm),
+  burn: (notice, confirm) => ipcRenderer.invoke(IDENTITY_CHANNELS.burn, notice, confirm),
+}
+
 const api: BpDesktop = {
   versions: () => ({
     electron: process.versions.electron ?? '',
@@ -58,6 +66,7 @@ const api: BpDesktop = {
   lifecycle,
   feed,
   connections,
+  identity,
 }
 
 contextBridge.exposeInMainWorld('bpDesktop', api)

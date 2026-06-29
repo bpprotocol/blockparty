@@ -5,6 +5,7 @@ import { FeedManager } from './feed-manager'
 import {
   registerConnectionIpc,
   registerFeedIpc,
+  registerIdentityIpc,
   registerLifecycleIpc,
   registerNodeIpc,
 } from './ipc'
@@ -86,6 +87,7 @@ void app.whenReady().then(async () => {
   }
   registerFeedIpc(() => feed)
   registerConnectionIpc(() => nodeClient)
+  registerIdentityIpc(() => nodeClient)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow()

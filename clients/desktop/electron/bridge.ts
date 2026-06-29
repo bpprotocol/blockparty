@@ -127,12 +127,23 @@ export interface ConnectionsApi {
   messages(address: string): Promise<Result<PrivateMessage[]>>
 }
 
+// --- Identity & keys (#47) ---
+
+// IdentityApi exposes the dangerous, confirmation-gated key operations. The
+// renderer must pass confirm: true (after an explicit user confirmation); the
+// node holds the keys and enforces the gate.
+export interface IdentityApi {
+  rotate(newPassphrase: string, confirm: boolean): Promise<Result<{ identity: string }>>
+  burn(notice: string, confirm: boolean): Promise<Result<{ blockId: string }>>
+}
+
 export interface BpDesktop {
   versions: () => { electron: string; chrome: string; node: string }
   node: NodeApi
   lifecycle: LifecycleApi
   feed: FeedApi
   connections: ConnectionsApi
+  identity: IdentityApi
 }
 
 // IPC channel names.
@@ -164,4 +175,9 @@ export const CONNECTION_CHANNELS = {
   close: 'conn:close',
   sendText: 'conn:sendText',
   messages: 'conn:messages',
+} as const
+
+export const IDENTITY_CHANNELS = {
+  rotate: 'identity:rotate',
+  burn: 'identity:burn',
 } as const

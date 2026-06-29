@@ -40,6 +40,7 @@ Resolved from (increasing precedence): **defaults → JSON config file → envir
 | `--api-addr` | `BPNODE_API_ADDR` | `127.0.0.1:4400` | loopback by default ([#29](https://github.com/bpprotocol/blockparty/issues/29)) |
 | `--log-level` | `BPNODE_LOG_LEVEL` | `info` | `debug`\|`info`\|`warn`\|`error` |
 | `--log-format` | `BPNODE_LOG_FORMAT` | `text` | `text`\|`json` |
+| `--api-allow-public` | `BPNODE_API_ALLOW_PUBLIC` | `false` | permit binding a non-loopback API address (#29) |
 | `--world-pubkey` | `BPNODE_WORLD_PUBKEY` | — | relay: World ML-DSA-65 public key (hex) |
 | `--p2p-listen` | `BPNODE_P2P_LISTEN` | — | reserved ([#32](https://github.com/bpprotocol/blockparty/issues/32)) |
 | `--bootstrap` | `BPNODE_BOOTSTRAP` | — | reserved ([#33](https://github.com/bpprotocol/blockparty/issues/33)) |
@@ -63,6 +64,14 @@ BPNODE_KEYSTORE_PASSPHRASE=unlock bpnode --mode personal
 
 Identity rotation (new identity; the old one stays revocable via `identity.burn`) and burn-material extraction are available on the keystore for the client API (#38) and connections (#37). On a multi-user/remote host an OS-keychain backend (Keychain / libsecret / DPAPI) can slot in behind the same API.
 
+## API trust boundary (#29)
+
+The personal-mode API is an **act-as-me oracle**, so it is locked down:
+
+- **Loopback-only** binding by default; a non-loopback `--api-addr` is refused unless `--api-allow-public` is set.
+- A **bearer token** at `<data-dir>/api.token` (mode 0600) is required on the RPC surface (the client reads the file and sends `Authorization: Bearer …`). The open ops endpoints (`/healthz`, `/statusz`) carry no secrets or actions.
+- A **confirmation gate** guards dangerous, irreversible operations (authoring an `identity.burn`, key export): the client must pass an explicit confirmation, which the node records.
+
 ## API framework decision (#27)
 
 The client API is **[Connect](https://connectrpc.com/connect)** (`connectrpc.com/connect`):
@@ -85,6 +94,7 @@ node/
     ├── keystore/      # encrypted-at-rest secret store; derives keys in memory (#28)
     ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
     ├── guard/         # ingress validation: world_sig gate → dedupe → author → store (#31)
+    ├── authz/         # API trust boundary: loopback, bearer token, op confirmation (#29)
     ├── api/           # net/http server: /healthz, /statusz (Connect handlers land in #38)
     └── app/           # daemon: wiring + Run(ctx) + graceful shutdown
 ```

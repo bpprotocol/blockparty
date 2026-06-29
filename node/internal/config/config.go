@@ -35,13 +35,14 @@ const mldsa65PublicKeyBytes = 1952
 
 // Config is the fully-resolved daemon configuration.
 type Config struct {
-	Mode      Mode     `json:"mode"`
-	DataDir   string   `json:"data_dir"`
-	APIAddr   string   `json:"api_addr"`   // client API listen address; loopback by default (#29)
-	P2PListen []string `json:"p2p_listen"` // reserved for libp2p (#32)
-	Bootstrap []string `json:"bootstrap"`  // reserved for DHT bootstrap peers (#33)
-	LogLevel  string   `json:"log_level"`
-	LogFormat string   `json:"log_format"`
+	Mode           Mode     `json:"mode"`
+	DataDir        string   `json:"data_dir"`
+	APIAddr        string   `json:"api_addr"`         // client API listen address; loopback by default (#29)
+	APIAllowPublic bool     `json:"api_allow_public"` // permit binding a non-loopback API address (#29)
+	P2PListen      []string `json:"p2p_listen"`       // reserved for libp2p (#32)
+	Bootstrap      []string `json:"bootstrap"`        // reserved for DHT bootstrap peers (#33)
+	LogLevel       string   `json:"log_level"`
+	LogFormat      string   `json:"log_format"`
 
 	// World bootstrap material.
 	//
@@ -90,6 +91,7 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 		fMode      = fs.String("mode", string(cfg.Mode), "operating mode: personal | relay")
 		fDataDir   = fs.String("data-dir", cfg.DataDir, "data directory")
 		fAPIAddr   = fs.String("api-addr", cfg.APIAddr, "client API listen address (loopback recommended)")
+		fAllowPub  = fs.Bool("api-allow-public", cfg.APIAllowPublic, "permit binding a non-loopback API address")
 		fLogLevel  = fs.String("log-level", cfg.LogLevel, "log level: debug | info | warn | error")
 		fLogFormat = fs.String("log-format", cfg.LogFormat, "log format: text | json")
 		fP2P       = fs.String("p2p-listen", strings.Join(cfg.P2PListen, ","), "comma-separated libp2p listen multiaddrs (reserved, #32)")
@@ -126,6 +128,9 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	}
 	if set["api-addr"] {
 		cfg.APIAddr = *fAPIAddr
+	}
+	if set["api-allow-public"] {
+		cfg.APIAllowPublic = *fAllowPub
 	}
 	if set["log-level"] {
 		cfg.LogLevel = *fLogLevel
@@ -170,6 +175,9 @@ func overlayEnv(c *Config, getenv func(string) string) {
 	}
 	if v := getenv("BPNODE_API_ADDR"); v != "" {
 		c.APIAddr = v
+	}
+	if v := getenv("BPNODE_API_ALLOW_PUBLIC"); v != "" {
+		c.APIAllowPublic = v == "1" || strings.EqualFold(v, "true") || strings.EqualFold(v, "yes")
 	}
 	if v := getenv("BPNODE_LOG_LEVEL"); v != "" {
 		c.LogLevel = v

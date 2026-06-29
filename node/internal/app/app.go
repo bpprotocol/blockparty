@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bpprotocol/blockparty/node/internal/api"
+	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/config"
 	"github.com/bpprotocol/blockparty/node/internal/guard"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
@@ -40,6 +41,7 @@ type Daemon struct {
 	keystore *keystore.Keystore
 	store    *store.Store
 	guard    *guard.Guard
+	token    string
 	api      *api.Server
 	start    time.Time
 }
@@ -52,14 +54,19 @@ func New(cfg config.Config, log *slog.Logger) (*Daemon, error) {
 	if err != nil {
 		return nil, err
 	}
+	token, err := authz.LoadOrCreateToken(cfg.DataDir)
+	if err != nil {
+		return nil, fmt.Errorf("api token: %w", err)
+	}
 	d := &Daemon{
 		cfg:      cfg,
 		log:      log,
 		metrics:  &obs.Metrics{},
 		world:    st,
 		keystore: ks,
+		token:    token,
 	}
-	d.api = api.New(cfg.APIAddr, log, d.metrics, d.status)
+	d.api = api.New(cfg.APIAddr, log, d.metrics, d.status, token, cfg.APIAllowPublic)
 	return d, nil
 }
 

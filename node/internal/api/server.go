@@ -12,10 +12,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 
+	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
 )
 
@@ -38,29 +40,43 @@ type StatusFunc func() Status
 
 // Server is the node's HTTP API server.
 type Server struct {
-	addr    string
-	log     *slog.Logger
-	metrics *obs.Metrics
-	status  StatusFunc
-	http    *http.Server
+	addr        string
+	log         *slog.Logger
+	metrics     *obs.Metrics
+	status      StatusFunc
+	token       string
+	allowPublic bool
+	mux         *http.ServeMux
+	http        *http.Server
 }
 
-// New builds the API server bound (on Start) to addr.
-func New(addr string, log *slog.Logger, metrics *obs.Metrics, status StatusFunc) *Server {
-	s := &Server{addr: addr, log: log, metrics: metrics, status: status}
+// New builds the API server bound (on Start) to addr. token guards mounted RPC
+// handlers; allowPublic permits binding a non-loopback address.
+func New(addr string, log *slog.Logger, metrics *obs.Metrics, status StatusFunc, token string, allowPublic bool) *Server {
+	s := &Server{addr: addr, log: log, metrics: metrics, status: status, token: token, allowPublic: allowPublic}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", s.handleHealth)
-	mux.HandleFunc("/statusz", s.handleStatus)
-	// #38 mounts the Connect service handlers onto this same mux.
+	s.mux = http.NewServeMux()
+	// Operational endpoints are open (liveness/ops, no secrets or actions).
+	s.mux.HandleFunc("/healthz", s.handleHealth)
+	s.mux.HandleFunc("/statusz", s.handleStatus)
 
-	s.http = &http.Server{Handler: s.instrument(mux)}
+	s.http = &http.Server{Handler: s.instrument(s.mux)}
 	return s
 }
 
-// Start binds the listener and serves in the background. It resolves the bound
+// Handle mounts a token-protected handler at pattern (e.g. the Connect service,
+// #38). Call before Start. The act-as-me API surface is always behind the token.
+func (s *Server) Handle(pattern string, h http.Handler) {
+	s.mux.Handle(pattern, authz.RequireToken(s.token, s.log)(h))
+}
+
+// Start binds the listener and serves in the background. It refuses to bind a
+// non-loopback address unless explicitly allowed, then resolves the bound
 // address (so a configured port of :0 becomes concrete and observable via Addr).
 func (s *Server) Start() error {
+	if !authz.IsLoopback(s.addr) && !s.allowPublic {
+		return fmt.Errorf("api: refusing to bind non-loopback address %q (set --api-allow-public to override)", s.addr)
+	}
 	ln, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return err

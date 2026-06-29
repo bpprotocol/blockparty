@@ -35,5 +35,14 @@
     "nonce": "bpprotocol/v1/test-nonce",
     "contentKey": "0808611f62904c55850934ce82b79273f64ed63902e6760cf696cbeacfda78d6",
     "aad": "00000001a451d8b7e0ec778506b8001ebd31c2b98572d37a189d92544082f34254f01d8e000000006553f100"
+  },
+  "block": {
+    "passphrase": "correct horse battery staple",
+    "typeURN": "bpprotocol.org/v1/types/content.post",
+    "audienceURN": "bpprotocol.org/v1/audience/public-1",
+    "timestamp": 1700000000,
+    "data": "block fixture payload",
+    "idHex": "6fa5a556b697431fd693218f37f8db0adaede4790783b4c2f01af4eae9756bce",
+    "encodedKeccak": "1ec5d5a3b06e420564440b2ce195615918698d89729c08442edec88634403fe9"
   }
 }

@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 
 	"github.com/bpprotocol/blockparty/sdk/audiences"
+	"github.com/bpprotocol/blockparty/sdk/block"
 	"github.com/bpprotocol/blockparty/sdk/crypto"
 	"github.com/bpprotocol/blockparty/sdk/derive"
 	"github.com/bpprotocol/blockparty/sdk/encryption"
@@ -37,6 +38,7 @@ type Vectors struct {
 	BlockID   BlockIDVectors  `json:"blockID"`
 	Audiences AudienceVectors `json:"audiences"`
 	AEAD      AEADVectors     `json:"aead"`
+	Block     BlockVectors    `json:"block"`
 }
 
 type CryptoVectors struct {
@@ -82,6 +84,22 @@ type AEADVectors struct {
 	AAD        string `json:"aad"`
 }
 
+// BlockVectors is a fully-signed block over fixed inputs. The author is the
+// identity derived from (WorldSeed, Passphrase); the payload is raw bytes (no
+// encryption — this fixture exercises the block envelope, signatures, and
+// canonical encoding). EncodedKeccak is keccak256 of the canonical Protobuf
+// encoding, so a conforming implementation that produces a byte-identical
+// signed block reproduces it.
+type BlockVectors struct {
+	Passphrase    string `json:"passphrase"`
+	TypeURN       string `json:"typeURN"`
+	AudienceURN   string `json:"audienceURN"`
+	Timestamp     int64  `json:"timestamp"`
+	Data          string `json:"data"`
+	IDHex         string `json:"idHex"`
+	EncodedKeccak string `json:"encodedKeccak"`
+}
+
 // Compute derives all vectors from the fixed inputs via the public SDK API.
 func Compute() *Vectors {
 	w := derive.OpenWorld(WorldSeed)
@@ -98,6 +116,15 @@ func Compute() *Vectors {
 	aad := encryption.AAD(Version, []byte(typeCode), []byte(audCode), Timestamp)
 
 	const blockData = "hello"
+
+	const blockFixtureData = "block fixture payload"
+	blk := block.New(id.Address, typeCode, audCode, Timestamp, []byte(blockFixtureData))
+	block.Sign(blk, w, id.MLDSA)
+	encoded, err := block.Encode(blk)
+	if err != nil {
+		panic("vectors: encoding block fixture: " + err.Error())
+	}
+
 	return &Vectors{
 		Crypto: CryptoVectors{
 			Seed:           KeySeed,
@@ -135,6 +162,15 @@ func Compute() *Vectors {
 			Nonce:      AEADNonce,
 			ContentKey: hex.EncodeToString(contentKey),
 			AAD:        hex.EncodeToString(aad),
+		},
+		Block: BlockVectors{
+			Passphrase:    Passphrase,
+			TypeURN:       TypeURN,
+			AudienceURN:   AudienceURN,
+			Timestamp:     Timestamp,
+			Data:          blockFixtureData,
+			IDHex:         block.IDHex(blk),
+			EncodedKeccak: hexKeccak(encoded),
 		},
 	}
 }

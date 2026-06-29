@@ -45,7 +45,7 @@ is validated against the shared conformance vectors in
 | --------------------- | -------------- | ----- |
 | `crypto`              | ✅ implemented | #12   |
 | `derive` / `identity` | ✅ implemented | #13   |
-| blocks                | ⬜             | #14   |
+| `block`               | ✅ implemented | #14   |
 | encryption            | ⬜             | #15   |
 | audiences             | ⬜             | #16   |
 | connections           | ⬜             | #17   |
@@ -70,3 +70,9 @@ Cryptography (resolved in #20): **ML-DSA-65** (FIPS 204) for signatures and
 - **`identity`** — `openIdentity(world, passphrase)`: world-scoped `worldPassword` (HKDF over the wallet salt) + `ml-dsa`/`mlkem` domain separation.
 
 All derivations reproduce `vectors.json` exactly (salts, codes, address, block ID, identity) — byte-identical to Go, including the empty-salt HKDF.
+
+### `block` (#14)
+
+The block envelope: `newBlock`/`signBlock`/`verifyBlock`, `addCoSignature`/`verifyCoSignature`, `encode`/`decode`. Wire types are generated from [`../protocol/proto/v1`](../protocol/proto/v1) with [protobuf-es](https://github.com/bufbuild/protobuf-es) into `src/blockpb` (regenerate via `pnpm --filter @blockparty/sdk gen:proto`; needs `protoc`). Signatures are over a domain-separated, length-prefixed preimage shared verbatim with Go.
+
+**Full byte-level interop with Go:** the cross-impl test builds and signs a block and reproduces the Go reference's signed-block `idHex` **and** canonical-encoding fingerprint from `vectors.json` exactly — a Node block is byte-identical to a Go block, so each verifies the other's.

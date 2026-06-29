@@ -1,10 +1,12 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
+  CONNECTION_CHANNELS,
   FEED_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BlockSummary,
   type BpDesktop,
+  type ConnectionsApi,
   type FeedApi,
   type LifecycleApi,
   type NodeApi,
@@ -35,6 +37,17 @@ const feed: FeedApi = {
   },
 }
 
+const connections: ConnectionsApi = {
+  getIdentity: () => ipcRenderer.invoke(CONNECTION_CHANNELS.getIdentity),
+  addPeer: (card) => ipcRenderer.invoke(CONNECTION_CHANNELS.addPeer, card),
+  start: (address) => ipcRenderer.invoke(CONNECTION_CHANNELS.start, address),
+  list: () => ipcRenderer.invoke(CONNECTION_CHANNELS.list),
+  rotate: (address) => ipcRenderer.invoke(CONNECTION_CHANNELS.rotate, address),
+  close: (address) => ipcRenderer.invoke(CONNECTION_CHANNELS.close, address),
+  sendText: (address, text) => ipcRenderer.invoke(CONNECTION_CHANNELS.sendText, address, text),
+  messages: (address) => ipcRenderer.invoke(CONNECTION_CHANNELS.messages, address),
+}
+
 const api: BpDesktop = {
   versions: () => ({
     electron: process.versions.electron ?? '',
@@ -44,6 +57,7 @@ const api: BpDesktop = {
   node,
   lifecycle,
   feed,
+  connections,
 }
 
 contextBridge.exposeInMainWorld('bpDesktop', api)

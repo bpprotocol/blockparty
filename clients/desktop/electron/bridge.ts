@@ -96,11 +96,43 @@ export interface FeedApi {
   onEvent(cb: (summary: BlockSummary) => void): () => void
 }
 
+// --- Connections (#46) ---
+
+export interface IdentityCard {
+  address: string
+  kyberPub: string
+  mldsaPub: string
+}
+
+export interface ConnectionInfo {
+  peer: string
+  epoch: number
+  audienceCode: string
+}
+
+export interface PrivateMessage {
+  author: string
+  text: string
+  timestamp: number
+}
+
+export interface ConnectionsApi {
+  getIdentity(): Promise<Result<IdentityCard>>
+  addPeer(card: IdentityCard): Promise<Result<void>>
+  start(address: string): Promise<Result<{ requestId: string }>>
+  list(): Promise<Result<ConnectionInfo[]>>
+  rotate(address: string): Promise<Result<void>>
+  close(address: string): Promise<Result<void>>
+  sendText(address: string, text: string): Promise<Result<{ id: string }>>
+  messages(address: string): Promise<Result<PrivateMessage[]>>
+}
+
 export interface BpDesktop {
   versions: () => { electron: string; chrome: string; node: string }
   node: NodeApi
   lifecycle: LifecycleApi
   feed: FeedApi
+  connections: ConnectionsApi
 }
 
 // IPC channel names.
@@ -121,4 +153,15 @@ export const FEED_CHANNELS = {
   subscribe: 'feed:subscribe',
   unsubscribe: 'feed:unsubscribe',
   event: 'feed:event', // main → renderer push
+} as const
+
+export const CONNECTION_CHANNELS = {
+  getIdentity: 'conn:getIdentity',
+  addPeer: 'conn:addPeer',
+  start: 'conn:start',
+  list: 'conn:list',
+  rotate: 'conn:rotate',
+  close: 'conn:close',
+  sendText: 'conn:sendText',
+  messages: 'conn:messages',
 } as const

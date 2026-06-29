@@ -1,15 +1,18 @@
 import { ipcMain } from 'electron'
 import {
+  CONNECTION_CHANNELS,
   FEED_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BootstrapRequest,
+  type IdentityCard,
   type LifecycleState,
   type ListFilter,
   type NodeApi,
   type PostTextRequest,
   type Result,
 } from './bridge'
+import type { NodeClient } from './node-client'
 
 // registerNodeIpc exposes the node API to the renderer over IPC. Each handler
 // delegates to the main-process NodeClient (which holds the bearer token).
@@ -52,4 +55,38 @@ export function registerFeedIpc(getFeed: () => Feed | undefined): void {
   ipcMain.handle(FEED_CHANNELS.unsubscribe, () => {
     getFeed()?.unsubscribe()
   })
+}
+
+const noClient = (): Result<never> => ({ ok: false, error: 'node not connected' })
+
+// registerConnectionIpc exposes the connection RPCs (#46). A nil client (no
+// node) answers with a connection error.
+export function registerConnectionIpc(getClient: () => NodeClient | undefined): void {
+  ipcMain.handle(CONNECTION_CHANNELS.getIdentity, () => getClient()?.getIdentity() ?? noClient())
+  ipcMain.handle(
+    CONNECTION_CHANNELS.addPeer,
+    (_e, card: IdentityCard) => getClient()?.addPeer(card) ?? noClient(),
+  )
+  ipcMain.handle(
+    CONNECTION_CHANNELS.start,
+    (_e, address: string) => getClient()?.startConnection(address) ?? noClient(),
+  )
+  ipcMain.handle(CONNECTION_CHANNELS.list, () => getClient()?.listConnections() ?? noClient())
+  ipcMain.handle(
+    CONNECTION_CHANNELS.rotate,
+    (_e, address: string) => getClient()?.rotateConnection(address) ?? noClient(),
+  )
+  ipcMain.handle(
+    CONNECTION_CHANNELS.close,
+    (_e, address: string) => getClient()?.closeConnection(address) ?? noClient(),
+  )
+  ipcMain.handle(
+    CONNECTION_CHANNELS.sendText,
+    (_e, address: string, text: string) =>
+      getClient()?.sendPrivateText(address, text) ?? noClient(),
+  )
+  ipcMain.handle(
+    CONNECTION_CHANNELS.messages,
+    (_e, address: string) => getClient()?.connectionMessages(address) ?? noClient(),
+  )
 }

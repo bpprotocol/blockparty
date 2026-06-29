@@ -4,10 +4,13 @@ import { NodeService } from './gen/node_pb'
 import type {
   BlockSummary,
   BootstrapRequest,
+  ConnectionInfo,
+  IdentityCard,
   ListFilter,
   NodeApi,
   NodeStatus,
   PostTextRequest,
+  PrivateMessage,
   Result,
 } from './bridge'
 
@@ -99,6 +102,69 @@ export class NodeClient implements NodeApi {
     for await (const ev of this.client.subscribeBlocks({ audienceCode }, { signal })) {
       if (ev.summary) yield summaryDTO(ev.summary)
     }
+  }
+
+  // --- Connections (#46) ---
+
+  getIdentity(): Promise<Result<IdentityCard>> {
+    return wrap(async () => {
+      const r = await this.client.getIdentity({})
+      return { address: r.address, kyberPub: r.kyberPub, mldsaPub: r.mldsaPub }
+    })
+  }
+
+  addPeer(card: IdentityCard): Promise<Result<void>> {
+    return wrap(async () => {
+      await this.client.addPeer(card)
+    })
+  }
+
+  startConnection(address: string): Promise<Result<{ requestId: string }>> {
+    return wrap(async () => {
+      const r = await this.client.startConnection({ address })
+      return { requestId: r.requestId }
+    })
+  }
+
+  listConnections(): Promise<Result<ConnectionInfo[]>> {
+    return wrap(async () => {
+      const r = await this.client.listConnections({})
+      return r.connections.map((c) => ({
+        peer: c.peer,
+        epoch: Number(c.epoch),
+        audienceCode: c.audienceCode,
+      }))
+    })
+  }
+
+  rotateConnection(address: string): Promise<Result<void>> {
+    return wrap(async () => {
+      await this.client.rotateConnection({ address })
+    })
+  }
+
+  closeConnection(address: string): Promise<Result<void>> {
+    return wrap(async () => {
+      await this.client.closeConnection({ address })
+    })
+  }
+
+  sendPrivateText(address: string, text: string): Promise<Result<{ id: string }>> {
+    return wrap(async () => {
+      const r = await this.client.sendPrivateText({ address, text })
+      return { id: r.id }
+    })
+  }
+
+  connectionMessages(address: string): Promise<Result<PrivateMessage[]>> {
+    return wrap(async () => {
+      const r = await this.client.listConnectionMessages({ address })
+      return r.messages.map((m) => ({
+        author: m.author,
+        text: m.text,
+        timestamp: Number(m.timestamp),
+      }))
+    })
   }
 }
 

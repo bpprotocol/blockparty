@@ -6,6 +6,7 @@ import OnboardingView from './components/OnboardingView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
 import ComposeView from './components/ComposeView.vue'
 import FeedView from './components/FeedView.vue'
+import ConnectionsView from './components/ConnectionsView.vue'
 
 const { status, lifecycle, error, busy, view, refresh, bootstrap } = useNode()
 const bootstrapError = ref<string | null>(null)
@@ -40,6 +41,7 @@ onUnmounted(() => {
     <template v-if="view === 'ready' && status">
       <NodeDashboard :status="status" />
       <ComposeView v-if="status.canAuthor" />
+      <ConnectionsView v-if="status.canAuthor" />
       <FeedView />
     </template>
 

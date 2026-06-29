@@ -5,7 +5,17 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)) + compose ([#45](https://github.com/bpprotocol/blockparty/issues/45)). The app manages the node, guides setup, and you can post to a public audience and watch it appear in the live feed. Connections (#46) and identity (#47) follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)) + live feed ([#44](https://github.com/bpprotocol/blockparty/issues/44)) + compose ([#45](https://github.com/bpprotocol/blockparty/issues/45)) + connections ([#46](https://github.com/bpprotocol/blockparty/issues/46)). The app manages the node, guides setup, posts to public audiences, and connects to peers for private messaging. Identity (#47) and packaging (#48) follow.
+
+## Connections (#46)
+
+A connection is a private, end-to-end channel between two identities. The UI:
+
+- shows **your connection card** (address + public keys) to copy and share out-of-band;
+- lets you **paste a peer's card** to register them and start a handshake;
+- lists active connections with their epoch, and per-connection **rotate** / **close** and a **private message** thread (decrypted by the node).
+
+The renderer calls the node's connection RPCs (`getIdentity`, `addPeer`, `startConnection`, `listConnections`, `rotate`/`close`, `sendPrivateText`, `listConnectionMessages`) through the bridge; the node runs the actual `connect.*` handshake (#37) and holds the keys. The card encoding (`formatCard`/`parseCard`) and add-and-connect flow live in `composables/useConnections.ts` and are unit-tested.
 
 ## Compose (#45)
 
@@ -110,8 +120,8 @@ clients/desktop/
 │   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle + feed)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
 ├── app.vue              # renderer root (routes connecting/onboarding/dashboard)
-├── composables/         # useNode (routing), useFeed (feed), useCompose (post)
-├── components/          # OnboardingView, NodeDashboard, ComposeView, FeedView
+├── composables/         # useNode, useFeed, useCompose, useConnections
+├── components/          # Onboarding, NodeDashboard, Compose, Connections, Feed
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml

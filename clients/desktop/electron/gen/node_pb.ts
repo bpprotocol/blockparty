@@ -12,7 +12,7 @@ import type { Message } from '@bufbuild/protobuf'
 export const file_node: GenFile =
   /*@__PURE__*/
   fileDesc(
-    'Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJInwKDEJsb2NrU3VtbWFyeRIKCgJpZBgBIAEoCRIVCg1hdWRpZW5jZV9jb2RlGAIgASgJEhEKCXR5cGVfY29kZRgDIAEoCRIOCgZhdXRob3IYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEhMKC3JlY2VpdmVkX2F0GAYgASgDIh0KD0dldEJsb2NrUmVxdWVzdBIKCgJpZBgBIAEoCSJ0ChBHZXRCbG9ja1Jlc3BvbnNlEjEKB3N1bW1hcnkYASABKAsyIC5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tTdW1tYXJ5EgwKBGRhdGEYAiABKAwSEQoJZGVjcnlwdGVkGAMgASgIEgwKBHRleHQYBCABKAkiZwoRTGlzdEJsb2Nrc1JlcXVlc3QSFQoNYXVkaWVuY2VfY29kZRgBIAEoCRIRCgl0eXBlX2NvZGUYAiABKAkSDgoGYXV0aG9yGAMgASgJEgwKBGZyb20YBCABKAMSCgoCdG8YBSABKAMiRgoSTGlzdEJsb2Nrc1Jlc3BvbnNlEjAKBmJsb2NrcxgBIAMoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiLwoWU3Vic2NyaWJlQmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJIj8KCkJsb2NrRXZlbnQSMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkyvAQKC05vZGVTZXJ2aWNlElgKCUdldFN0YXR1cxIkLmJsb2NrcGFydHkubm9kZS52MS5HZXRTdGF0dXNSZXF1ZXN0GiUuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1Jlc3BvbnNlEmcKDkJvb3RzdHJhcFdvcmxkEikuYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Cb290c3RyYXBXb3JsZFJlc3BvbnNlElUKCFBvc3RUZXh0EiMuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5Qb3N0VGV4dFJlc3BvbnNlElUKCEdldEJsb2NrEiMuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5HZXRCbG9ja1Jlc3BvbnNlElsKCkxpc3RCbG9ja3MSJS5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1JlcXVlc3QaJi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1Jlc3BvbnNlEl8KD1N1YnNjcmliZUJsb2NrcxIqLmJsb2NrcGFydHkubm9kZS52MS5TdWJzY3JpYmVCbG9ja3NSZXF1ZXN0Gh4uYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrRXZlbnQwAUI+WjxnaXRodWIuY29tL2JwcHJvdG9jb2wvYmxvY2twYXJ0eS9ub2RlL2ludGVybmFsL25vZGVwYjtub2RlcGJiBnByb3RvMw',
+    'Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJInwKDEJsb2NrU3VtbWFyeRIKCgJpZBgBIAEoCRIVCg1hdWRpZW5jZV9jb2RlGAIgASgJEhEKCXR5cGVfY29kZRgDIAEoCRIOCgZhdXRob3IYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEhMKC3JlY2VpdmVkX2F0GAYgASgDIh0KD0dldEJsb2NrUmVxdWVzdBIKCgJpZBgBIAEoCSJ0ChBHZXRCbG9ja1Jlc3BvbnNlEjEKB3N1bW1hcnkYASABKAsyIC5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tTdW1tYXJ5EgwKBGRhdGEYAiABKAwSEQoJZGVjcnlwdGVkGAMgASgIEgwKBHRleHQYBCABKAkiZwoRTGlzdEJsb2Nrc1JlcXVlc3QSFQoNYXVkaWVuY2VfY29kZRgBIAEoCRIRCgl0eXBlX2NvZGUYAiABKAkSDgoGYXV0aG9yGAMgASgJEgwKBGZyb20YBCABKAMSCgoCdG8YBSABKAMiRgoSTGlzdEJsb2Nrc1Jlc3BvbnNlEjAKBmJsb2NrcxgBIAMoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiLwoWU3Vic2NyaWJlQmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJIj8KCkJsb2NrRXZlbnQSMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiFAoSR2V0SWRlbnRpdHlSZXF1ZXN0IkwKE0dldElkZW50aXR5UmVzcG9uc2USDwoHYWRkcmVzcxgBIAEoCRIRCglreWJlcl9wdWIYAiABKAkSEQoJbWxkc2FfcHViGAMgASgJIkcKDkFkZFBlZXJSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEQoJa3liZXJfcHViGAIgASgJEhEKCW1sZHNhX3B1YhgDIAEoCSIRCg9BZGRQZWVyUmVzcG9uc2UiKQoWU3RhcnRDb25uZWN0aW9uUmVxdWVzdBIPCgdhZGRyZXNzGAEgASgJIi0KF1N0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEhIKCnJlcXVlc3RfaWQYASABKAkiRAoOQ29ubmVjdGlvbkluZm8SDAoEcGVlchgBIAEoCRINCgVlcG9jaBgCIAEoBBIVCg1hdWRpZW5jZV9jb2RlGAMgASgJIhgKFkxpc3RDb25uZWN0aW9uc1JlcXVlc3QiUgoXTGlzdENvbm5lY3Rpb25zUmVzcG9uc2USNwoLY29ubmVjdGlvbnMYASADKAsyIi5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvbkluZm8iIAoNQ29ubmVjdGlvblJlZhIPCgdhZGRyZXNzGAEgASgJIhIKEENvbm5lY3Rpb25SZXN1bHQiNwoWU2VuZFByaXZhdGVUZXh0UmVxdWVzdBIPCgdhZGRyZXNzGAEgASgJEgwKBHRleHQYAiABKAkiQQoOUHJpdmF0ZU1lc3NhZ2USDgoGYXV0aG9yGAEgASgJEgwKBHRleHQYAiABKAkSEQoJdGltZXN0YW1wGAMgASgDIlYKHkxpc3RDb25uZWN0aW9uTWVzc2FnZXNSZXNwb25zZRI0CghtZXNzYWdlcxgBIAMoCzIiLmJsb2NrcGFydHkubm9kZS52MS5Qcml2YXRlTWVzc2FnZTLXCgoLTm9kZVNlcnZpY2USWAoJR2V0U3RhdHVzEiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1JlcXVlc3QaJS5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0U3RhdHVzUmVzcG9uc2USZwoOQm9vdHN0cmFwV29ybGQSKS5ibG9ja3BhcnR5Lm5vZGUudjEuQm9vdHN0cmFwV29ybGRSZXF1ZXN0GiouYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVzcG9uc2USVQoIUG9zdFRleHQSIy5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVzcG9uc2USVQoIR2V0QmxvY2sSIy5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0QmxvY2tSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVzcG9uc2USWwoKTGlzdEJsb2NrcxIlLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVxdWVzdBomLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVzcG9uc2USXwoPU3Vic2NyaWJlQmxvY2tzEiouYmxvY2twYXJ0eS5ub2RlLnYxLlN1YnNjcmliZUJsb2Nrc1JlcXVlc3QaHi5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tFdmVudDABEl4KC0dldElkZW50aXR5EiYuYmxvY2twYXJ0eS5ub2RlLnYxLkdldElkZW50aXR5UmVxdWVzdBonLmJsb2NrcGFydHkubm9kZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlElIKB0FkZFBlZXISIi5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlcXVlc3QaIy5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlc3BvbnNlEmoKD1N0YXJ0Q29ubmVjdGlvbhIqLmJsb2NrcGFydHkubm9kZS52MS5TdGFydENvbm5lY3Rpb25SZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLlN0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEmoKD0xpc3RDb25uZWN0aW9ucxIqLmJsb2NrcGFydHkubm9kZS52MS5MaXN0Q29ubmVjdGlvbnNSZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLkxpc3RDb25uZWN0aW9uc1Jlc3BvbnNlElsKEFJvdGF0ZUNvbm5lY3Rpb24SIS5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlZhokLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVzdWx0EloKD0Nsb3NlQ29ubmVjdGlvbhIhLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVmGiQuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZXN1bHQSYwoPU2VuZFByaXZhdGVUZXh0EiouYmxvY2twYXJ0eS5ub2RlLnYxLlNlbmRQcml2YXRlVGV4dFJlcXVlc3QaJC5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXNwb25zZRJvChZMaXN0Q29ubmVjdGlvbk1lc3NhZ2VzEiEuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZWYaMi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlQj5aPGdpdGh1Yi5jb20vYnBwcm90b2NvbC9ibG9ja3BhcnR5L25vZGUvaW50ZXJuYWwvbm9kZXBiO25vZGVwYmIGcHJvdG8z',
   )
 
 /**
@@ -398,6 +398,304 @@ export type BlockEvent = Message<'blockparty.node.v1.BlockEvent'> & {
 export const BlockEventSchema: GenMessage<BlockEvent> = /*@__PURE__*/ messageDesc(file_node, 12)
 
 /**
+ * @generated from message blockparty.node.v1.GetIdentityRequest
+ */
+export type GetIdentityRequest = Message<'blockparty.node.v1.GetIdentityRequest'> & {}
+
+/**
+ * Describes the message blockparty.node.v1.GetIdentityRequest.
+ * Use `create(GetIdentityRequestSchema)` to create a new message.
+ */
+export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 13)
+
+/**
+ * @generated from message blockparty.node.v1.GetIdentityResponse
+ */
+export type GetIdentityResponse = Message<'blockparty.node.v1.GetIdentityResponse'> & {
+  /**
+   * @generated from field: string address = 1;
+   */
+  address: string
+
+  /**
+   * hex
+   *
+   * @generated from field: string kyber_pub = 2;
+   */
+  kyberPub: string
+
+  /**
+   * hex
+   *
+   * @generated from field: string mldsa_pub = 3;
+   */
+  mldsaPub: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.GetIdentityResponse.
+ * Use `create(GetIdentityResponseSchema)` to create a new message.
+ */
+export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> =
+  /*@__PURE__*/
+  messageDesc(file_node, 14)
+
+/**
+ * @generated from message blockparty.node.v1.AddPeerRequest
+ */
+export type AddPeerRequest = Message<'blockparty.node.v1.AddPeerRequest'> & {
+  /**
+   * @generated from field: string address = 1;
+   */
+  address: string
+
+  /**
+   * hex
+   *
+   * @generated from field: string kyber_pub = 2;
+   */
+  kyberPub: string
+
+  /**
+   * hex
+   *
+   * @generated from field: string mldsa_pub = 3;
+   */
+  mldsaPub: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.AddPeerRequest.
+ * Use `create(AddPeerRequestSchema)` to create a new message.
+ */
+export const AddPeerRequestSchema: GenMessage<AddPeerRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 15)
+
+/**
+ * @generated from message blockparty.node.v1.AddPeerResponse
+ */
+export type AddPeerResponse = Message<'blockparty.node.v1.AddPeerResponse'> & {}
+
+/**
+ * Describes the message blockparty.node.v1.AddPeerResponse.
+ * Use `create(AddPeerResponseSchema)` to create a new message.
+ */
+export const AddPeerResponseSchema: GenMessage<AddPeerResponse> =
+  /*@__PURE__*/
+  messageDesc(file_node, 16)
+
+/**
+ * @generated from message blockparty.node.v1.StartConnectionRequest
+ */
+export type StartConnectionRequest = Message<'blockparty.node.v1.StartConnectionRequest'> & {
+  /**
+   * peer address
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.StartConnectionRequest.
+ * Use `create(StartConnectionRequestSchema)` to create a new message.
+ */
+export const StartConnectionRequestSchema: GenMessage<StartConnectionRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 17)
+
+/**
+ * @generated from message blockparty.node.v1.StartConnectionResponse
+ */
+export type StartConnectionResponse = Message<'blockparty.node.v1.StartConnectionResponse'> & {
+  /**
+   * connect.request block id (correlates the response)
+   *
+   * @generated from field: string request_id = 1;
+   */
+  requestId: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.StartConnectionResponse.
+ * Use `create(StartConnectionResponseSchema)` to create a new message.
+ */
+export const StartConnectionResponseSchema: GenMessage<StartConnectionResponse> =
+  /*@__PURE__*/
+  messageDesc(file_node, 18)
+
+/**
+ * @generated from message blockparty.node.v1.ConnectionInfo
+ */
+export type ConnectionInfo = Message<'blockparty.node.v1.ConnectionInfo'> & {
+  /**
+   * @generated from field: string peer = 1;
+   */
+  peer: string
+
+  /**
+   * @generated from field: uint64 epoch = 2;
+   */
+  epoch: bigint
+
+  /**
+   * current private audience, hex
+   *
+   * @generated from field: string audience_code = 3;
+   */
+  audienceCode: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.ConnectionInfo.
+ * Use `create(ConnectionInfoSchema)` to create a new message.
+ */
+export const ConnectionInfoSchema: GenMessage<ConnectionInfo> =
+  /*@__PURE__*/
+  messageDesc(file_node, 19)
+
+/**
+ * @generated from message blockparty.node.v1.ListConnectionsRequest
+ */
+export type ListConnectionsRequest = Message<'blockparty.node.v1.ListConnectionsRequest'> & {}
+
+/**
+ * Describes the message blockparty.node.v1.ListConnectionsRequest.
+ * Use `create(ListConnectionsRequestSchema)` to create a new message.
+ */
+export const ListConnectionsRequestSchema: GenMessage<ListConnectionsRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 20)
+
+/**
+ * @generated from message blockparty.node.v1.ListConnectionsResponse
+ */
+export type ListConnectionsResponse = Message<'blockparty.node.v1.ListConnectionsResponse'> & {
+  /**
+   * @generated from field: repeated blockparty.node.v1.ConnectionInfo connections = 1;
+   */
+  connections: ConnectionInfo[]
+}
+
+/**
+ * Describes the message blockparty.node.v1.ListConnectionsResponse.
+ * Use `create(ListConnectionsResponseSchema)` to create a new message.
+ */
+export const ListConnectionsResponseSchema: GenMessage<ListConnectionsResponse> =
+  /*@__PURE__*/
+  messageDesc(file_node, 21)
+
+/**
+ * @generated from message blockparty.node.v1.ConnectionRef
+ */
+export type ConnectionRef = Message<'blockparty.node.v1.ConnectionRef'> & {
+  /**
+   * peer address
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.ConnectionRef.
+ * Use `create(ConnectionRefSchema)` to create a new message.
+ */
+export const ConnectionRefSchema: GenMessage<ConnectionRef> =
+  /*@__PURE__*/
+  messageDesc(file_node, 22)
+
+/**
+ * @generated from message blockparty.node.v1.ConnectionResult
+ */
+export type ConnectionResult = Message<'blockparty.node.v1.ConnectionResult'> & {}
+
+/**
+ * Describes the message blockparty.node.v1.ConnectionResult.
+ * Use `create(ConnectionResultSchema)` to create a new message.
+ */
+export const ConnectionResultSchema: GenMessage<ConnectionResult> =
+  /*@__PURE__*/
+  messageDesc(file_node, 23)
+
+/**
+ * @generated from message blockparty.node.v1.SendPrivateTextRequest
+ */
+export type SendPrivateTextRequest = Message<'blockparty.node.v1.SendPrivateTextRequest'> & {
+  /**
+   * peer address
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string
+
+  /**
+   * @generated from field: string text = 2;
+   */
+  text: string
+}
+
+/**
+ * Describes the message blockparty.node.v1.SendPrivateTextRequest.
+ * Use `create(SendPrivateTextRequestSchema)` to create a new message.
+ */
+export const SendPrivateTextRequestSchema: GenMessage<SendPrivateTextRequest> =
+  /*@__PURE__*/
+  messageDesc(file_node, 24)
+
+/**
+ * @generated from message blockparty.node.v1.PrivateMessage
+ */
+export type PrivateMessage = Message<'blockparty.node.v1.PrivateMessage'> & {
+  /**
+   * hex address ("" if unresolved)
+   *
+   * @generated from field: string author = 1;
+   */
+  author: string
+
+  /**
+   * @generated from field: string text = 2;
+   */
+  text: string
+
+  /**
+   * @generated from field: int64 timestamp = 3;
+   */
+  timestamp: bigint
+}
+
+/**
+ * Describes the message blockparty.node.v1.PrivateMessage.
+ * Use `create(PrivateMessageSchema)` to create a new message.
+ */
+export const PrivateMessageSchema: GenMessage<PrivateMessage> =
+  /*@__PURE__*/
+  messageDesc(file_node, 25)
+
+/**
+ * @generated from message blockparty.node.v1.ListConnectionMessagesResponse
+ */
+export type ListConnectionMessagesResponse =
+  Message<'blockparty.node.v1.ListConnectionMessagesResponse'> & {
+    /**
+     * @generated from field: repeated blockparty.node.v1.PrivateMessage messages = 1;
+     */
+    messages: PrivateMessage[]
+  }
+
+/**
+ * Describes the message blockparty.node.v1.ListConnectionMessagesResponse.
+ * Use `create(ListConnectionMessagesResponseSchema)` to create a new message.
+ */
+export const ListConnectionMessagesResponseSchema: GenMessage<ListConnectionMessagesResponse> =
+  /*@__PURE__*/
+  messageDesc(file_node, 26)
+
+/**
  * NodeService is the bpnode client API (#38), consumed by the desktop client
  * (#26) over Connect. This is the Phase-1 local slice: world status & bootstrap,
  * post, and read. Live subscription (server-streaming) lands with gossip (#35)
@@ -473,5 +771,88 @@ export const NodeService: GenService<{
     methodKind: 'server_streaming'
     input: typeof SubscribeBlocksRequestSchema
     output: typeof BlockEventSchema
+  }
+  /**
+   * GetIdentity returns this node's connection card (address + public keys) to
+   * share out-of-band so a peer can connect.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.GetIdentity
+   */
+  getIdentity: {
+    methodKind: 'unary'
+    input: typeof GetIdentityRequestSchema
+    output: typeof GetIdentityResponseSchema
+  }
+  /**
+   * AddPeer registers a known peer's card so the node can connect to it and
+   * recognize its handshake blocks.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.AddPeer
+   */
+  addPeer: {
+    methodKind: 'unary'
+    input: typeof AddPeerRequestSchema
+    output: typeof AddPeerResponseSchema
+  }
+  /**
+   * StartConnection initiates a connect.request handshake to a registered peer.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.StartConnection
+   */
+  startConnection: {
+    methodKind: 'unary'
+    input: typeof StartConnectionRequestSchema
+    output: typeof StartConnectionResponseSchema
+  }
+  /**
+   * ListConnections lists the node's active connections.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.ListConnections
+   */
+  listConnections: {
+    methodKind: 'unary'
+    input: typeof ListConnectionsRequestSchema
+    output: typeof ListConnectionsResponseSchema
+  }
+  /**
+   * RotateConnection advances a connection to a new epoch (re-keys the channel).
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.RotateConnection
+   */
+  rotateConnection: {
+    methodKind: 'unary'
+    input: typeof ConnectionRefSchema
+    output: typeof ConnectionResultSchema
+  }
+  /**
+   * CloseConnection tears a connection down and notifies the peer.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.CloseConnection
+   */
+  closeConnection: {
+    methodKind: 'unary'
+    input: typeof ConnectionRefSchema
+    output: typeof ConnectionResultSchema
+  }
+  /**
+   * SendPrivateText posts an encrypted message on a connection's private audience.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.SendPrivateText
+   */
+  sendPrivateText: {
+    methodKind: 'unary'
+    input: typeof SendPrivateTextRequestSchema
+    output: typeof PostTextResponseSchema
+  }
+  /**
+   * ListConnectionMessages returns the decrypted messages on a connection's
+   * current private audience.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.ListConnectionMessages
+   */
+  listConnectionMessages: {
+    methodKind: 'unary'
+    input: typeof ConnectionRefSchema
+    output: typeof ListConnectionMessagesResponseSchema
   }
 }> = /*@__PURE__*/ serviceDesc(file_node, 0)

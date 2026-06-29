@@ -2,7 +2,12 @@ import { app, BrowserWindow, shell } from 'electron'
 import path from 'node:path'
 import { FEED_CHANNELS, type NodeApi, type Result } from './bridge'
 import { FeedManager } from './feed-manager'
-import { registerFeedIpc, registerLifecycleIpc, registerNodeIpc } from './ipc'
+import {
+  registerConnectionIpc,
+  registerFeedIpc,
+  registerLifecycleIpc,
+  registerNodeIpc,
+} from './ipc'
 import { resolveSupervisorOptions } from './node-config'
 import { NodeClient, nodeTransport } from './node-client'
 import { NodeSupervisor } from './node-supervisor'
@@ -80,6 +85,7 @@ void app.whenReady().then(async () => {
     })
   }
   registerFeedIpc(() => feed)
+  registerConnectionIpc(() => nodeClient)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow()

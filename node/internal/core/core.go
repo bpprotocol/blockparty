@@ -52,6 +52,14 @@ type Status struct {
 	CanAuthor   bool
 }
 
+// Gossiper is the gossip layer (#35) the core drives: it follows audience topics
+// and publishes authored blocks. Implemented by *gossip.Gossip; kept as an
+// interface here to avoid an import cycle.
+type Gossiper interface {
+	Follow(audienceHex string) error
+	Publish(audienceHex string, b *blockpb.Block) error
+}
+
 // Filter selects blocks for ListBlocks. Provide exactly one of the exact-match
 // fields or a time range.
 type Filter struct {
@@ -74,6 +82,7 @@ type Core struct {
 	world         *world.State
 	ks            *keystore.Keystore
 	guard         *guard.Guard
+	gossiper      Gossiper
 	resolver      *blocktypes.Resolver // personal mode, for reading plaintext
 	publicSecrets map[string][]byte    // audience_code hex → secret (public audiences)
 }
@@ -131,7 +140,37 @@ func (c *Core) activate() error {
 		}
 	}
 	c.guard = guard.New(pub, c.store, opts...)
+	c.followAudiencesLocked()
 	return nil
+}
+
+// SetGossiper wires the gossip layer in. If a World is already loaded, it follows
+// that World's audiences immediately. Called once at startup, after gossip is
+// built (it depends on the host/exchange, which come up after the core).
+func (c *Core) SetGossiper(g Gossiper) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.gossiper = g
+	c.followAudiencesLocked()
+}
+
+// followAudiencesLocked subscribes to the World's public audiences and the
+// node's inbox. It needs the full World (personal mode) to derive the codes, so
+// it is a no-op in relay mode or before the gossiper is wired. Caller holds mu.
+func (c *Core) followAudiencesLocked() {
+	if c.gossiper == nil || c.ks == nil {
+		return
+	}
+	w := c.ks.World()
+	for n := 1; n <= audiences.ReservedPublicCount; n++ {
+		if err := c.gossiper.Follow(audiences.PublicAudience(w, n).Code.Hex()); err != nil {
+			c.log.Debug("core: follow public audience failed", "n", n, "err", err)
+		}
+	}
+	inbox := audiences.InboxAudience(w, c.ks.Identity().Address)
+	if err := c.gossiper.Follow(inbox.Code.Hex()); err != nil {
+		c.log.Debug("core: follow inbox failed", "err", err)
+	}
 }
 
 // Guard returns the active ingress guard (nil until a World is loaded). Used by
@@ -231,6 +270,12 @@ func (c *Core) PostText(n int, text string) (string, error) {
 	}
 	if res.Outcome == guard.Rejected {
 		return "", fmt.Errorf("core: post rejected: %s", res.Reason)
+	}
+	// Announce to the audience's gossip topic so subscribers receive it.
+	if c.gossiper != nil {
+		if err := c.gossiper.Publish(aud.Code.Hex(), b); err != nil {
+			c.log.Debug("core: gossip publish failed", "err", err)
+		}
 	}
 	return res.ID, nil
 }

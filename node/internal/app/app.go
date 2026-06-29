@@ -15,6 +15,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/config"
 	"github.com/bpprotocol/blockparty/node/internal/core"
 	"github.com/bpprotocol/blockparty/node/internal/exchange"
+	"github.com/bpprotocol/blockparty/node/internal/gossip"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/nodeapi"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
@@ -41,6 +42,7 @@ type Daemon struct {
 	core     *core.Core
 	p2p      *p2p.Host
 	exchange *exchange.Exchange
+	gossip   *gossip.Gossip
 	token    string
 	api      *api.Server
 	start    time.Time
@@ -165,6 +167,17 @@ func (d *Daemon) Run(ctx context.Context) error {
 	d.exchange.Start()
 	d.log.Info("block exchange ready", "protocol", exchange.ProtocolID)
 
+	// Gossip (#35): propagate blocks over per-audience gossipsub topics. The core
+	// follows its World's audiences and publishes authored blocks through it.
+	gsp, err := gossip.New(ctx, d.p2p.Host(), d.exchange, d.core.Guard, d.log)
+	if err != nil {
+		_ = d.store.Close()
+		return fmt.Errorf("start gossip: %w", err)
+	}
+	d.gossip = gsp
+	d.core.SetGossiper(gsp)
+	d.log.Info("gossip ready", "audiences", gsp.FollowedCount())
+
 	if err := d.api.Start(); err != nil {
 		_ = d.store.Close()
 		return fmt.Errorf("start api server: %w", err)
@@ -179,6 +192,9 @@ func (d *Daemon) Run(ctx context.Context) error {
 	apiErr := d.api.Shutdown(shutCtx)
 	if apiErr != nil {
 		d.log.Error("api server shutdown", "err", apiErr)
+	}
+	if d.gossip != nil {
+		_ = d.gossip.Close()
 	}
 	if d.exchange != nil {
 		d.exchange.Stop()

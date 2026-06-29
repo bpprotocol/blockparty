@@ -1,0 +1,8 @@
+node_modules/
+.nuxt/
+.output/
+dist
+dist-electron/
+release/
+*.log
+.DS_Store

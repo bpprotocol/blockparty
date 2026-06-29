@@ -1,0 +1,35 @@
+name: desktop
+
+on:
+  push:
+    branches: [master, reference-node]
+    paths: ['clients/desktop/**', '.github/workflows/desktop.yml']
+  pull_request:
+    paths: ['clients/desktop/**', '.github/workflows/desktop.yml']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/desktop
+    env:
+      # The Electron binary is not needed to typecheck/lint/build the SPA in CI,
+      # and is large; skip its download.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: clients/desktop/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build:renderer # nuxt generate → static SPA
+      - run: pnpm build:main # tsc → dist-electron (main + preload)
+      - run: pnpm format:check

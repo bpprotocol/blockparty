@@ -1,0 +1,17 @@
+appId: org.bpprotocol.desktop
+productName: BlockParty
+directories:
+  output: release
+files:
+  - dist-electron/**/*
+  - .output/public/**/*
+  - package.json
+asar: true
+mac:
+  target: dmg
+  category: public.app-category.social-networking
+win:
+  target: nsis
+linux:
+  target: AppImage
+  category: Network

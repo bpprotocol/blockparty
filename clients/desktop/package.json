@@ -1,0 +1,41 @@
+{
+  "name": "@blockparty/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BlockParty desktop client — Electron shell + Nuxt 3 SPA renderer (epic #26).",
+  "license": "CC0-1.0",
+  "author": "BlockParty",
+  "main": "dist-electron/main.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm build:main && concurrently -k -n nuxt,electron \"nuxt dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development ELECTRON_RENDERER_URL=http://localhost:3000 electron .\"",
+    "build:renderer": "nuxt generate",
+    "build:main": "tsc -p electron/tsconfig.json",
+    "build": "pnpm build:renderer && pnpm build:main && electron-builder",
+    "pack": "pnpm build:renderer && pnpm build:main && electron-builder --dir",
+    "typecheck": "nuxt prepare && vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "concurrently": "^9.0.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^9.0.0",
+    "nuxt": "^3.14.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vue": "^3.5.0",
+    "vue-tsc": "^2.1.0",
+    "wait-on": "^8.0.0"
+  }
+}

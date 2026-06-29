@@ -1,0 +1,6 @@
+{
+  // The renderer (Nuxt) tsconfig. Nuxt generates .nuxt/tsconfig.json on
+  // `nuxt prepare`; this extends it and adds the bridge window typing.
+  "extends": "./.nuxt/tsconfig.json",
+  "include": ["types/**/*.d.ts"]
+}

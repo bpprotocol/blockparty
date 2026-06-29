@@ -123,9 +123,21 @@ type statusRecorder struct {
 	code int
 }
 
+// statusRecorder must support flushing for server-streaming responses.
+var _ http.Flusher = (*statusRecorder)(nil)
+
 func (r *statusRecorder) WriteHeader(code int) {
 	r.code = code
 	r.ResponseWriter.WriteHeader(code)
+}
+
+// Flush forwards to the underlying writer so server-streaming responses (the
+// SubscribeBlocks feed, #44) can flush each frame. Embedding the ResponseWriter
+// interface does not promote Flush, so it must be implemented explicitly.
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

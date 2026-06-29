@@ -30,6 +30,7 @@ BlockParty introduces new primitives like **burnable identities**, **audience-sc
 ```
 blockparty/
 ├── implementations/  # Reference implementations, one dir per language (go, typescript)
+├── node/             # Headless node/relay daemon (bpnode) — builds on the Go SDK
 ├── conformance/      # Shared cross-client conformance vectors
 ├── protocol/         # Specs, whitepaper, and protobuf definitions
 ├── site/             # Source for bpprotocol.org (docs + essays)

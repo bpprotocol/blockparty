@@ -25,8 +25,9 @@ type Status struct {
 	Version     string           `json:"version"`
 	Mode        string           `json:"mode"`
 	WorldLoaded bool             `json:"world_loaded"`
-	World       string           `json:"world,omitempty"` // World fingerprint when loaded
-	Blocks      int              `json:"blocks"`          // stored block count (-1 if unavailable)
+	World       string           `json:"world,omitempty"`    // World fingerprint when loaded
+	Identity    string           `json:"identity,omitempty"` // identity address (personal mode, keystore unlocked)
+	Blocks      int              `json:"blocks"`             // stored block count (-1 if unavailable)
 	StartedAt   string           `json:"started_at"`
 	UptimeSec   float64          `json:"uptime_seconds"`
 	Metrics     map[string]int64 `json:"metrics"`

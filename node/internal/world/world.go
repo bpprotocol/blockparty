@@ -65,6 +65,19 @@ func Load(cfg config.Config) (*State, error) {
 	return st, nil
 }
 
+// FromWorld builds a loaded personal-mode State from a World already derived
+// elsewhere (e.g. unlocked from the keystore, #28).
+func FromWorld(w derive.World) *State {
+	pub := w.SigningKey.PublicBytes()
+	return &State{
+		Loaded:      true,
+		Fingerprint: hex.EncodeToString(crypto.Keccak256(pub)),
+		mode:        config.ModePersonal,
+		world:       &w,
+		pub:         pub,
+	}
+}
+
 // Mode returns the node's operating mode.
 func (s *State) Mode() config.Mode { return s.mode }
 

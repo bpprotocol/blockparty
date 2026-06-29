@@ -4,7 +4,7 @@ Headless daemon that participates in a **single World's** block-exchange network
 
 It is an **application built on the Go reference SDK** ([`../implementations/go`](../implementations/go)) — its own Go module (`github.com/bpprotocol/blockparty/node`) so heavy networking/storage deps stay out of the lean SDK. The SDK provides all protocol logic; the node adds networking, persistence, and the client API.
 
-> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)). Config, mode selection, the operational API server, graceful lifecycle, and the block store/index are in place. Keystore, libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
+> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)) + keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)). Config, mode selection, the operational API server, graceful lifecycle, the block store/index, and the personal-mode keystore are in place. libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
 
 ## Modes
 
@@ -44,7 +44,24 @@ Resolved from (increasing precedence): **defaults → JSON config file → envir
 | `--p2p-listen` | `BPNODE_P2P_LISTEN` | — | reserved ([#32](https://github.com/bpprotocol/blockparty/issues/32)) |
 | `--bootstrap` | `BPNODE_BOOTSTRAP` | — | reserved ([#33](https://github.com/bpprotocol/blockparty/issues/33)) |
 | `--config` | `BPNODE_CONFIG` | — | path to a JSON config file |
-| — | `BPNODE_WORLD_SEED` | — | personal: World seed phrase. **Secret** — env only, never a flag, never written by this layer. **Temporary** until the keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)). A relay handed a seed is rejected. |
+| — | `BPNODE_KEYSTORE_PASSPHRASE` | — | personal: unlocks (or, with a seed, first-time initializes) the encrypted keystore. **Secret** — env only. |
+| — | `BPNODE_WORLD_SEED` | — | personal: World seed phrase. **Secret** — env only, never a flag. Used once to initialize the keystore; thereafter the node unlocks with just the passphrase. A relay handed a seed is rejected. |
+| — | `BPNODE_IDENTITY_PASSPHRASE` | — | personal: identity passphrase, used when first initializing the keystore. **Secret** — env only. |
+
+## Keystore (personal mode)
+
+Personal mode persists **only secrets** — the World seed phrase and identity passphrase — in `<data-dir>/keystore.json`, encrypted at rest (XChaCha20-Poly1305 under an Argon2id-derived key). **Private keys are never written to disk**; they are re-derived in memory at unlock via the SDK (`OpenWorld` / `OpenIdentity`), exactly reproduced from the same secrets.
+
+```sh
+# First run: initialize the keystore from a seed (one time).
+BPNODE_KEYSTORE_PASSPHRASE=unlock BPNODE_WORLD_SEED="…seed…" \
+  BPNODE_IDENTITY_PASSPHRASE=idpass bpnode --mode personal
+
+# Later runs: unlock with just the passphrase — no seed in the environment.
+BPNODE_KEYSTORE_PASSPHRASE=unlock bpnode --mode personal
+```
+
+Identity rotation (new identity; the old one stays revocable via `identity.burn`) and burn-material extraction are available on the keystore for the client API (#38) and connections (#37). On a multi-user/remote host an OS-keychain backend (Keychain / libsecret / DPAPI) can slot in behind the same API.
 
 ## API framework decision (#27)
 
@@ -65,6 +82,7 @@ node/
     ├── config/        # config: defaults → file → env → flags, + validation
     ├── obs/           # slog logger + lightweight metrics counters
     ├── world/         # which World the node serves (personal vs relay)
+    ├── keystore/      # encrypted-at-rest secret store; derives keys in memory (#28)
     ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
     ├── api/           # net/http server: /healthz, /statusz (Connect handlers land in #38)
     └── app/           # daemon: wiring + Run(ctx) + graceful shutdown

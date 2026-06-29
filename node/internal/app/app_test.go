@@ -18,7 +18,9 @@ import (
 func runDaemon(t *testing.T, cfg config.Config) (string, func()) {
 	t.Helper()
 	cfg.APIAddr = "127.0.0.1:0"
-	cfg.DataDir = t.TempDir()
+	if cfg.DataDir == "" {
+		cfg.DataDir = t.TempDir()
+	}
 	log := obs.NewLogger("error", "text", io.Discard)
 
 	d, err := New(cfg, log)
@@ -114,4 +116,60 @@ func TestDaemonPersonalWorldLoaded(t *testing.T) {
 	if st.World == "" {
 		t.Error("expected a World fingerprint when loaded")
 	}
+}
+
+// TestDaemonKeystoreUnlocksAcrossRestart proves the #28 acceptance at the daemon
+// level: first boot initializes the keystore from a seed; a second boot (same
+// data dir, same unlock passphrase, no seed) unlocks it and derives the same
+// identity.
+func TestDaemonKeystoreUnlocksAcrossRestart(t *testing.T) {
+	dir := t.TempDir()
+
+	// First boot: initialize the keystore from a seed + identity passphrase.
+	base, stop := runDaemon(t, config.Config{
+		Mode:               config.ModePersonal,
+		DataDir:            dir,
+		KeystorePassphrase: "unlock",
+		WorldSeed:          "correct horse battery staple",
+		IdentityPassphrase: "id-pass",
+	})
+	first := getStatus(t, base)
+	stop()
+
+	if first.Identity == "" {
+		t.Fatal("expected an identity address after keystore init")
+	}
+
+	// Second boot: NO seed — must unlock the persisted keystore and match.
+	base2, stop2 := runDaemon(t, config.Config{
+		Mode:               config.ModePersonal,
+		DataDir:            dir,
+		KeystorePassphrase: "unlock",
+	})
+	defer stop2()
+	second := getStatus(t, base2)
+
+	if !second.WorldLoaded {
+		t.Error("expected World loaded from keystore on restart")
+	}
+	if second.Identity != first.Identity {
+		t.Errorf("identity across restart = %q, want %q", second.Identity, first.Identity)
+	}
+	if second.World != first.World {
+		t.Errorf("World fingerprint across restart = %q, want %q", second.World, first.World)
+	}
+}
+
+func getStatus(t *testing.T, base string) api.Status {
+	t.Helper()
+	resp, err := http.Get(base + "/statusz")
+	if err != nil {
+		t.Fatalf("GET /statusz: %v", err)
+	}
+	defer resp.Body.Close()
+	var st api.Status
+	if err := json.NewDecoder(resp.Body).Decode(&st); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	return st
 }

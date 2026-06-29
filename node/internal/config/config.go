@@ -51,6 +51,12 @@ type Config struct {
 	// boots with no World loaded and reports so via /statusz.
 	WorldSeed      string `json:"-"`            // personal only; secret — sourced from env, never a flag, never persisted here
 	WorldPublicKey string `json:"world_pubkey"` // relay; ML-DSA-65 public key, hex
+
+	// Personal-mode keystore secrets (#28). Env only — never flags, never written
+	// by the config layer. KeystorePassphrase unlocks (or initializes) the
+	// encrypted keystore; IdentityPassphrase seeds the identity on first init.
+	KeystorePassphrase string `json:"-"`
+	IdentityPassphrase string `json:"-"`
 }
 
 // Defaults returns the baseline configuration before any overlay.
@@ -182,6 +188,12 @@ func overlayEnv(c *Config, getenv func(string) string) {
 	}
 	if v := getenv("BPNODE_WORLD_SEED"); v != "" {
 		c.WorldSeed = v
+	}
+	if v := getenv("BPNODE_KEYSTORE_PASSPHRASE"); v != "" {
+		c.KeystorePassphrase = v
+	}
+	if v := getenv("BPNODE_IDENTITY_PASSPHRASE"); v != "" {
+		c.IdentityPassphrase = v
 	}
 }
 

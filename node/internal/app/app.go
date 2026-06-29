@@ -1,9 +1,7 @@
-// Package app wires the bpnode daemon together and runs its lifecycle.
-//
-// This is the #27 skeleton: configuration, mode selection, the operational API
-// server, and graceful start/stop. The subsystems it announces at startup are
-// stubs with their tracking issues — storage (#30), keystore (#28), libp2p
-// (#32) — and are wired in by those issues.
+// Package app wires the bpnode daemon together and runs its lifecycle:
+// configuration, mode selection, the keystore (#28, personal mode), local
+// storage (#30), the operational API server, and graceful start/stop. The
+// remaining subsystems (libp2p #32 onward) are wired in by their issues.
 package app
 
 import (
@@ -14,6 +12,7 @@ import (
 
 	"github.com/bpprotocol/blockparty/node/internal/api"
 	"github.com/bpprotocol/blockparty/node/internal/config"
+	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
 	"github.com/bpprotocol/blockparty/node/internal/store"
 	"github.com/bpprotocol/blockparty/node/internal/world"
@@ -27,31 +26,79 @@ const shutdownTimeout = 10 * time.Second
 
 // Daemon is the assembled, runnable node.
 type Daemon struct {
-	cfg     config.Config
-	log     *slog.Logger
-	metrics *obs.Metrics
-	world   *world.State
-	store   *store.Store
-	api     *api.Server
-	start   time.Time
+	cfg      config.Config
+	log      *slog.Logger
+	metrics  *obs.Metrics
+	world    *world.State
+	keystore *keystore.Keystore
+	store    *store.Store
+	api      *api.Server
+	start    time.Time
 }
 
 // New assembles a Daemon from resolved configuration. It resolves the World
 // (which may be unloaded) and constructs the API server, but binds nothing
 // until Run.
 func New(cfg config.Config, log *slog.Logger) (*Daemon, error) {
-	st, err := world.Load(cfg)
+	st, ks, err := resolveWorld(cfg, log)
 	if err != nil {
-		return nil, fmt.Errorf("load world: %w", err)
+		return nil, err
 	}
 	d := &Daemon{
-		cfg:     cfg,
-		log:     log,
-		metrics: &obs.Metrics{},
-		world:   st,
+		cfg:      cfg,
+		log:      log,
+		metrics:  &obs.Metrics{},
+		world:    st,
+		keystore: ks,
 	}
 	d.api = api.New(cfg.APIAddr, log, d.metrics, d.status)
 	return d, nil
+}
+
+// resolveWorld determines the node's World and, in personal mode with a keystore
+// passphrase, unlocks (or first-time initializes) the keystore and derives the
+// World from it. Without a keystore passphrase, personal mode falls back to the
+// in-memory seed path (no persistence); relay and unconfigured modes are
+// unchanged.
+func resolveWorld(cfg config.Config, log *slog.Logger) (*world.State, *keystore.Keystore, error) {
+	if cfg.Mode != config.ModePersonal || cfg.KeystorePassphrase == "" {
+		st, err := world.Load(cfg)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load world: %w", err)
+		}
+		return st, nil, nil
+	}
+
+	path := keystore.Path(cfg.DataDir)
+	var (
+		ks  *keystore.Keystore
+		err error
+	)
+	switch {
+	case keystore.Exists(path):
+		if ks, err = keystore.Open(path, cfg.KeystorePassphrase); err != nil {
+			return nil, nil, fmt.Errorf("open keystore: %w", err)
+		}
+		log.Info("keystore unlocked", "path", path)
+	case cfg.WorldSeed != "":
+		if ks, err = keystore.Init(path, cfg.KeystorePassphrase, keystore.Secrets{
+			WorldSeed:          cfg.WorldSeed,
+			IdentityPassphrase: cfg.IdentityPassphrase,
+		}); err != nil {
+			return nil, nil, fmt.Errorf("init keystore: %w", err)
+		}
+		log.Info("keystore initialized", "path", path)
+	default:
+		// Passphrase set but nothing to unlock or initialize: boot unconfigured;
+		// a client bootstraps a World later (#38).
+		log.Warn("no keystore and no seed to initialize one; booting unconfigured", "issue", 38)
+		st, err := world.Load(cfg)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load world: %w", err)
+		}
+		return st, nil, nil
+	}
+	return world.FromWorld(ks.World()), ks, nil
 }
 
 // Run starts the daemon and blocks until ctx is cancelled, then drains
@@ -70,10 +117,7 @@ func (d *Daemon) Run(ctx context.Context) error {
 		d.log.Info("storage open", "data_dir", d.cfg.DataDir, "blocks", n)
 	}
 
-	// The keystore (#28) and p2p host (#32) are wired in by their issues.
-	if d.cfg.Mode == config.ModePersonal {
-		d.log.Debug("subsystem pending", "subsystem", "keystore", "issue", 28)
-	}
+	// The p2p host (#32) is wired in by its issue.
 	d.log.Debug("subsystem pending", "subsystem", "p2p", "issue", 32)
 
 	if err := d.api.Start(); err != nil {
@@ -93,6 +137,10 @@ func (d *Daemon) Run(ctx context.Context) error {
 	}
 	if err := d.store.Close(); err != nil {
 		d.log.Error("store close", "err", err)
+	}
+	if d.keystore != nil {
+		d.keystore.Lock()
+		d.log.Debug("keystore locked")
 	}
 	if apiErr != nil {
 		return apiErr
@@ -125,11 +173,16 @@ func (d *Daemon) status() api.Status {
 			blocks = n
 		}
 	}
+	identityAddr := ""
+	if d.keystore != nil {
+		identityAddr = string(d.keystore.Identity().Address)
+	}
 	return api.Status{
 		Version:     Version,
 		Mode:        string(d.cfg.Mode),
 		WorldLoaded: d.world.Loaded,
 		World:       d.world.Fingerprint,
+		Identity:    identityAddr,
 		Blocks:      blocks,
 		StartedAt:   d.start.UTC().Format(time.RFC3339),
 		UptimeSec:   time.Since(d.start).Seconds(),

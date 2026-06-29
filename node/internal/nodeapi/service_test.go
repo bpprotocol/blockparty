@@ -54,7 +54,7 @@ func setup(t *testing.T) nodepbconnect.NodeServiceClient {
 		t.Fatalf("core.New: %v", err)
 	}
 
-	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c))
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c, nil))
 	mux := http.NewServeMux()
 	mux.Handle(path, authz.RequireToken(token, log)(handler))
 	srv := httptest.NewServer(mux)
@@ -95,7 +95,7 @@ func TestUnauthenticatedRejected(t *testing.T) {
 	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
 	w, _ := world.Load(cfg)
 	c, _ := core.New(cfg, "test", log, st, w, nil)
-	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c))
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c, nil))
 	mux := http.NewServeMux()
 	mux.Handle(path, authz.RequireToken(token, log)(handler))
 	srv := httptest.NewServer(mux)
@@ -265,7 +265,7 @@ func (noopGossiper) Publish(string, *blockpb.Block) error { return nil }
 // authenticated client.
 func serveCore(t *testing.T, c *core.Core) nodepbconnect.NodeServiceClient {
 	t.Helper()
-	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c))
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c, nil))
 	mux := http.NewServeMux()
 	mux.Handle(path, authz.RequireToken(token, slog.New(slog.NewTextHandler(io.Discard, nil)))(handler))
 	srv := httptest.NewServer(mux)
@@ -337,6 +337,68 @@ func TestConnectionRPCs(t *testing.T) {
 	}
 }
 
+func TestIdentityRotateAndBurnGated(t *testing.T) {
+	dir := t.TempDir()
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	st, err := store.Open(dir, log)
+	if err != nil {
+		t.Fatalf("store.Open: %v", err)
+	}
+	t.Cleanup(func() { st.Close() })
+
+	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
+	w, _ := world.Load(cfg)
+	c, _ := core.New(cfg, "test", log, st, w, nil)
+	c.SetGossiper(noopGossiper{})
+	client := serveCore(t, c)
+	ctx := context.Background()
+
+	if _, err := client.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed: seed, IdentityPassphrase: idPass, KeystorePassphrase: ksPass,
+	})); err != nil {
+		t.Fatalf("BootstrapWorld: %v", err)
+	}
+	before, _ := client.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	beforeID := before.Msg.Identity
+
+	// Rotate without confirmation is rejected by the gate.
+	if _, err := client.RotateIdentity(ctx, connect.NewRequest(&nodepb.RotateIdentityRequest{
+		NewPassphrase: "new-pass", Confirm: false,
+	})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Errorf("unconfirmed rotate code = %v, want failed_precondition", connect.CodeOf(err))
+	}
+
+	// Confirmed rotate yields a new identity.
+	rot, err := client.RotateIdentity(ctx, connect.NewRequest(&nodepb.RotateIdentityRequest{
+		NewPassphrase: "new-pass", Confirm: true,
+	}))
+	if err != nil {
+		t.Fatalf("confirmed rotate: %v", err)
+	}
+	if rot.Msg.Identity == "" || rot.Msg.Identity == beforeID {
+		t.Errorf("rotate identity = %q, want a new address (was %q)", rot.Msg.Identity, beforeID)
+	}
+
+	// Burn without confirmation is rejected; confirmed burn publishes a block.
+	if _, err := client.BurnIdentity(ctx, connect.NewRequest(&nodepb.BurnIdentityRequest{
+		Notice: "compromised", Confirm: false,
+	})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Errorf("unconfirmed burn code = %v, want failed_precondition", connect.CodeOf(err))
+	}
+	burn, err := client.BurnIdentity(ctx, connect.NewRequest(&nodepb.BurnIdentityRequest{
+		Notice: "compromised", Confirm: true,
+	}))
+	if err != nil {
+		t.Fatalf("confirmed burn: %v", err)
+	}
+	if burn.Msg.BlockId == "" {
+		t.Error("burn returned no block id")
+	}
+	if _, err := client.GetBlock(ctx, connect.NewRequest(&nodepb.GetBlockRequest{Id: burn.Msg.BlockId})); err != nil {
+		t.Errorf("GetBlock(burn): %v", err)
+	}
+}
+
 func TestRelayCannotBootstrapOrAuthor(t *testing.T) {
 	dir := t.TempDir()
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -346,7 +408,7 @@ func TestRelayCannotBootstrapOrAuthor(t *testing.T) {
 	w, _ := world.Load(cfg)
 	c, _ := core.New(cfg, "test", log, st, w, nil)
 
-	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c))
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(c, nil))
 	mux := http.NewServeMux()
 	mux.Handle(path, authz.RequireToken(token, log)(handler))
 	srv := httptest.NewServer(mux)

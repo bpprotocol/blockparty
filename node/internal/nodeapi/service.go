@@ -12,6 +12,7 @@ import (
 	"connectrpc.com/connect"
 
 	"github.com/bpprotocol/blockparty/implementations/go/derive"
+	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/connections"
 	"github.com/bpprotocol/blockparty/node/internal/core"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb"
@@ -21,13 +22,21 @@ import (
 
 // Service adapts a *core.Core to the generated NodeServiceHandler.
 type Service struct {
-	core *core.Core
+	core      *core.Core
+	confirmer authz.Confirmer
 }
 
 var _ nodepbconnect.NodeServiceHandler = (*Service)(nil)
 
-// New builds the node API service over the given core.
-func New(c *core.Core) *Service { return &Service{core: c} }
+// New builds the node API service over the given core. confirmer gates dangerous
+// operations (identity rotation/burn); pass nil to default to requiring explicit
+// confirmation.
+func New(c *core.Core, confirmer authz.Confirmer) *Service {
+	if confirmer == nil {
+		confirmer = authz.ExplicitConfirmer{}
+	}
+	return &Service{core: c, confirmer: confirmer}
+}
 
 func hexID(b []byte) string { return hex.EncodeToString(b) }
 
@@ -201,6 +210,28 @@ func (s *Service) ListConnectionMessages(_ context.Context, req *connect.Request
 	return connect.NewResponse(&nodepb.ListConnectionMessagesResponse{Messages: out}), nil
 }
 
+func (s *Service) RotateIdentity(_ context.Context, req *connect.Request[nodepb.RotateIdentityRequest]) (*connect.Response[nodepb.RotateIdentityResponse], error) {
+	if err := s.confirmer.Confirm("identity.rotate", req.Msg.Confirm); err != nil {
+		return nil, mapErr(err)
+	}
+	addr, err := s.core.RotateIdentity(req.Msg.NewPassphrase)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.RotateIdentityResponse{Identity: addr}), nil
+}
+
+func (s *Service) BurnIdentity(_ context.Context, req *connect.Request[nodepb.BurnIdentityRequest]) (*connect.Response[nodepb.BurnIdentityResponse], error) {
+	if err := s.confirmer.Confirm("identity.burn", req.Msg.Confirm); err != nil {
+		return nil, mapErr(err)
+	}
+	id, err := s.core.BurnIdentity(req.Msg.Notice)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.BurnIdentityResponse{BlockId: id}), nil
+}
+
 func summary(rec *store.Record) *nodepb.BlockSummary {
 	b := rec.Block
 	return &nodepb.BlockSummary{
@@ -225,6 +256,8 @@ func mapErr(err error) error {
 	case errors.Is(err, core.ErrRelayBootstrap):
 		return connect.NewError(connect.CodePermissionDenied, err)
 	case errors.Is(err, connections.ErrNoConnection):
+		return connect.NewError(connect.CodeFailedPrecondition, err)
+	case errors.Is(err, authz.ErrConfirmationRequired):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	default:
 		return connect.NewError(connect.CodeInvalidArgument, err)

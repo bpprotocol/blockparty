@@ -63,6 +63,16 @@ service NodeService {
   // ListConnectionMessages returns the decrypted messages on a connection's
   // current private audience.
   rpc ListConnectionMessages(ConnectionRef) returns (ListConnectionMessagesResponse);
+
+  // --- Identity & keys (#47, personal mode) ---
+
+  // RotateIdentity replaces the identity passphrase, yielding a new identity.
+  // Dangerous: requires confirm=true (the #29 confirmation gate).
+  rpc RotateIdentity(RotateIdentityRequest) returns (RotateIdentityResponse);
+
+  // BurnIdentity authors and publishes an identity.burn revoking this identity.
+  // Irreversible: requires confirm=true.
+  rpc BurnIdentity(BurnIdentityRequest) returns (BurnIdentityResponse);
 }
 
 message GetStatusRequest {}
@@ -188,4 +198,20 @@ message PrivateMessage {
 }
 message ListConnectionMessagesResponse {
   repeated PrivateMessage messages = 1;
+}
+
+message RotateIdentityRequest {
+  string new_passphrase = 1;
+  bool confirm = 2; // must be true (#29 gate)
+}
+message RotateIdentityResponse {
+  string identity = 1; // new address
+}
+
+message BurnIdentityRequest {
+  string notice = 1; // "voluntary" | "compromised" | "rotated" | "other"
+  bool confirm = 2;  // must be true (#29 gate)
+}
+message BurnIdentityResponse {
+  string block_id = 1; // the published identity.burn block id
 }

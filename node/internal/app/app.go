@@ -151,7 +151,7 @@ func (d *Daemon) Run(ctx context.Context) error {
 	}
 
 	// Mount the token-protected client API (#38) on the same server.
-	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(d.core))
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(d.core, authz.ExplicitConfirmer{Log: d.log}))
 	d.api.Handle(path, handler)
 
 	// Start the libp2p host with mDNS local-network discovery (#32).

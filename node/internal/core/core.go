@@ -563,6 +563,68 @@ func (c *Core) onAccepted(b *blockpb.Block) {
 	}
 }
 
+// RotateIdentity replaces the identity passphrase, deriving a new identity, and
+// re-activates so the node follows the new inbox and rebuilds connections under
+// the new keys. Returns the new identity address.
+func (c *Core) RotateIdentity(newPassphrase string) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.ks == nil {
+		return "", ErrCannotAuthor
+	}
+	if err := c.ks.RotateIdentity(newPassphrase); err != nil {
+		return "", fmt.Errorf("core: rotate identity: %w", err)
+	}
+	// The connection manager was bound to the old identity; rebuild it.
+	c.conns = nil
+	if err := c.activate(); err != nil {
+		return "", err
+	}
+	addr := string(c.ks.Identity().Address)
+	c.log.Info("identity rotated", "identity", addr)
+	return addr, nil
+}
+
+// BurnIdentity authors and publishes an identity.burn block on the public lobby,
+// revealing this identity's root private keys so peers can revoke trust in it.
+// Returns the published block id.
+func (c *Core) BurnIdentity(notice string) (string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.ks == nil {
+		return "", ErrCannotAuthor
+	}
+	w := c.ks.World()
+	self := c.ks.Identity()
+	burn, err := blocktypes.BuildBurn(self, notice)
+	if err != nil {
+		return "", fmt.Errorf("core: build burn: %w", err)
+	}
+	payload, err := blocktypes.MarshalPayload(burn)
+	if err != nil {
+		return "", fmt.Errorf("core: marshal burn: %w", err)
+	}
+	typeCode := derive.GetTypeCode(w, blocktypes.TypeIdentityBurn)
+	aud := audiences.PublicAudience(w, 1)
+	b := block.New(self.Address, typeCode, aud.Code, c.now(), payload)
+	block.Sign(b, w, self.MLDSA)
+
+	res, err := c.guard.IngestBlock("local", b)
+	if err != nil {
+		return "", fmt.Errorf("core: ingest burn: %w", err)
+	}
+	if res.Outcome == guard.Rejected {
+		return "", fmt.Errorf("core: burn rejected: %s", res.Reason)
+	}
+	if c.gossiper != nil {
+		if err := c.gossiper.Publish(aud.Code.Hex(), b); err != nil {
+			c.log.Debug("core: gossip burn failed", "err", err)
+		}
+	}
+	c.log.Warn("identity burned", "identity", self.Address, "notice", notice, "block", res.ID)
+	return res.ID, nil
+}
+
 // Lock zeroizes secret material in the current keystore (shutdown).
 func (c *Core) Lock() {
 	c.mu.Lock()

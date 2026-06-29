@@ -1420,6 +1420,198 @@ func (x *ListConnectionMessagesResponse) GetMessages() []*PrivateMessage {
 	return nil
 }
 
+type RotateIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NewPassphrase string                 `protobuf:"bytes,1,opt,name=new_passphrase,json=newPassphrase,proto3" json:"new_passphrase,omitempty"`
+	Confirm       bool                   `protobuf:"varint,2,opt,name=confirm,proto3" json:"confirm,omitempty"` // must be true (#29 gate)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RotateIdentityRequest) Reset() {
+	*x = RotateIdentityRequest{}
+	mi := &file_node_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateIdentityRequest) ProtoMessage() {}
+
+func (x *RotateIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateIdentityRequest.ProtoReflect.Descriptor instead.
+func (*RotateIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *RotateIdentityRequest) GetNewPassphrase() string {
+	if x != nil {
+		return x.NewPassphrase
+	}
+	return ""
+}
+
+func (x *RotateIdentityRequest) GetConfirm() bool {
+	if x != nil {
+		return x.Confirm
+	}
+	return false
+}
+
+type RotateIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      string                 `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"` // new address
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RotateIdentityResponse) Reset() {
+	*x = RotateIdentityResponse{}
+	mi := &file_node_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RotateIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RotateIdentityResponse) ProtoMessage() {}
+
+func (x *RotateIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RotateIdentityResponse.ProtoReflect.Descriptor instead.
+func (*RotateIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RotateIdentityResponse) GetIdentity() string {
+	if x != nil {
+		return x.Identity
+	}
+	return ""
+}
+
+type BurnIdentityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Notice        string                 `protobuf:"bytes,1,opt,name=notice,proto3" json:"notice,omitempty"`    // "voluntary" | "compromised" | "rotated" | "other"
+	Confirm       bool                   `protobuf:"varint,2,opt,name=confirm,proto3" json:"confirm,omitempty"` // must be true (#29 gate)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BurnIdentityRequest) Reset() {
+	*x = BurnIdentityRequest{}
+	mi := &file_node_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BurnIdentityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BurnIdentityRequest) ProtoMessage() {}
+
+func (x *BurnIdentityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BurnIdentityRequest.ProtoReflect.Descriptor instead.
+func (*BurnIdentityRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *BurnIdentityRequest) GetNotice() string {
+	if x != nil {
+		return x.Notice
+	}
+	return ""
+}
+
+func (x *BurnIdentityRequest) GetConfirm() bool {
+	if x != nil {
+		return x.Confirm
+	}
+	return false
+}
+
+type BurnIdentityResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BlockId       string                 `protobuf:"bytes,1,opt,name=block_id,json=blockId,proto3" json:"block_id,omitempty"` // the published identity.burn block id
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BurnIdentityResponse) Reset() {
+	*x = BurnIdentityResponse{}
+	mi := &file_node_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BurnIdentityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BurnIdentityResponse) ProtoMessage() {}
+
+func (x *BurnIdentityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BurnIdentityResponse.ProtoReflect.Descriptor instead.
+func (*BurnIdentityResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *BurnIdentityResponse) GetBlockId() string {
+	if x != nil {
+		return x.BlockId
+	}
+	return ""
+}
+
 var File_node_proto protoreflect.FileDescriptor
 
 const file_node_proto_rawDesc = "" +
@@ -1511,8 +1703,17 @@ const file_node_proto_rawDesc = "" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12\x1c\n" +
 	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\"`\n" +
 	"\x1eListConnectionMessagesResponse\x12>\n" +
-	"\bmessages\x18\x01 \x03(\v2\".blockparty.node.v1.PrivateMessageR\bmessages2\xd7\n" +
-	"\n" +
+	"\bmessages\x18\x01 \x03(\v2\".blockparty.node.v1.PrivateMessageR\bmessages\"X\n" +
+	"\x15RotateIdentityRequest\x12%\n" +
+	"\x0enew_passphrase\x18\x01 \x01(\tR\rnewPassphrase\x12\x18\n" +
+	"\aconfirm\x18\x02 \x01(\bR\aconfirm\"4\n" +
+	"\x16RotateIdentityResponse\x12\x1a\n" +
+	"\bidentity\x18\x01 \x01(\tR\bidentity\"G\n" +
+	"\x13BurnIdentityRequest\x12\x16\n" +
+	"\x06notice\x18\x01 \x01(\tR\x06notice\x12\x18\n" +
+	"\aconfirm\x18\x02 \x01(\bR\aconfirm\"1\n" +
+	"\x14BurnIdentityResponse\x12\x19\n" +
+	"\bblock_id\x18\x01 \x01(\tR\ablockId2\xa3\f\n" +
 	"\vNodeService\x12X\n" +
 	"\tGetStatus\x12$.blockparty.node.v1.GetStatusRequest\x1a%.blockparty.node.v1.GetStatusResponse\x12g\n" +
 	"\x0eBootstrapWorld\x12).blockparty.node.v1.BootstrapWorldRequest\x1a*.blockparty.node.v1.BootstrapWorldResponse\x12U\n" +
@@ -1528,7 +1729,9 @@ const file_node_proto_rawDesc = "" +
 	"\x10RotateConnection\x12!.blockparty.node.v1.ConnectionRef\x1a$.blockparty.node.v1.ConnectionResult\x12Z\n" +
 	"\x0fCloseConnection\x12!.blockparty.node.v1.ConnectionRef\x1a$.blockparty.node.v1.ConnectionResult\x12c\n" +
 	"\x0fSendPrivateText\x12*.blockparty.node.v1.SendPrivateTextRequest\x1a$.blockparty.node.v1.PostTextResponse\x12o\n" +
-	"\x16ListConnectionMessages\x12!.blockparty.node.v1.ConnectionRef\x1a2.blockparty.node.v1.ListConnectionMessagesResponseB>Z<github.com/bpprotocol/blockparty/node/internal/nodepb;nodepbb\x06proto3"
+	"\x16ListConnectionMessages\x12!.blockparty.node.v1.ConnectionRef\x1a2.blockparty.node.v1.ListConnectionMessagesResponse\x12g\n" +
+	"\x0eRotateIdentity\x12).blockparty.node.v1.RotateIdentityRequest\x1a*.blockparty.node.v1.RotateIdentityResponse\x12a\n" +
+	"\fBurnIdentity\x12'.blockparty.node.v1.BurnIdentityRequest\x1a(.blockparty.node.v1.BurnIdentityResponseB>Z<github.com/bpprotocol/blockparty/node/internal/nodepb;nodepbb\x06proto3"
 
 var (
 	file_node_proto_rawDescOnce sync.Once
@@ -1542,7 +1745,7 @@ func file_node_proto_rawDescGZIP() []byte {
 	return file_node_proto_rawDescData
 }
 
-var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_node_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),               // 0: blockparty.node.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),              // 1: blockparty.node.v1.GetStatusResponse
@@ -1571,6 +1774,10 @@ var file_node_proto_goTypes = []any{
 	(*SendPrivateTextRequest)(nil),         // 24: blockparty.node.v1.SendPrivateTextRequest
 	(*PrivateMessage)(nil),                 // 25: blockparty.node.v1.PrivateMessage
 	(*ListConnectionMessagesResponse)(nil), // 26: blockparty.node.v1.ListConnectionMessagesResponse
+	(*RotateIdentityRequest)(nil),          // 27: blockparty.node.v1.RotateIdentityRequest
+	(*RotateIdentityResponse)(nil),         // 28: blockparty.node.v1.RotateIdentityResponse
+	(*BurnIdentityRequest)(nil),            // 29: blockparty.node.v1.BurnIdentityRequest
+	(*BurnIdentityResponse)(nil),           // 30: blockparty.node.v1.BurnIdentityResponse
 }
 var file_node_proto_depIdxs = []int32{
 	6,  // 0: blockparty.node.v1.GetBlockResponse.summary:type_name -> blockparty.node.v1.BlockSummary
@@ -1592,22 +1799,26 @@ var file_node_proto_depIdxs = []int32{
 	22, // 16: blockparty.node.v1.NodeService.CloseConnection:input_type -> blockparty.node.v1.ConnectionRef
 	24, // 17: blockparty.node.v1.NodeService.SendPrivateText:input_type -> blockparty.node.v1.SendPrivateTextRequest
 	22, // 18: blockparty.node.v1.NodeService.ListConnectionMessages:input_type -> blockparty.node.v1.ConnectionRef
-	1,  // 19: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
-	3,  // 20: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
-	5,  // 21: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
-	8,  // 22: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
-	10, // 23: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
-	12, // 24: blockparty.node.v1.NodeService.SubscribeBlocks:output_type -> blockparty.node.v1.BlockEvent
-	14, // 25: blockparty.node.v1.NodeService.GetIdentity:output_type -> blockparty.node.v1.GetIdentityResponse
-	16, // 26: blockparty.node.v1.NodeService.AddPeer:output_type -> blockparty.node.v1.AddPeerResponse
-	18, // 27: blockparty.node.v1.NodeService.StartConnection:output_type -> blockparty.node.v1.StartConnectionResponse
-	21, // 28: blockparty.node.v1.NodeService.ListConnections:output_type -> blockparty.node.v1.ListConnectionsResponse
-	23, // 29: blockparty.node.v1.NodeService.RotateConnection:output_type -> blockparty.node.v1.ConnectionResult
-	23, // 30: blockparty.node.v1.NodeService.CloseConnection:output_type -> blockparty.node.v1.ConnectionResult
-	5,  // 31: blockparty.node.v1.NodeService.SendPrivateText:output_type -> blockparty.node.v1.PostTextResponse
-	26, // 32: blockparty.node.v1.NodeService.ListConnectionMessages:output_type -> blockparty.node.v1.ListConnectionMessagesResponse
-	19, // [19:33] is the sub-list for method output_type
-	5,  // [5:19] is the sub-list for method input_type
+	27, // 19: blockparty.node.v1.NodeService.RotateIdentity:input_type -> blockparty.node.v1.RotateIdentityRequest
+	29, // 20: blockparty.node.v1.NodeService.BurnIdentity:input_type -> blockparty.node.v1.BurnIdentityRequest
+	1,  // 21: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
+	3,  // 22: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
+	5,  // 23: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
+	8,  // 24: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
+	10, // 25: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
+	12, // 26: blockparty.node.v1.NodeService.SubscribeBlocks:output_type -> blockparty.node.v1.BlockEvent
+	14, // 27: blockparty.node.v1.NodeService.GetIdentity:output_type -> blockparty.node.v1.GetIdentityResponse
+	16, // 28: blockparty.node.v1.NodeService.AddPeer:output_type -> blockparty.node.v1.AddPeerResponse
+	18, // 29: blockparty.node.v1.NodeService.StartConnection:output_type -> blockparty.node.v1.StartConnectionResponse
+	21, // 30: blockparty.node.v1.NodeService.ListConnections:output_type -> blockparty.node.v1.ListConnectionsResponse
+	23, // 31: blockparty.node.v1.NodeService.RotateConnection:output_type -> blockparty.node.v1.ConnectionResult
+	23, // 32: blockparty.node.v1.NodeService.CloseConnection:output_type -> blockparty.node.v1.ConnectionResult
+	5,  // 33: blockparty.node.v1.NodeService.SendPrivateText:output_type -> blockparty.node.v1.PostTextResponse
+	26, // 34: blockparty.node.v1.NodeService.ListConnectionMessages:output_type -> blockparty.node.v1.ListConnectionMessagesResponse
+	28, // 35: blockparty.node.v1.NodeService.RotateIdentity:output_type -> blockparty.node.v1.RotateIdentityResponse
+	30, // 36: blockparty.node.v1.NodeService.BurnIdentity:output_type -> blockparty.node.v1.BurnIdentityResponse
+	21, // [21:37] is the sub-list for method output_type
+	5,  // [5:21] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -1624,7 +1835,7 @@ func file_node_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

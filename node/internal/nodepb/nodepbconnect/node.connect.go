@@ -69,6 +69,12 @@ const (
 	// NodeServiceListConnectionMessagesProcedure is the fully-qualified name of the NodeService's
 	// ListConnectionMessages RPC.
 	NodeServiceListConnectionMessagesProcedure = "/blockparty.node.v1.NodeService/ListConnectionMessages"
+	// NodeServiceRotateIdentityProcedure is the fully-qualified name of the NodeService's
+	// RotateIdentity RPC.
+	NodeServiceRotateIdentityProcedure = "/blockparty.node.v1.NodeService/RotateIdentity"
+	// NodeServiceBurnIdentityProcedure is the fully-qualified name of the NodeService's BurnIdentity
+	// RPC.
+	NodeServiceBurnIdentityProcedure = "/blockparty.node.v1.NodeService/BurnIdentity"
 )
 
 // NodeServiceClient is a client for the blockparty.node.v1.NodeService service.
@@ -112,6 +118,12 @@ type NodeServiceClient interface {
 	// ListConnectionMessages returns the decrypted messages on a connection's
 	// current private audience.
 	ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error)
+	// RotateIdentity replaces the identity passphrase, yielding a new identity.
+	// Dangerous: requires confirm=true (the #29 confirmation gate).
+	RotateIdentity(context.Context, *connect.Request[nodepb.RotateIdentityRequest]) (*connect.Response[nodepb.RotateIdentityResponse], error)
+	// BurnIdentity authors and publishes an identity.burn revoking this identity.
+	// Irreversible: requires confirm=true.
+	BurnIdentity(context.Context, *connect.Request[nodepb.BurnIdentityRequest]) (*connect.Response[nodepb.BurnIdentityResponse], error)
 }
 
 // NewNodeServiceClient constructs a client for the blockparty.node.v1.NodeService service. By
@@ -209,6 +221,18 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(nodeServiceMethods.ByName("ListConnectionMessages")),
 			connect.WithClientOptions(opts...),
 		),
+		rotateIdentity: connect.NewClient[nodepb.RotateIdentityRequest, nodepb.RotateIdentityResponse](
+			httpClient,
+			baseURL+NodeServiceRotateIdentityProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("RotateIdentity")),
+			connect.WithClientOptions(opts...),
+		),
+		burnIdentity: connect.NewClient[nodepb.BurnIdentityRequest, nodepb.BurnIdentityResponse](
+			httpClient,
+			baseURL+NodeServiceBurnIdentityProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("BurnIdentity")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -228,6 +252,8 @@ type nodeServiceClient struct {
 	closeConnection        *connect.Client[nodepb.ConnectionRef, nodepb.ConnectionResult]
 	sendPrivateText        *connect.Client[nodepb.SendPrivateTextRequest, nodepb.PostTextResponse]
 	listConnectionMessages *connect.Client[nodepb.ConnectionRef, nodepb.ListConnectionMessagesResponse]
+	rotateIdentity         *connect.Client[nodepb.RotateIdentityRequest, nodepb.RotateIdentityResponse]
+	burnIdentity           *connect.Client[nodepb.BurnIdentityRequest, nodepb.BurnIdentityResponse]
 }
 
 // GetStatus calls blockparty.node.v1.NodeService.GetStatus.
@@ -300,6 +326,16 @@ func (c *nodeServiceClient) ListConnectionMessages(ctx context.Context, req *con
 	return c.listConnectionMessages.CallUnary(ctx, req)
 }
 
+// RotateIdentity calls blockparty.node.v1.NodeService.RotateIdentity.
+func (c *nodeServiceClient) RotateIdentity(ctx context.Context, req *connect.Request[nodepb.RotateIdentityRequest]) (*connect.Response[nodepb.RotateIdentityResponse], error) {
+	return c.rotateIdentity.CallUnary(ctx, req)
+}
+
+// BurnIdentity calls blockparty.node.v1.NodeService.BurnIdentity.
+func (c *nodeServiceClient) BurnIdentity(ctx context.Context, req *connect.Request[nodepb.BurnIdentityRequest]) (*connect.Response[nodepb.BurnIdentityResponse], error) {
+	return c.burnIdentity.CallUnary(ctx, req)
+}
+
 // NodeServiceHandler is an implementation of the blockparty.node.v1.NodeService service.
 type NodeServiceHandler interface {
 	// GetStatus reports node mode, whether a World is loaded, the identity, and
@@ -341,6 +377,12 @@ type NodeServiceHandler interface {
 	// ListConnectionMessages returns the decrypted messages on a connection's
 	// current private audience.
 	ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error)
+	// RotateIdentity replaces the identity passphrase, yielding a new identity.
+	// Dangerous: requires confirm=true (the #29 confirmation gate).
+	RotateIdentity(context.Context, *connect.Request[nodepb.RotateIdentityRequest]) (*connect.Response[nodepb.RotateIdentityResponse], error)
+	// BurnIdentity authors and publishes an identity.burn revoking this identity.
+	// Irreversible: requires confirm=true.
+	BurnIdentity(context.Context, *connect.Request[nodepb.BurnIdentityRequest]) (*connect.Response[nodepb.BurnIdentityResponse], error)
 }
 
 // NewNodeServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -434,6 +476,18 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(nodeServiceMethods.ByName("ListConnectionMessages")),
 		connect.WithHandlerOptions(opts...),
 	)
+	nodeServiceRotateIdentityHandler := connect.NewUnaryHandler(
+		NodeServiceRotateIdentityProcedure,
+		svc.RotateIdentity,
+		connect.WithSchema(nodeServiceMethods.ByName("RotateIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceBurnIdentityHandler := connect.NewUnaryHandler(
+		NodeServiceBurnIdentityProcedure,
+		svc.BurnIdentity,
+		connect.WithSchema(nodeServiceMethods.ByName("BurnIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/blockparty.node.v1.NodeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case NodeServiceGetStatusProcedure:
@@ -464,6 +518,10 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceSendPrivateTextHandler.ServeHTTP(w, r)
 		case NodeServiceListConnectionMessagesProcedure:
 			nodeServiceListConnectionMessagesHandler.ServeHTTP(w, r)
+		case NodeServiceRotateIdentityProcedure:
+			nodeServiceRotateIdentityHandler.ServeHTTP(w, r)
+		case NodeServiceBurnIdentityProcedure:
+			nodeServiceBurnIdentityHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -527,4 +585,12 @@ func (UnimplementedNodeServiceHandler) SendPrivateText(context.Context, *connect
 
 func (UnimplementedNodeServiceHandler) ListConnectionMessages(context.Context, *connect.Request[nodepb.ConnectionRef]) (*connect.Response[nodepb.ListConnectionMessagesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.ListConnectionMessages is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) RotateIdentity(context.Context, *connect.Request[nodepb.RotateIdentityRequest]) (*connect.Response[nodepb.RotateIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.RotateIdentity is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) BurnIdentity(context.Context, *connect.Request[nodepb.BurnIdentityRequest]) (*connect.Response[nodepb.BurnIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.BurnIdentity is not implemented"))
 }

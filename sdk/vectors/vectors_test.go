@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-const vectorsFile = "vectors.json"
+const vectorsFile = "../../conformance/vectors.json"
 
 var update = flag.Bool("update-vectors", false, "regenerate vectors.json")
 

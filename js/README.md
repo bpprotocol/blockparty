@@ -40,7 +40,7 @@ pnpm -r build && node packages/cli/dist/index.js demo
 cd js
 pnpm install
 pnpm -r build     # build every package (sdk before cli)
-pnpm -r test      # unit tests + the cross-client conformance test vs sdk/vectors/vectors.json
+pnpm -r test      # unit tests + the cross-client conformance test vs conformance/vectors.json
 pnpm -r lint      # ESLint
 pnpm -r typecheck # tsc --noEmit
 ```
@@ -51,7 +51,7 @@ CI (`.github/workflows/js.yml`) runs install/build/typecheck/lint/test/format ac
 
 Each `@blockparty/sdk` module mirrors the Go reference in [`../sdk`](../sdk) and
 is validated against the shared conformance vectors in
-[`../sdk/vectors/vectors.json`](../sdk/vectors/vectors.json).
+[`../conformance/vectors.json`](../conformance/vectors.json).
 
 | Module                | Status         | Issue |
 | --------------------- | -------------- | ----- |

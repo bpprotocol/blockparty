@@ -2,7 +2,7 @@
 //
 // Modules land per issue, each mirroring the Go reference in ../../../sdk and
 // validated against the shared conformance vectors
-// (../../../sdk/vectors/vectors.json):
+// (../../../conformance/vectors.json):
 //
 //   #12 crypto ✓ · #13 derivations/identity ✓ · #14 blocks ✓ · #15 encryption ✓
 //   #16 audiences ✓ · #17 connections ✓ · #18 block types ✓

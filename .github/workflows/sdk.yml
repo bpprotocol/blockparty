@@ -3,9 +3,9 @@ name: sdk
 on:
   push:
     branches: [master, reference-node]
-    paths: ['sdk/**', 'protocol/proto/**', '.github/workflows/sdk.yml']
+    paths: ['sdk/**', 'conformance/**', 'protocol/proto/**', '.github/workflows/sdk.yml']
   pull_request:
-    paths: ['sdk/**', 'protocol/proto/**', '.github/workflows/sdk.yml']
+    paths: ['sdk/**', 'conformance/**', 'protocol/proto/**', '.github/workflows/sdk.yml']
 
 jobs:
   # Authoritative gates: formatting, vetting, building, and the full test suite.
@@ -33,7 +33,7 @@ jobs:
       - name: conformance vectors are up to date
         run: |
           go test ./vectors -update-vectors
-          git diff --exit-code -- vectors/vectors.json
+          git diff --exit-code -- ../conformance/vectors.json
 
   # Advisory: golangci-lint reporting (does not gate merges yet).
   lint:

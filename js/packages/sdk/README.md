@@ -2,7 +2,7 @@
 
 Reusable TypeScript library for the [BlockParty Protocol](https://github.com/bpprotocol/blockparty) — post-quantum crypto, deterministic derivations, identity, blocks, audience-scoped encryption, connections, and block types.
 
-It is one of two reference implementations (the other is in Go); both are validated against the same [conformance vectors](https://github.com/bpprotocol/blockparty/blob/master/sdk/vectors/vectors.json), so they interoperate byte-for-byte.
+It is one of two reference implementations (the other is in Go); both are validated against the same [conformance vectors](https://github.com/bpprotocol/blockparty/blob/master/conformance/vectors.json), so they interoperate byte-for-byte.
 
 - **Post-quantum:** ML-DSA-65 (FIPS 204) signatures, ML-KEM768 (FIPS 203) KEM, via [@noble](https://github.com/paulmillr).
 - **Runtime-agnostic:** no Node-only APIs in the core (the filesystem transport lives in the CLI).

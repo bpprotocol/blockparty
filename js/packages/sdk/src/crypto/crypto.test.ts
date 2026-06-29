@@ -22,7 +22,7 @@ import {
 // proves the two implementations interoperate.
 const vectors = JSON.parse(
   readFileSync(
-    fileURLToPath(new URL("../../../../../sdk/vectors/vectors.json", import.meta.url)),
+    fileURLToPath(new URL("../../../../../conformance/vectors.json", import.meta.url)),
     "utf8",
   ),
 ) as {

@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package blockparty.node.v1;
+
+option go_package = "github.com/bpprotocol/blockparty/node/internal/nodepb;nodepb";
+
+// NodeService is the bpnode client API (#38), consumed by the desktop client
+// (#26) over Connect. This is the Phase-1 local slice: world status & bootstrap,
+// post, and read. Live subscription (server-streaming) lands with gossip (#35)
+// and the connection RPCs with #37.
+service NodeService {
+  // GetStatus reports node mode, whether a World is loaded, the identity, and
+  // the stored block count. Used by the client's onboarding flow (#26 Q5).
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+
+  // BootstrapWorld configures the node's World at runtime when none is loaded
+  // (personal mode only): it initializes the keystore from the supplied secrets.
+  // Honors the single-World invariant.
+  rpc BootstrapWorld(BootstrapWorldRequest) returns (BootstrapWorldResponse);
+
+  // PostText authors a content.post to a public audience. The client submits
+  // intent (audience + text); the node encrypts and signs (world_sig+author_sig)
+  // and stores it. The client never handles a private key.
+  rpc PostText(PostTextRequest) returns (PostTextResponse);
+
+  // GetBlock fetches a stored block by ID, returning plaintext when the node can
+  // open the audience (public audience in personal mode), ciphertext otherwise.
+  rpc GetBlock(GetBlockRequest) returns (GetBlockResponse);
+
+  // ListBlocks queries the local index by audience, type, author, or time range.
+  rpc ListBlocks(ListBlocksRequest) returns (ListBlocksResponse);
+}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  string version = 1;
+  string mode = 2;          // "personal" | "relay"
+  bool world_loaded = 3;
+  string world = 4;         // World fingerprint when loaded
+  string identity = 5;      // identity address (personal, keystore unlocked)
+  int64 block_count = 6;
+  bool can_author = 7;      // node holds an unlocked keystore
+}
+
+message BootstrapWorldRequest {
+  string world_seed = 1;            // secret: the World seed phrase
+  string identity_passphrase = 2;   // secret: seeds the identity
+  string keystore_passphrase = 3;   // secret: unlocks the new encrypted keystore
+}
+
+message BootstrapWorldResponse {
+  string world = 1;     // World fingerprint
+  string identity = 2;  // identity address
+}
+
+message PostTextRequest {
+  uint32 public_audience = 1; // public-N (1..16)
+  string text = 2;
+}
+
+message PostTextResponse {
+  string id = 1; // block ID, hex
+}
+
+// BlockSummary is the index view of a stored block (no payload).
+message BlockSummary {
+  string id = 1;
+  string audience_code = 2; // hex
+  string type_code = 3;     // hex
+  string author = 4;        // hex address ("" if unresolved)
+  int64 timestamp = 5;
+  int64 received_at = 6;
+}
+
+message GetBlockRequest {
+  string id = 1;
+}
+
+message GetBlockResponse {
+  BlockSummary summary = 1;
+  bytes data = 2;      // block.data (plaintext if decrypted, else ciphertext)
+  bool decrypted = 3;  // node opened the payload
+  string text = 4;     // content.post body, when decrypted
+}
+
+message ListBlocksRequest {
+  // Provide exactly one filter: an audience/type/author exact match, or a time
+  // range (from..to inclusive; to=0 means open-ended).
+  string audience_code = 1; // hex
+  string type_code = 2;     // hex
+  string author = 3;        // hex
+  int64 from = 4;
+  int64 to = 5;
+}
+
+message ListBlocksResponse {
+  repeated BlockSummary blocks = 1;
+}

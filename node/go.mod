@@ -3,6 +3,7 @@ module github.com/bpprotocol/blockparty/node
 go 1.25.4
 
 require (
+	connectrpc.com/connect v1.20.0
 	github.com/bpprotocol/blockparty/implementations/go v0.0.0
 	github.com/cloudflare/circl v1.6.4
 	github.com/dgraph-io/badger/v4 v4.9.2

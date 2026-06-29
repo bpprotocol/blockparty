@@ -4,7 +4,7 @@ Headless daemon that participates in a **single World's** block-exchange network
 
 It is an **application built on the Go reference SDK** ([`../implementations/go`](../implementations/go)) — its own Go module (`github.com/bpprotocol/blockparty/node`) so heavy networking/storage deps stay out of the lean SDK. The SDK provides all protocol logic; the node adds networking, persistence, and the client API.
 
-> **Status:** scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)) + local storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)) + keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)) + World guard ([#31](https://github.com/bpprotocol/blockparty/issues/31)). Config, mode selection, the operational API server, graceful lifecycle, the block store/index, the personal-mode keystore, and the ingress validation pipeline are in place. libp2p, exchange, and the full client API land in the remaining #25 sub-issues.
+> **Status:** the local vertical slice is complete — scaffold ([#27](https://github.com/bpprotocol/blockparty/issues/27)), storage ([#30](https://github.com/bpprotocol/blockparty/issues/30)), keystore ([#28](https://github.com/bpprotocol/blockparty/issues/28)), World guard ([#31](https://github.com/bpprotocol/blockparty/issues/31)), API trust boundary ([#29](https://github.com/bpprotocol/blockparty/issues/29)), and the client API ([#38](https://github.com/bpprotocol/blockparty/issues/38), bootstrap + post + read). A client can spawn the node, bootstrap a World, post a block, and read it back — offline. libp2p discovery (#32), block exchange (#34), gossip (#35), live subscription, and the connection RPCs land in the remaining #25 sub-issues.
 
 ## Modes
 
@@ -72,6 +72,31 @@ The personal-mode API is an **act-as-me oracle**, so it is locked down:
 - A **bearer token** at `<data-dir>/api.token` (mode 0600) is required on the RPC surface (the client reads the file and sends `Authorization: Bearer …`). The open ops endpoints (`/healthz`, `/statusz`) carry no secrets or actions.
 - A **confirmation gate** guards dangerous, irreversible operations (authoring an `identity.burn`, key export): the client must pass an explicit confirmation, which the node records.
 
+## Client API (#38)
+
+The client API is the Connect `NodeService` (`node/proto/v1/node.proto`), mounted behind the trust boundary. The Phase-1 local slice:
+
+| RPC | Purpose |
+|-----|---------|
+| `GetStatus` | mode, world-loaded, identity, block count (onboarding, #26 Q5) |
+| `BootstrapWorld` | configure the node's World at runtime (personal, when none loaded) |
+| `PostText` | author a `content.post` to a public audience — node signs + encrypts |
+| `GetBlock` | fetch by ID; plaintext when the node can open the audience |
+| `ListBlocks` | query the index by audience / type / author / time |
+
+Live subscription (server-streaming) arrives with gossip (#35); the connection RPCs with #37. It speaks Connect, gRPC, and gRPC-Web with Protobuf or JSON, so the desktop client (#41) generates a typed TypeScript client from the same proto. Example (JSON over HTTP):
+
+```sh
+TOKEN=$(cat <data-dir>/api.token)
+BASE=http://127.0.0.1:4400/blockparty.node.v1.NodeService
+curl -X POST $BASE/BootstrapWorld -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"worldSeed":"…","identityPassphrase":"…","keystorePassphrase":"…"}'
+curl -X POST $BASE/PostText -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"publicAudience":1,"text":"hello"}'
+```
+
+Regenerate the Go + Connect code with `go generate ./internal/nodepb` (needs `protoc`, `protoc-gen-go`, `protoc-gen-connect-go`).
+
 ## API framework decision (#27)
 
 The client API is **[Connect](https://connectrpc.com/connect)** (`connectrpc.com/connect`):
@@ -95,7 +120,10 @@ node/
     ├── store/         # BadgerDB block store + go-memdb index + filesystem blobs (#30)
     ├── guard/         # ingress validation: world_sig gate → dedupe → author → store (#31)
     ├── authz/         # API trust boundary: loopback, bearer token, op confirmation (#29)
-    ├── api/           # net/http server: /healthz, /statusz (Connect handlers land in #38)
+    ├── core/          # stateful controller: World/keystore/guard + read/write ops (#38)
+    ├── nodepb/        # generated Connect service (from proto/v1/node.proto)
+    ├── nodeapi/       # Connect NodeService implementation over core (#38)
+    ├── api/           # net/http server: /healthz, /statusz, mounts the Connect API
     └── app/           # daemon: wiring + Run(ctx) + graceful shutdown
 ```
 

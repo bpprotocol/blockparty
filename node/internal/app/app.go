@@ -13,17 +13,13 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/api"
 	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/config"
-	"github.com/bpprotocol/blockparty/node/internal/guard"
+	"github.com/bpprotocol/blockparty/node/internal/core"
 	"github.com/bpprotocol/blockparty/node/internal/keystore"
+	"github.com/bpprotocol/blockparty/node/internal/nodeapi"
+	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
 	"github.com/bpprotocol/blockparty/node/internal/obs"
 	"github.com/bpprotocol/blockparty/node/internal/store"
 	"github.com/bpprotocol/blockparty/node/internal/world"
-)
-
-// Per-peer ingress limits applied by the World guard.
-const (
-	ingressRatePerSec = 50
-	ingressBurst      = 100
 )
 
 // Version is the bpnode build version.
@@ -40,7 +36,7 @@ type Daemon struct {
 	world    *world.State
 	keystore *keystore.Keystore
 	store    *store.Store
-	guard    *guard.Guard
+	core     *core.Core
 	token    string
 	api      *api.Server
 	start    time.Time
@@ -132,21 +128,24 @@ func (d *Daemon) Run(ctx context.Context) error {
 		d.log.Info("storage open", "data_dir", d.cfg.DataDir, "blocks", n)
 	}
 
-	// The World guard (#31) validates all ingress; it needs a loaded World.
+	// The core controller owns the World/keystore/guard and the read/write
+	// operations the client API exposes. It activates the World guard (#31) when
+	// a World is loaded, or stays unconfigured until a client bootstraps one.
+	c, err := core.New(d.cfg, Version, d.log, d.store, d.world, d.keystore)
+	if err != nil {
+		_ = d.store.Close()
+		return fmt.Errorf("init core: %w", err)
+	}
+	d.core = c
 	if d.world.Loaded {
-		pub, err := d.world.SigPublicKey()
-		if err != nil {
-			_ = d.store.Close()
-			return fmt.Errorf("world public key: %w", err)
-		}
-		d.guard = guard.New(pub, d.store,
-			guard.WithRateLimiter(guard.NewRateLimiter(ingressRatePerSec, ingressBurst)),
-			guard.WithLogger(d.log),
-		)
 		d.log.Info("world guard ready", "world", d.world.Fingerprint)
 	} else {
-		d.log.Warn("world guard inactive: no World loaded; ingress validation unavailable until bootstrap", "issue", 38)
+		d.log.Warn("no World loaded; ingress validation unavailable until client bootstrap", "issue", 38)
 	}
+
+	// Mount the token-protected client API (#38) on the same server.
+	path, handler := nodepbconnect.NewNodeServiceHandler(nodeapi.New(d.core))
+	d.api.Handle(path, handler)
 
 	// The p2p host (#32) is wired in by its issue.
 	d.log.Debug("subsystem pending", "subsystem", "p2p", "issue", 32)
@@ -169,8 +168,8 @@ func (d *Daemon) Run(ctx context.Context) error {
 	if err := d.store.Close(); err != nil {
 		d.log.Error("store close", "err", err)
 	}
-	if d.keystore != nil {
-		d.keystore.Lock()
+	if d.core != nil {
+		d.core.Lock()
 		d.log.Debug("keystore locked")
 	}
 	if apiErr != nil {
@@ -198,25 +197,24 @@ func (d *Daemon) logStartup() {
 }
 
 func (d *Daemon) status() api.Status {
-	blocks := -1
-	if d.store != nil {
-		if n, err := d.store.Count(); err == nil {
-			blocks = n
-		}
-	}
-	identityAddr := ""
-	if d.keystore != nil {
-		identityAddr = string(d.keystore.Identity().Address)
-	}
-	return api.Status{
+	s := api.Status{
 		Version:     Version,
 		Mode:        string(d.cfg.Mode),
 		WorldLoaded: d.world.Loaded,
 		World:       d.world.Fingerprint,
-		Identity:    identityAddr,
-		Blocks:      blocks,
+		Blocks:      -1,
 		StartedAt:   d.start.UTC().Format(time.RFC3339),
 		UptimeSec:   time.Since(d.start).Seconds(),
 		Metrics:     d.metrics.Snapshot(),
 	}
+	// Once the core is up it is the source of truth (it can change at runtime via
+	// client bootstrap).
+	if d.core != nil {
+		cs := d.core.Status()
+		s.WorldLoaded = cs.WorldLoaded
+		s.World = cs.World
+		s.Identity = cs.Identity
+		s.Blocks = cs.BlockCount
+	}
+	return s
 }

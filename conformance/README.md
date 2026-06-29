@@ -22,11 +22,11 @@ The fixed inputs (world seed, passphrase, key seed, timestamps, etc.) are consta
 
 ## Generation
 
-The Go reference implementation is the **generator**: [`sdk/vectors`](../sdk/vectors) computes the full set from the fixed inputs and writes this file.
+The Go reference implementation is the **generator**: [`implementations/go/vectors`](../implementations/go/vectors) computes the full set from the fixed inputs and writes this file.
 
 ```sh
-cd sdk
-go test ./vectors -update-vectors   # regenerate ../conformance/vectors.json
+cd implementations/go
+go test ./vectors -update-vectors   # regenerate ../../conformance/vectors.json
 go test ./vectors                   # verify the committed file is up to date
 ```
 

@@ -1,0 +1,50 @@
+name: go
+
+on:
+  push:
+    branches: [master, reference-node]
+    paths: ['implementations/go/**', 'conformance/**', 'protocol/proto/**', '.github/workflows/go.yml']
+  pull_request:
+    paths: ['implementations/go/**', 'conformance/**', 'protocol/proto/**', '.github/workflows/go.yml']
+
+jobs:
+  # Authoritative gates: formatting, vetting, building, and the full test suite.
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: implementations/go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: implementations/go/go.sum
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then echo "gofmt needed:"; echo "$unformatted"; exit 1; fi
+      - name: vet
+        run: go vet ./...
+      - name: build
+        run: go build ./...
+      - name: test
+        run: go test ./...
+      - name: conformance vectors are up to date
+        run: |
+          go test ./vectors -update-vectors
+          git diff --exit-code -- ../../conformance/vectors.json
+
+  # Advisory: golangci-lint reporting (does not gate merges yet).
+  lint:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: implementations/go

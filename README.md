@@ -25,18 +25,17 @@ BlockParty introduces new primitives like **burnable identities**, **audience-sc
 
 ## ✦ Repository Structure
 
-> 📦 SDKs for Go, JavaScript, and other ecosystems live under `sdk/`, organized by language (e.g. `sdk/golang/blockparty`). These libraries expose reusable tools for interacting with the protocol from external applications.
+> 📦 Reference implementations live under `implementations/`, one directory per language (`implementations/go`, `implementations/typescript`). Each bundles a reusable SDK plus a CLI and is validated against the shared conformance vectors — see [`IMPLEMENTATIONS.md`](./IMPLEMENTATIONS.md).
 
 ```
 blockparty/
-├── sdk/            # SDKs and client libraries for Go, JS, etc.
-├── protocol/       # Specs, whitepaper, and protobuf definitions
-├── clients/        # Reference CLI and GUI clients
-├── node/           # Reference node/relay implementation
-├── site/           # Source for bpprotocol.org (docs + essays)
-├── foundations/    # Cultural and philosophical essays
-├── assets/         # Logos, banners, shared branding
-└── docs/           # Manifesto, roadmap, monorepo rationale
+├── implementations/  # Reference implementations, one dir per language (go, typescript)
+├── conformance/      # Shared cross-client conformance vectors
+├── protocol/         # Specs, whitepaper, and protobuf definitions
+├── site/             # Source for bpprotocol.org (docs + essays)
+├── foundations/      # Cultural and philosophical essays
+├── assets/           # Logos, banners, shared branding
+└── docs/             # Manifesto, roadmap, monorepo rationale
 ```
 
 ---

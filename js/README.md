@@ -47,7 +47,7 @@ is validated against the shared conformance vectors in
 | `derive` / `identity` | ✅ implemented | #13   |
 | `block`               | ✅ implemented | #14   |
 | `encryption`          | ✅ implemented | #15   |
-| audiences             | ⬜             | #16   |
+| `audiences`           | ✅ implemented | #16   |
 | connections           | ⬜             | #17   |
 | block types           | ⬜             | #18   |
 
@@ -82,3 +82,9 @@ The block envelope: `newBlock`/`signBlock`/`verifyBlock`, `addCoSignature`/`veri
 Audience-scoped AEAD via [`@noble/ciphers`](https://github.com/paulmillr/noble-ciphers): `contentKey` (HKDF), `aad`, `encryptData`/`decryptData`/`encryptForBlock` using XChaCha20-Poly1305 (`data = 24-byte nonce ‖ ciphertext+tag`, block metadata bound as AAD).
 
 **Cross-impl ciphertext interop both ways:** the test reproduces the Go-sealed ciphertext from `vectors.json` byte-for-byte (Node → Go) **and** decrypts that Go ciphertext back to the plaintext (Go → Node).
+
+### `audiences` (#16)
+
+- **Public audiences** `public-1 … public-16` (world-scoped): `publicAudience` / `publicAudienceSecret` derive code + 32-byte secret (matching `vectors.json`); only World-seed holders can derive the secret.
+- **Inbox audiences** (`…/inbox/<address>`): per-identity rendezvous code with no secret.
+- **`Registry`** — local `code → audience` map for resolving a received block's `audience_code`.

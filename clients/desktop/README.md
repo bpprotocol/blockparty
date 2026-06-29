@@ -5,7 +5,19 @@ Cross-platform desktop client for BlockParty: an **Electron** shell wrapping a
 — it does not speak libp2p or manage storage itself; it talks to the node's API.
 Tracking epic: **[#26](https://github.com/bpprotocol/blockparty/issues/26)**.
 
-> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)). The app manages (or attaches to) the local node and shows its health. Onboarding (#43), feed (#44), and the rest follow.
+> **Status:** scaffold ([#40](https://github.com/bpprotocol/blockparty/issues/40)) + node API client & health UI ([#41](https://github.com/bpprotocol/blockparty/issues/41)) + node lifecycle ([#42](https://github.com/bpprotocol/blockparty/issues/42)) + onboarding ([#43](https://github.com/bpprotocol/blockparty/issues/43)). The app manages the node, and on first run guides the user through setting up a World. Feed (#44), composing (#45), and the rest follow.
+
+## Onboarding (#43)
+
+On connect the app queries the node's status and routes to one of:
+
+| `getStatus`                    | view                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------ |
+| disconnected                   | "connecting…" with retry                                                       |
+| connected, **no World loaded** | **onboarding** — enter/generate a World seed + identity & keystore passphrases |
+| connected, **World loaded**    | dashboard (skips onboarding)                                                   |
+
+Onboarding submits the secrets to the node via `bootstrapWorld` (#38) — the node holds the keys; the renderer never persists them. Once the node reports a loaded World, the view advances to the dashboard. The routing logic (`deriveView`) and the bootstrap flow live in `composables/useNode.ts` and are unit-tested.
 
 ## Node lifecycle (#42)
 
@@ -83,7 +95,9 @@ clients/desktop/
 │   ├── node-config.ts   # resolve managed/attach options
 │   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
-├── app.vue              # renderer root (connection/health UI)
+├── app.vue              # renderer root (routes connecting/onboarding/dashboard)
+├── composables/useNode.ts   # node state + onboarding routing (deriveView)
+├── components/          # OnboardingView.vue, NodeDashboard.vue
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml

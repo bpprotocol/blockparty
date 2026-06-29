@@ -41,15 +41,15 @@ Each `@blockparty/sdk` module mirrors the Go reference in [`../sdk`](../sdk) and
 is validated against the shared conformance vectors in
 [`../sdk/vectors/vectors.json`](../sdk/vectors/vectors.json).
 
-| Module                 | Status         | Issue |
-| ---------------------- | -------------- | ----- |
-| `crypto`               | ✅ implemented | #12   |
-| derivations / identity | ⬜             | #13   |
-| blocks                 | ⬜             | #14   |
-| encryption             | ⬜             | #15   |
-| audiences              | ⬜             | #16   |
-| connections            | ⬜             | #17   |
-| block types            | ⬜             | #18   |
+| Module                | Status         | Issue |
+| --------------------- | -------------- | ----- |
+| `crypto`              | ✅ implemented | #12   |
+| `derive` / `identity` | ✅ implemented | #13   |
+| blocks                | ⬜             | #14   |
+| encryption            | ⬜             | #15   |
+| audiences             | ⬜             | #16   |
+| connections           | ⬜             | #17   |
+| block types           | ⬜             | #18   |
 
 ### `crypto` (#12)
 
@@ -63,3 +63,10 @@ Keygen is **byte-identical to the Go reference** — the crypto test asserts bot
 
 Cryptography (resolved in #20): **ML-DSA-65** (FIPS 204) for signatures and
 **ML-KEM768** (FIPS 203) for the KEM.
+
+### `derive` / `identity` (#13)
+
+- **`derive`** — `openWorld`/`generateWorld` (signing key + wallet/type/audience salts), `getTypeCode`/`getAudienceCode` (16-byte codes), `bytesToAddress` (40-char hex binding both PQ keys), `getBlockID` (content-binding).
+- **`identity`** — `openIdentity(world, passphrase)`: world-scoped `worldPassword` (HKDF over the wallet salt) + `ml-dsa`/`mlkem` domain separation.
+
+All derivations reproduce `vectors.json` exactly (salts, codes, address, block ID, identity) — byte-identical to Go, including the empty-salt HKDF.

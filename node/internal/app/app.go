@@ -154,7 +154,12 @@ func (d *Daemon) Run(ctx context.Context) error {
 	d.api.Handle(path, handler)
 
 	// Start the libp2p host with mDNS local-network discovery (#32).
-	ph, err := p2p.New(p2p.Config{DataDir: d.cfg.DataDir, ListenAddrs: d.cfg.P2PListen}, d.log)
+	ph, err := p2p.New(p2p.Config{
+		DataDir:        d.cfg.DataDir,
+		ListenAddrs:    d.cfg.P2PListen,
+		EnableDHT:      true,
+		BootstrapPeers: d.cfg.Bootstrap,
+	}, d.log)
 	if err != nil {
 		_ = d.store.Close()
 		return fmt.Errorf("start p2p host: %w", err)

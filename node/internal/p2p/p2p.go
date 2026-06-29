@@ -20,6 +20,7 @@ import (
 	"time"
 
 	libp2p "github.com/libp2p/go-libp2p"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
@@ -42,9 +43,12 @@ var DefaultListenAddrs = []string{"/ip4/0.0.0.0/tcp/0"}
 
 // Config configures the host.
 type Config struct {
-	DataDir     string
-	ListenAddrs []string // libp2p multiaddrs; defaults to DefaultListenAddrs
-	Rendezvous  string   // mDNS service tag (same tag → mutual discovery)
+	DataDir        string
+	ListenAddrs    []string // libp2p multiaddrs; defaults to DefaultListenAddrs
+	Rendezvous     string   // discovery tag, shared by mDNS and DHT (same tag → mutual discovery)
+	DisableMDNS    bool     // skip local-network (mDNS) discovery
+	EnableDHT      bool     // participate in the Kademlia DHT for wide-area discovery (#33)
+	BootstrapPeers []string // DHT bootstrap peer multiaddrs (with /p2p/<id>)
 }
 
 // PeerInfo is a discovered peer's status, for the client API.
@@ -57,6 +61,7 @@ type PeerInfo struct {
 type Host struct {
 	h    host.Host
 	mdns mdns.Service
+	kad  *dht.IpfsDHT
 	log  *slog.Logger
 
 	ctx    context.Context
@@ -95,15 +100,25 @@ func New(cfg Config, log *slog.Logger) (*Host, error) {
 		seen:   make(map[peer.ID]time.Time),
 	}
 
-	svc := mdns.NewMdnsService(h, rendezvous, ph)
-	if err := svc.Start(); err != nil {
-		cancel()
-		_ = h.Close()
-		return nil, fmt.Errorf("p2p: start mdns: %w", err)
+	if !cfg.DisableMDNS {
+		svc := mdns.NewMdnsService(h, rendezvous, ph)
+		if err := svc.Start(); err != nil {
+			cancel()
+			_ = h.Close()
+			return nil, fmt.Errorf("p2p: start mdns: %w", err)
+		}
+		ph.mdns = svc
 	}
-	ph.mdns = svc
 
-	log.Info("p2p host started", "id", h.ID().String(), "rendezvous", rendezvous, "addrs", ph.Addrs())
+	if cfg.EnableDHT {
+		if err := ph.startDHT(cfg.BootstrapPeers, rendezvous); err != nil {
+			cancel()
+			_ = h.Close()
+			return nil, fmt.Errorf("p2p: start dht: %w", err)
+		}
+	}
+
+	log.Info("p2p host started", "id", h.ID().String(), "rendezvous", rendezvous, "mdns", !cfg.DisableMDNS, "dht", cfg.EnableDHT, "addrs", ph.Addrs())
 	return ph, nil
 }
 
@@ -112,9 +127,7 @@ func (ph *Host) HandlePeerFound(pi peer.AddrInfo) {
 	if pi.ID == ph.h.ID() {
 		return
 	}
-	ph.mu.Lock()
-	ph.seen[pi.ID] = time.Now()
-	ph.mu.Unlock()
+	ph.markSeen(pi.ID)
 
 	ctx, cancel := context.WithTimeout(ph.ctx, connectTimeout)
 	defer cancel()
@@ -123,6 +136,12 @@ func (ph *Host) HandlePeerFound(pi peer.AddrInfo) {
 		return
 	}
 	ph.log.Info("p2p: connected to mDNS peer", "peer", pi.ID.String())
+}
+
+func (ph *Host) markSeen(id peer.ID) {
+	ph.mu.Lock()
+	ph.seen[id] = time.Now()
+	ph.mu.Unlock()
 }
 
 // ID returns the host's peer ID.
@@ -160,11 +179,38 @@ func (ph *Host) ConnectedCount() int {
 // Host exposes the underlying libp2p host for the exchange/gossip layers.
 func (ph *Host) Host() host.Host { return ph.h }
 
+// FullAddrs returns the host's addresses with the /p2p/<id> suffix — the form
+// other nodes use as a bootstrap peer.
+func (ph *Host) FullAddrs() []string {
+	info := peer.AddrInfo{ID: ph.h.ID(), Addrs: ph.h.Addrs()}
+	p2pAddrs, err := peer.AddrInfoToP2pAddrs(&info)
+	if err != nil {
+		return nil
+	}
+	out := make([]string, 0, len(p2pAddrs))
+	for _, a := range p2pAddrs {
+		out = append(out, a.String())
+	}
+	return out
+}
+
+// RoutingTableSize returns the number of peers in the DHT routing table (0 if no
+// DHT). Useful to confirm DHT participation.
+func (ph *Host) RoutingTableSize() int {
+	if ph.kad == nil {
+		return 0
+	}
+	return ph.kad.RoutingTable().Size()
+}
+
 // Close stops discovery and shuts the host down.
 func (ph *Host) Close() error {
 	ph.cancel()
 	if ph.mdns != nil {
 		_ = ph.mdns.Close()
+	}
+	if ph.kad != nil {
+		_ = ph.kad.Close()
 	}
 	return ph.h.Close()
 }

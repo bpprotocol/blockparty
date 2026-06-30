@@ -6,6 +6,12 @@ import { defineNuxtConfig } from 'nuxt/config'
 export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: false },
+  // Work around a Nuxt 3.21 SPA-dev regression: with `ssr: false` the
+  // vite-node-server plugin resolves the *client* server as if it were the SSR
+  // one and throws "No entry found in rollupOptions.input", so `nuxt dev` never
+  // starts. Enabling the Vite Environment API gives the dev server a real `ssr`
+  // environment with the expected entry, which takes the same code path cleanly.
+  experimental: { viteEnvironmentApi: true },
   // Relative base so the generated index.html loads its assets via file://.
   app: {
     baseURL: './',
@@ -13,10 +19,7 @@ export default defineNuxtConfig({
       title: 'BlockParty',
     },
   },
-  // The renderer talks only to the local node over the preload bridge; no
-  // external data fetching at build time.
-  nitro: {
-    preset: 'static',
-  },
+  // No `nitro.preset` override needed: with `ssr: false`, `nuxt generate`
+  // already emits the static .output/public bundle the Electron shell loads.
   compatibilityDate: '2024-11-01',
 })

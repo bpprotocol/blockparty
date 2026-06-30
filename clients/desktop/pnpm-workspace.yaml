@@ -1,0 +1,7 @@
+# pnpm 10 reads project settings here. Approve the native/binary deps whose
+# install scripts pnpm blocks by default, so `pnpm install` downloads/builds
+# them (notably electron's platform binary).
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - electron
+  - esbuild

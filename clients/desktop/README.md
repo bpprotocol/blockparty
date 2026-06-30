@@ -104,6 +104,10 @@ The desktop app is a thin GUI over a [node server](../../node) — it always nee
 
 **Prerequisites:** Node ≥ 20 + [pnpm](https://pnpm.io); a **display** (`pnpm dev` opens an Electron window — it can't run headless); and the **Go toolchain** to run/build the node.
 
+> **First install:** pnpm blocks dependency build scripts by default, but `electron`, `esbuild`, and `@parcel/watcher` are approved in `pnpm-workspace.yaml`, so `pnpm install` downloads Electron's platform binary automatically. If you ever see *"Electron failed to install correctly"*, run `pnpm rebuild electron` (or `rm -rf node_modules && pnpm install`).
+
+> **Linux sandbox:** on kernels that restrict unprivileged user namespaces (e.g. Ubuntu ≥ 23.10 / 24.04), Chromium's SUID sandbox aborts with *"chrome-sandbox … owned by root … mode 4755."* The `dev` script passes `--no-sandbox` to work around this **in development only** — the packaged app keeps `sandbox: true` (#40). To instead keep the dev sandbox, make the helper setuid root (`sudo chown root node_modules/.pnpm/electron@*/node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 …`) or relax the sysctl.
+
 ### Attach mode (recommended)
 
 Run a node in one terminal and the app — pointed at it — in another:

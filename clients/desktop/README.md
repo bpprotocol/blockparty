@@ -98,11 +98,48 @@ The renderer's connection/health panel polls `getStatus` and shows node version,
 
 The `BrowserWindow` is created with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, and `webSecurity: true`; external links open in the user's browser, not in-app. All privileged capability is added behind the typed preload bridge.
 
+## Run it locally
+
+The desktop app is a thin GUI over a [node server](../../node) — it always needs a node to talk to. In development the app is **not packaged**, so there's no bundled `bpnode` in `process.resourcesPath` for the supervisor (#42) to spawn. Local runs therefore use one of two paths: **attach** to a node you run yourself (simplest), or point the supervisor at a `bpnode` binary you built (`BPNODE_BIN`).
+
+**Prerequisites:** Node ≥ 20 + [pnpm](https://pnpm.io); a **display** (`pnpm dev` opens an Electron window — it can't run headless); and the **Go toolchain** to run/build the node.
+
+### Attach mode (recommended)
+
+Run a node in one terminal and the app — pointed at it — in another:
+
+```sh
+# Terminal A · a local node (from the repo root)
+cd node
+go run ./cmd/bpnode --mode personal        # API on 127.0.0.1:4400, writes <data-dir>/api.token
+```
+
+```sh
+# Terminal B · the app, attached to that node
+cd clients/desktop
+pnpm install
+BPNODE_ATTACH=1 pnpm dev                    # don't spawn a binary; connect to the running node
+```
+
+`BPNODE_ATTACH=1` tells the supervisor to **skip spawning** and connect to the node at `BPNODE_API_ADDR` (default `127.0.0.1:4400`), reading its bearer token from `BPNODE_DATA_DIR`. If your node runs on a non-default address or data dir, set `BPNODE_API_ADDR` / `BPNODE_DATA_DIR` on the app to match. On first launch the app's **onboarding** (#43) walks you through creating/entering a World; once the node reports a World loaded, it advances to the dashboard. See the [node README](../../node/README.md) for keystore/World env (`BPNODE_KEYSTORE_PASSPHRASE`, `BPNODE_WORLD_SEED`, …).
+
+### Managed mode (the app spawns the node)
+
+Build the node once and let the app supervise it — exercising the managed lifecycle (#42) the packaged app uses:
+
+```sh
+cd node && go build -o /tmp/bpnode ./cmd/bpnode
+cd ../clients/desktop
+BPNODE_BIN=/tmp/bpnode pnpm dev             # spawn, supervise, and stop the node with the app
+```
+
+All lifecycle knobs (`BPNODE_ATTACH`, `BPNODE_BIN`, `BPNODE_API_ADDR`, `BPNODE_DATA_DIR`, `BPNODE_MODE`) are documented in [Node lifecycle (#42)](#node-lifecycle-42).
+
 ## Develop
 
 ```sh
 pnpm install
-pnpm dev            # nuxt dev server + electron window (requires a display)
+pnpm dev            # nuxt dev server + electron window (requires a display + a node; see "Run it locally")
 ```
 
 ```sh

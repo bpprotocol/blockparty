@@ -41,6 +41,7 @@ export interface BlockSummary {
   author: string
   timestamp: number
   receivedAt: number
+  publicAudience: number // public-N (1..16) if a well-known public audience, else 0 (#44)
 }
 
 export interface BlockView {

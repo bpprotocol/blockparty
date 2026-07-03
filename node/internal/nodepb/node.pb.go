@@ -359,15 +359,16 @@ func (x *PostTextResponse) GetId() string {
 
 // BlockSummary is the index view of a stored block (no payload).
 type BlockSummary struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	AudienceCode  string                 `protobuf:"bytes,2,opt,name=audience_code,json=audienceCode,proto3" json:"audience_code,omitempty"` // hex
-	TypeCode      string                 `protobuf:"bytes,3,opt,name=type_code,json=typeCode,proto3" json:"type_code,omitempty"`             // hex
-	Author        string                 `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`                                 // hex address ("" if unresolved)
-	Timestamp     int64                  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	ReceivedAt    int64                  `protobuf:"varint,6,opt,name=received_at,json=receivedAt,proto3" json:"received_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AudienceCode   string                 `protobuf:"bytes,2,opt,name=audience_code,json=audienceCode,proto3" json:"audience_code,omitempty"` // hex
+	TypeCode       string                 `protobuf:"bytes,3,opt,name=type_code,json=typeCode,proto3" json:"type_code,omitempty"`             // hex
+	Author         string                 `protobuf:"bytes,4,opt,name=author,proto3" json:"author,omitempty"`                                 // hex address ("" if unresolved)
+	Timestamp      int64                  `protobuf:"varint,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	ReceivedAt     int64                  `protobuf:"varint,6,opt,name=received_at,json=receivedAt,proto3" json:"received_at,omitempty"`
+	PublicAudience uint32                 `protobuf:"varint,7,opt,name=public_audience,json=publicAudience,proto3" json:"public_audience,omitempty"` // public-N (1..16) if a well-known public audience, else 0 (#44)
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BlockSummary) Reset() {
@@ -438,6 +439,13 @@ func (x *BlockSummary) GetTimestamp() int64 {
 func (x *BlockSummary) GetReceivedAt() int64 {
 	if x != nil {
 		return x.ReceivedAt
+	}
+	return 0
+}
+
+func (x *BlockSummary) GetPublicAudience() uint32 {
+	if x != nil {
+		return x.PublicAudience
 	}
 	return 0
 }
@@ -1641,7 +1649,7 @@ const file_node_proto_rawDesc = "" +
 	"\x0fpublic_audience\x18\x01 \x01(\rR\x0epublicAudience\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\"\"\n" +
 	"\x10PostTextResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xb7\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xe0\x01\n" +
 	"\fBlockSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\raudience_code\x18\x02 \x01(\tR\faudienceCode\x12\x1b\n" +
@@ -1649,7 +1657,8 @@ const file_node_proto_rawDesc = "" +
 	"\x06author\x18\x04 \x01(\tR\x06author\x12\x1c\n" +
 	"\ttimestamp\x18\x05 \x01(\x03R\ttimestamp\x12\x1f\n" +
 	"\vreceived_at\x18\x06 \x01(\x03R\n" +
-	"receivedAt\"!\n" +
+	"receivedAt\x12'\n" +
+	"\x0fpublic_audience\x18\a \x01(\rR\x0epublicAudience\"!\n" +
 	"\x0fGetBlockRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x94\x01\n" +
 	"\x10GetBlockResponse\x12:\n" +

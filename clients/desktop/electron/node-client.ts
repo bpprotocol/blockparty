@@ -192,6 +192,7 @@ function summaryDTO(s: { [k: string]: unknown } | undefined): BlockSummary {
     author: str(s?.author),
     timestamp: Number((s?.timestamp as bigint) ?? 0n),
     receivedAt: Number((s?.receivedAt as bigint) ?? 0n),
+    publicAudience: Number((s?.publicAudience as number) ?? 0),
   }
 }
 

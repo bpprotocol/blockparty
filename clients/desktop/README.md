@@ -32,12 +32,14 @@ When the node can author (personal mode), the dashboard shows a compose box: wri
 
 ## Feed (#44)
 
-The dashboard shows a live feed of the readable posts the node holds:
+The dashboard shows a live feed of **public-audience** posts the node holds:
 
 - **Backlog** via `listBlocks` + `getBlock` (the node decrypts posts on audiences it can open).
 - **Live updates** via the node's server-streaming `SubscribeBlocks` RPC. The main process opens the stream (`FeedManager`) and pushes each event to the renderer over IPC (`window.bpDesktop.feed.onEvent`); the renderer fetches the post text and merges it newest-first, de-duplicated by id.
 
-The merge/ordering logic (`mergeItem`) lives in `composables/useFeed.ts` and is unit-tested; the live stream was verified end-to-end against a running node.
+The feed is **scoped to public audiences**: every `BlockSummary` carries a `public_audience` number (`public-N`, or `0` for private/inbox audiences), computed by the node — the only party that can map an `audience_code` back to a well-known public audience. The renderer drops non-public blocks (private connection messages live in the connections UI, #46) and labels each post with its `public-N`.
+
+The merge/ordering (`mergeItem`) and public-only scoping live in `composables/useFeed.ts` and are unit-tested; the live stream was verified end-to-end against a running node.
 
 ## Onboarding (#43)
 

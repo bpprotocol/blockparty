@@ -179,6 +179,11 @@ func TestBootstrapPostReadFlow(t *testing.T) {
 	if got.Msg.Summary.Author != bs.Msg.Identity {
 		t.Errorf("author = %q, want self %q", got.Msg.Summary.Author, bs.Msg.Identity)
 	}
+	// The summary carries the public-audience number so the feed (#44) can scope
+	// to and label public posts.
+	if got.Msg.Summary.PublicAudience != 1 {
+		t.Errorf("GetBlock summary public_audience = %d, want 1", got.Msg.Summary.PublicAudience)
+	}
 
 	// 7. List by audience and by author.
 	audCode := derive.GetAudienceCode(derive.OpenWorld(seed), audiences.PublicAudienceID(1)).Hex()
@@ -188,6 +193,9 @@ func TestBootstrapPostReadFlow(t *testing.T) {
 	}
 	if len(byAud.Msg.Blocks) != 1 || byAud.Msg.Blocks[0].Id != post.Msg.Id {
 		t.Errorf("ListBlocks(audience) = %d blocks, want the posted one", len(byAud.Msg.Blocks))
+	}
+	if len(byAud.Msg.Blocks) == 1 && byAud.Msg.Blocks[0].PublicAudience != 1 {
+		t.Errorf("ListBlocks summary public_audience = %d, want 1", byAud.Msg.Blocks[0].PublicAudience)
 	}
 	byAuthor, err := client.ListBlocks(ctx, connect.NewRequest(&nodepb.ListBlocksRequest{Author: bs.Msg.Identity}))
 	if err != nil {
@@ -253,6 +261,9 @@ func TestSubscribeBlocksStreamsLivePost(t *testing.T) {
 	}
 	if ev.Summary.AudienceCode != audCode {
 		t.Errorf("event audience = %s, want %s", ev.Summary.AudienceCode, audCode)
+	}
+	if ev.Summary.PublicAudience != 1 {
+		t.Errorf("event public_audience = %d, want 1", ev.Summary.PublicAudience)
 	}
 }
 

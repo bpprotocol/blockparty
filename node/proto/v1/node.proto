@@ -115,6 +115,7 @@ message BlockSummary {
   string author = 4;        // hex address ("" if unresolved)
   int64 timestamp = 5;
   int64 received_at = 6;
+  uint32 public_audience = 7; // public-N (1..16) if a well-known public audience, else 0 (#44)
 }
 
 message GetBlockRequest {

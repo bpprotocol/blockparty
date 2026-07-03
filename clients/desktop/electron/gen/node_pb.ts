@@ -2,304 +2,302 @@
 // @generated from file node.proto (package blockparty.node.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2'
-import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2'
-import type { Message } from '@bufbuild/protobuf'
+import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file node.proto.
  */
-export const file_node: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJInwKDEJsb2NrU3VtbWFyeRIKCgJpZBgBIAEoCRIVCg1hdWRpZW5jZV9jb2RlGAIgASgJEhEKCXR5cGVfY29kZRgDIAEoCRIOCgZhdXRob3IYBCABKAkSEQoJdGltZXN0YW1wGAUgASgDEhMKC3JlY2VpdmVkX2F0GAYgASgDIh0KD0dldEJsb2NrUmVxdWVzdBIKCgJpZBgBIAEoCSJ0ChBHZXRCbG9ja1Jlc3BvbnNlEjEKB3N1bW1hcnkYASABKAsyIC5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tTdW1tYXJ5EgwKBGRhdGEYAiABKAwSEQoJZGVjcnlwdGVkGAMgASgIEgwKBHRleHQYBCABKAkiZwoRTGlzdEJsb2Nrc1JlcXVlc3QSFQoNYXVkaWVuY2VfY29kZRgBIAEoCRIRCgl0eXBlX2NvZGUYAiABKAkSDgoGYXV0aG9yGAMgASgJEgwKBGZyb20YBCABKAMSCgoCdG8YBSABKAMiRgoSTGlzdEJsb2Nrc1Jlc3BvbnNlEjAKBmJsb2NrcxgBIAMoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiLwoWU3Vic2NyaWJlQmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJIj8KCkJsb2NrRXZlbnQSMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkiFAoSR2V0SWRlbnRpdHlSZXF1ZXN0IkwKE0dldElkZW50aXR5UmVzcG9uc2USDwoHYWRkcmVzcxgBIAEoCRIRCglreWJlcl9wdWIYAiABKAkSEQoJbWxkc2FfcHViGAMgASgJIkcKDkFkZFBlZXJSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSEQoJa3liZXJfcHViGAIgASgJEhEKCW1sZHNhX3B1YhgDIAEoCSIRCg9BZGRQZWVyUmVzcG9uc2UiKQoWU3RhcnRDb25uZWN0aW9uUmVxdWVzdBIPCgdhZGRyZXNzGAEgASgJIi0KF1N0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEhIKCnJlcXVlc3RfaWQYASABKAkiRAoOQ29ubmVjdGlvbkluZm8SDAoEcGVlchgBIAEoCRINCgVlcG9jaBgCIAEoBBIVCg1hdWRpZW5jZV9jb2RlGAMgASgJIhgKFkxpc3RDb25uZWN0aW9uc1JlcXVlc3QiUgoXTGlzdENvbm5lY3Rpb25zUmVzcG9uc2USNwoLY29ubmVjdGlvbnMYASADKAsyIi5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvbkluZm8iIAoNQ29ubmVjdGlvblJlZhIPCgdhZGRyZXNzGAEgASgJIhIKEENvbm5lY3Rpb25SZXN1bHQiNwoWU2VuZFByaXZhdGVUZXh0UmVxdWVzdBIPCgdhZGRyZXNzGAEgASgJEgwKBHRleHQYAiABKAkiQQoOUHJpdmF0ZU1lc3NhZ2USDgoGYXV0aG9yGAEgASgJEgwKBHRleHQYAiABKAkSEQoJdGltZXN0YW1wGAMgASgDIlYKHkxpc3RDb25uZWN0aW9uTWVzc2FnZXNSZXNwb25zZRI0CghtZXNzYWdlcxgBIAMoCzIiLmJsb2NrcGFydHkubm9kZS52MS5Qcml2YXRlTWVzc2FnZSJAChVSb3RhdGVJZGVudGl0eVJlcXVlc3QSFgoObmV3X3Bhc3NwaHJhc2UYASABKAkSDwoHY29uZmlybRgCIAEoCCIqChZSb3RhdGVJZGVudGl0eVJlc3BvbnNlEhAKCGlkZW50aXR5GAEgASgJIjYKE0J1cm5JZGVudGl0eVJlcXVlc3QSDgoGbm90aWNlGAEgASgJEg8KB2NvbmZpcm0YAiABKAgiKAoUQnVybklkZW50aXR5UmVzcG9uc2USEAoIYmxvY2tfaWQYASABKAkyowwKC05vZGVTZXJ2aWNlElgKCUdldFN0YXR1cxIkLmJsb2NrcGFydHkubm9kZS52MS5HZXRTdGF0dXNSZXF1ZXN0GiUuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1Jlc3BvbnNlEmcKDkJvb3RzdHJhcFdvcmxkEikuYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Cb290c3RyYXBXb3JsZFJlc3BvbnNlElUKCFBvc3RUZXh0EiMuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5Qb3N0VGV4dFJlc3BvbnNlElUKCEdldEJsb2NrEiMuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVxdWVzdBokLmJsb2NrcGFydHkubm9kZS52MS5HZXRCbG9ja1Jlc3BvbnNlElsKCkxpc3RCbG9ja3MSJS5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1JlcXVlc3QaJi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdEJsb2Nrc1Jlc3BvbnNlEl8KD1N1YnNjcmliZUJsb2NrcxIqLmJsb2NrcGFydHkubm9kZS52MS5TdWJzY3JpYmVCbG9ja3NSZXF1ZXN0Gh4uYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrRXZlbnQwARJeCgtHZXRJZGVudGl0eRImLmJsb2NrcGFydHkubm9kZS52MS5HZXRJZGVudGl0eVJlcXVlc3QaJy5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0SWRlbnRpdHlSZXNwb25zZRJSCgdBZGRQZWVyEiIuYmxvY2twYXJ0eS5ub2RlLnYxLkFkZFBlZXJSZXF1ZXN0GiMuYmxvY2twYXJ0eS5ub2RlLnYxLkFkZFBlZXJSZXNwb25zZRJqCg9TdGFydENvbm5lY3Rpb24SKi5ibG9ja3BhcnR5Lm5vZGUudjEuU3RhcnRDb25uZWN0aW9uUmVxdWVzdBorLmJsb2NrcGFydHkubm9kZS52MS5TdGFydENvbm5lY3Rpb25SZXNwb25zZRJqCg9MaXN0Q29ubmVjdGlvbnMSKi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdENvbm5lY3Rpb25zUmVxdWVzdBorLmJsb2NrcGFydHkubm9kZS52MS5MaXN0Q29ubmVjdGlvbnNSZXNwb25zZRJbChBSb3RhdGVDb25uZWN0aW9uEiEuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZWYaJC5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlc3VsdBJaCg9DbG9zZUNvbm5lY3Rpb24SIS5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlZhokLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVzdWx0EmMKD1NlbmRQcml2YXRlVGV4dBIqLmJsb2NrcGFydHkubm9kZS52MS5TZW5kUHJpdmF0ZVRleHRSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVzcG9uc2USbwoWTGlzdENvbm5lY3Rpb25NZXNzYWdlcxIhLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVmGjIuYmxvY2twYXJ0eS5ub2RlLnYxLkxpc3RDb25uZWN0aW9uTWVzc2FnZXNSZXNwb25zZRJnCg5Sb3RhdGVJZGVudGl0eRIpLmJsb2NrcGFydHkubm9kZS52MS5Sb3RhdGVJZGVudGl0eVJlcXVlc3QaKi5ibG9ja3BhcnR5Lm5vZGUudjEuUm90YXRlSWRlbnRpdHlSZXNwb25zZRJhCgxCdXJuSWRlbnRpdHkSJy5ibG9ja3BhcnR5Lm5vZGUudjEuQnVybklkZW50aXR5UmVxdWVzdBooLmJsb2NrcGFydHkubm9kZS52MS5CdXJuSWRlbnRpdHlSZXNwb25zZUI+WjxnaXRodWIuY29tL2JwcHJvdG9jb2wvYmxvY2twYXJ0eS9ub2RlL2ludGVybmFsL25vZGVwYjtub2RlcGJiBnByb3RvMw',
-  )
+export const file_node: GenFile = /*@__PURE__*/
+  fileDesc("Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJIpUBCgxCbG9ja1N1bW1hcnkSCgoCaWQYASABKAkSFQoNYXVkaWVuY2VfY29kZRgCIAEoCRIRCgl0eXBlX2NvZGUYAyABKAkSDgoGYXV0aG9yGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAxITCgtyZWNlaXZlZF9hdBgGIAEoAxIXCg9wdWJsaWNfYXVkaWVuY2UYByABKA0iHQoPR2V0QmxvY2tSZXF1ZXN0EgoKAmlkGAEgASgJInQKEEdldEJsb2NrUmVzcG9uc2USMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkSDAoEZGF0YRgCIAEoDBIRCglkZWNyeXB0ZWQYAyABKAgSDAoEdGV4dBgEIAEoCSJnChFMaXN0QmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJEhEKCXR5cGVfY29kZRgCIAEoCRIOCgZhdXRob3IYAyABKAkSDAoEZnJvbRgEIAEoAxIKCgJ0bxgFIAEoAyJGChJMaXN0QmxvY2tzUmVzcG9uc2USMAoGYmxvY2tzGAEgAygLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIvChZTdWJzY3JpYmVCbG9ja3NSZXF1ZXN0EhUKDWF1ZGllbmNlX2NvZGUYASABKAkiPwoKQmxvY2tFdmVudBIxCgdzdW1tYXJ5GAEgASgLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIUChJHZXRJZGVudGl0eVJlcXVlc3QiTAoTR2V0SWRlbnRpdHlSZXNwb25zZRIPCgdhZGRyZXNzGAEgASgJEhEKCWt5YmVyX3B1YhgCIAEoCRIRCgltbGRzYV9wdWIYAyABKAkiRwoOQWRkUGVlclJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRIRCglreWJlcl9wdWIYAiABKAkSEQoJbWxkc2FfcHViGAMgASgJIhEKD0FkZFBlZXJSZXNwb25zZSIpChZTdGFydENvbm5lY3Rpb25SZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkiLQoXU3RhcnRDb25uZWN0aW9uUmVzcG9uc2USEgoKcmVxdWVzdF9pZBgBIAEoCSJECg5Db25uZWN0aW9uSW5mbxIMCgRwZWVyGAEgASgJEg0KBWVwb2NoGAIgASgEEhUKDWF1ZGllbmNlX2NvZGUYAyABKAkiGAoWTGlzdENvbm5lY3Rpb25zUmVxdWVzdCJSChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRI3Cgtjb25uZWN0aW9ucxgBIAMoCzIiLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uSW5mbyIgCg1Db25uZWN0aW9uUmVmEg8KB2FkZHJlc3MYASABKAkiEgoQQ29ubmVjdGlvblJlc3VsdCI3ChZTZW5kUHJpdmF0ZVRleHRSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDAoEdGV4dBgCIAEoCSJBCg5Qcml2YXRlTWVzc2FnZRIOCgZhdXRob3IYASABKAkSDAoEdGV4dBgCIAEoCRIRCgl0aW1lc3RhbXAYAyABKAMiVgoeTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEjQKCG1lc3NhZ2VzGAEgAygLMiIuYmxvY2twYXJ0eS5ub2RlLnYxLlByaXZhdGVNZXNzYWdlIkAKFVJvdGF0ZUlkZW50aXR5UmVxdWVzdBIWCg5uZXdfcGFzc3BocmFzZRgBIAEoCRIPCgdjb25maXJtGAIgASgIIioKFlJvdGF0ZUlkZW50aXR5UmVzcG9uc2USEAoIaWRlbnRpdHkYASABKAkiNgoTQnVybklkZW50aXR5UmVxdWVzdBIOCgZub3RpY2UYASABKAkSDwoHY29uZmlybRgCIAEoCCIoChRCdXJuSWRlbnRpdHlSZXNwb25zZRIQCghibG9ja19pZBgBIAEoCTKjDAoLTm9kZVNlcnZpY2USWAoJR2V0U3RhdHVzEiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1JlcXVlc3QaJS5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0U3RhdHVzUmVzcG9uc2USZwoOQm9vdHN0cmFwV29ybGQSKS5ibG9ja3BhcnR5Lm5vZGUudjEuQm9vdHN0cmFwV29ybGRSZXF1ZXN0GiouYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVzcG9uc2USVQoIUG9zdFRleHQSIy5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVzcG9uc2USVQoIR2V0QmxvY2sSIy5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0QmxvY2tSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVzcG9uc2USWwoKTGlzdEJsb2NrcxIlLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVxdWVzdBomLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVzcG9uc2USXwoPU3Vic2NyaWJlQmxvY2tzEiouYmxvY2twYXJ0eS5ub2RlLnYxLlN1YnNjcmliZUJsb2Nrc1JlcXVlc3QaHi5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tFdmVudDABEl4KC0dldElkZW50aXR5EiYuYmxvY2twYXJ0eS5ub2RlLnYxLkdldElkZW50aXR5UmVxdWVzdBonLmJsb2NrcGFydHkubm9kZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlElIKB0FkZFBlZXISIi5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlcXVlc3QaIy5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlc3BvbnNlEmoKD1N0YXJ0Q29ubmVjdGlvbhIqLmJsb2NrcGFydHkubm9kZS52MS5TdGFydENvbm5lY3Rpb25SZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLlN0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEmoKD0xpc3RDb25uZWN0aW9ucxIqLmJsb2NrcGFydHkubm9kZS52MS5MaXN0Q29ubmVjdGlvbnNSZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLkxpc3RDb25uZWN0aW9uc1Jlc3BvbnNlElsKEFJvdGF0ZUNvbm5lY3Rpb24SIS5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlZhokLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVzdWx0EloKD0Nsb3NlQ29ubmVjdGlvbhIhLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVmGiQuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZXN1bHQSYwoPU2VuZFByaXZhdGVUZXh0EiouYmxvY2twYXJ0eS5ub2RlLnYxLlNlbmRQcml2YXRlVGV4dFJlcXVlc3QaJC5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXNwb25zZRJvChZMaXN0Q29ubmVjdGlvbk1lc3NhZ2VzEiEuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZWYaMi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEmcKDlJvdGF0ZUlkZW50aXR5EikuYmxvY2twYXJ0eS5ub2RlLnYxLlJvdGF0ZUlkZW50aXR5UmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Sb3RhdGVJZGVudGl0eVJlc3BvbnNlEmEKDEJ1cm5JZGVudGl0eRInLmJsb2NrcGFydHkubm9kZS52MS5CdXJuSWRlbnRpdHlSZXF1ZXN0GiguYmxvY2twYXJ0eS5ub2RlLnYxLkJ1cm5JZGVudGl0eVJlc3BvbnNlQj5aPGdpdGh1Yi5jb20vYnBwcm90b2NvbC9ibG9ja3BhcnR5L25vZGUvaW50ZXJuYWwvbm9kZXBiO25vZGVwYmIGcHJvdG8z");
 
 /**
  * @generated from message blockparty.node.v1.GetStatusRequest
  */
-export type GetStatusRequest = Message<'blockparty.node.v1.GetStatusRequest'> & {}
+export type GetStatusRequest = Message<"blockparty.node.v1.GetStatusRequest"> & {
+};
 
 /**
  * Describes the message blockparty.node.v1.GetStatusRequest.
  * Use `create(GetStatusRequestSchema)` to create a new message.
  */
-export const GetStatusRequestSchema: GenMessage<GetStatusRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 0)
+export const GetStatusRequestSchema: GenMessage<GetStatusRequest> = /*@__PURE__*/
+  messageDesc(file_node, 0);
 
 /**
  * @generated from message blockparty.node.v1.GetStatusResponse
  */
-export type GetStatusResponse = Message<'blockparty.node.v1.GetStatusResponse'> & {
+export type GetStatusResponse = Message<"blockparty.node.v1.GetStatusResponse"> & {
   /**
    * @generated from field: string version = 1;
    */
-  version: string
+  version: string;
 
   /**
    * "personal" | "relay"
    *
    * @generated from field: string mode = 2;
    */
-  mode: string
+  mode: string;
 
   /**
    * @generated from field: bool world_loaded = 3;
    */
-  worldLoaded: boolean
+  worldLoaded: boolean;
 
   /**
    * World fingerprint when loaded
    *
    * @generated from field: string world = 4;
    */
-  world: string
+  world: string;
 
   /**
    * identity address (personal, keystore unlocked)
    *
    * @generated from field: string identity = 5;
    */
-  identity: string
+  identity: string;
 
   /**
    * @generated from field: int64 block_count = 6;
    */
-  blockCount: bigint
+  blockCount: bigint;
 
   /**
    * node holds an unlocked keystore
    *
    * @generated from field: bool can_author = 7;
    */
-  canAuthor: boolean
-}
+  canAuthor: boolean;
+};
 
 /**
  * Describes the message blockparty.node.v1.GetStatusResponse.
  * Use `create(GetStatusResponseSchema)` to create a new message.
  */
-export const GetStatusResponseSchema: GenMessage<GetStatusResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 1)
+export const GetStatusResponseSchema: GenMessage<GetStatusResponse> = /*@__PURE__*/
+  messageDesc(file_node, 1);
 
 /**
  * @generated from message blockparty.node.v1.BootstrapWorldRequest
  */
-export type BootstrapWorldRequest = Message<'blockparty.node.v1.BootstrapWorldRequest'> & {
+export type BootstrapWorldRequest = Message<"blockparty.node.v1.BootstrapWorldRequest"> & {
   /**
    * secret: the World seed phrase
    *
    * @generated from field: string world_seed = 1;
    */
-  worldSeed: string
+  worldSeed: string;
 
   /**
    * secret: seeds the identity
    *
    * @generated from field: string identity_passphrase = 2;
    */
-  identityPassphrase: string
+  identityPassphrase: string;
 
   /**
    * secret: unlocks the new encrypted keystore
    *
    * @generated from field: string keystore_passphrase = 3;
    */
-  keystorePassphrase: string
-}
+  keystorePassphrase: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.BootstrapWorldRequest.
  * Use `create(BootstrapWorldRequestSchema)` to create a new message.
  */
-export const BootstrapWorldRequestSchema: GenMessage<BootstrapWorldRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 2)
+export const BootstrapWorldRequestSchema: GenMessage<BootstrapWorldRequest> = /*@__PURE__*/
+  messageDesc(file_node, 2);
 
 /**
  * @generated from message blockparty.node.v1.BootstrapWorldResponse
  */
-export type BootstrapWorldResponse = Message<'blockparty.node.v1.BootstrapWorldResponse'> & {
+export type BootstrapWorldResponse = Message<"blockparty.node.v1.BootstrapWorldResponse"> & {
   /**
    * World fingerprint
    *
    * @generated from field: string world = 1;
    */
-  world: string
+  world: string;
 
   /**
    * identity address
    *
    * @generated from field: string identity = 2;
    */
-  identity: string
-}
+  identity: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.BootstrapWorldResponse.
  * Use `create(BootstrapWorldResponseSchema)` to create a new message.
  */
-export const BootstrapWorldResponseSchema: GenMessage<BootstrapWorldResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 3)
+export const BootstrapWorldResponseSchema: GenMessage<BootstrapWorldResponse> = /*@__PURE__*/
+  messageDesc(file_node, 3);
 
 /**
  * @generated from message blockparty.node.v1.PostTextRequest
  */
-export type PostTextRequest = Message<'blockparty.node.v1.PostTextRequest'> & {
+export type PostTextRequest = Message<"blockparty.node.v1.PostTextRequest"> & {
   /**
    * public-N (1..16)
    *
    * @generated from field: uint32 public_audience = 1;
    */
-  publicAudience: number
+  publicAudience: number;
 
   /**
    * @generated from field: string text = 2;
    */
-  text: string
-}
+  text: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.PostTextRequest.
  * Use `create(PostTextRequestSchema)` to create a new message.
  */
-export const PostTextRequestSchema: GenMessage<PostTextRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 4)
+export const PostTextRequestSchema: GenMessage<PostTextRequest> = /*@__PURE__*/
+  messageDesc(file_node, 4);
 
 /**
  * @generated from message blockparty.node.v1.PostTextResponse
  */
-export type PostTextResponse = Message<'blockparty.node.v1.PostTextResponse'> & {
+export type PostTextResponse = Message<"blockparty.node.v1.PostTextResponse"> & {
   /**
    * block ID, hex
    *
    * @generated from field: string id = 1;
    */
-  id: string
-}
+  id: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.PostTextResponse.
  * Use `create(PostTextResponseSchema)` to create a new message.
  */
-export const PostTextResponseSchema: GenMessage<PostTextResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 5)
+export const PostTextResponseSchema: GenMessage<PostTextResponse> = /*@__PURE__*/
+  messageDesc(file_node, 5);
 
 /**
  * BlockSummary is the index view of a stored block (no payload).
  *
  * @generated from message blockparty.node.v1.BlockSummary
  */
-export type BlockSummary = Message<'blockparty.node.v1.BlockSummary'> & {
+export type BlockSummary = Message<"blockparty.node.v1.BlockSummary"> & {
   /**
    * @generated from field: string id = 1;
    */
-  id: string
+  id: string;
 
   /**
    * hex
    *
    * @generated from field: string audience_code = 2;
    */
-  audienceCode: string
+  audienceCode: string;
 
   /**
    * hex
    *
    * @generated from field: string type_code = 3;
    */
-  typeCode: string
+  typeCode: string;
 
   /**
    * hex address ("" if unresolved)
    *
    * @generated from field: string author = 4;
    */
-  author: string
+  author: string;
 
   /**
    * @generated from field: int64 timestamp = 5;
    */
-  timestamp: bigint
+  timestamp: bigint;
 
   /**
    * @generated from field: int64 received_at = 6;
    */
-  receivedAt: bigint
-}
+  receivedAt: bigint;
+
+  /**
+   * public-N (1..16) if a well-known public audience, else 0 (#44)
+   *
+   * @generated from field: uint32 public_audience = 7;
+   */
+  publicAudience: number;
+};
 
 /**
  * Describes the message blockparty.node.v1.BlockSummary.
  * Use `create(BlockSummarySchema)` to create a new message.
  */
-export const BlockSummarySchema: GenMessage<BlockSummary> = /*@__PURE__*/ messageDesc(file_node, 6)
+export const BlockSummarySchema: GenMessage<BlockSummary> = /*@__PURE__*/
+  messageDesc(file_node, 6);
 
 /**
  * @generated from message blockparty.node.v1.GetBlockRequest
  */
-export type GetBlockRequest = Message<'blockparty.node.v1.GetBlockRequest'> & {
+export type GetBlockRequest = Message<"blockparty.node.v1.GetBlockRequest"> & {
   /**
    * @generated from field: string id = 1;
    */
-  id: string
-}
+  id: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.GetBlockRequest.
  * Use `create(GetBlockRequestSchema)` to create a new message.
  */
-export const GetBlockRequestSchema: GenMessage<GetBlockRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 7)
+export const GetBlockRequestSchema: GenMessage<GetBlockRequest> = /*@__PURE__*/
+  messageDesc(file_node, 7);
 
 /**
  * @generated from message blockparty.node.v1.GetBlockResponse
  */
-export type GetBlockResponse = Message<'blockparty.node.v1.GetBlockResponse'> & {
+export type GetBlockResponse = Message<"blockparty.node.v1.GetBlockResponse"> & {
   /**
    * @generated from field: blockparty.node.v1.BlockSummary summary = 1;
    */
-  summary?: BlockSummary | undefined
+  summary?: BlockSummary | undefined;
 
   /**
    * block.data (plaintext if decrypted, else ciphertext)
    *
    * @generated from field: bytes data = 2;
    */
-  data: Uint8Array
+  data: Uint8Array;
 
   /**
    * node opened the payload
    *
    * @generated from field: bool decrypted = 3;
    */
-  decrypted: boolean
+  decrypted: boolean;
 
   /**
    * content.post body, when decrypted
    *
    * @generated from field: string text = 4;
    */
-  text: string
-}
+  text: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.GetBlockResponse.
  * Use `create(GetBlockResponseSchema)` to create a new message.
  */
-export const GetBlockResponseSchema: GenMessage<GetBlockResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 8)
+export const GetBlockResponseSchema: GenMessage<GetBlockResponse> = /*@__PURE__*/
+  messageDesc(file_node, 8);
 
 /**
  * @generated from message blockparty.node.v1.ListBlocksRequest
  */
-export type ListBlocksRequest = Message<'blockparty.node.v1.ListBlocksRequest'> & {
+export type ListBlocksRequest = Message<"blockparty.node.v1.ListBlocksRequest"> & {
   /**
    * Provide exactly one filter: an audience/type/author exact match, or a time
    * range (from..to inclusive; to=0 means open-ended).
@@ -308,484 +306,467 @@ export type ListBlocksRequest = Message<'blockparty.node.v1.ListBlocksRequest'> 
    *
    * @generated from field: string audience_code = 1;
    */
-  audienceCode: string
+  audienceCode: string;
 
   /**
    * hex
    *
    * @generated from field: string type_code = 2;
    */
-  typeCode: string
+  typeCode: string;
 
   /**
    * hex
    *
    * @generated from field: string author = 3;
    */
-  author: string
+  author: string;
 
   /**
    * @generated from field: int64 from = 4;
    */
-  from: bigint
+  from: bigint;
 
   /**
    * @generated from field: int64 to = 5;
    */
-  to: bigint
-}
+  to: bigint;
+};
 
 /**
  * Describes the message blockparty.node.v1.ListBlocksRequest.
  * Use `create(ListBlocksRequestSchema)` to create a new message.
  */
-export const ListBlocksRequestSchema: GenMessage<ListBlocksRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 9)
+export const ListBlocksRequestSchema: GenMessage<ListBlocksRequest> = /*@__PURE__*/
+  messageDesc(file_node, 9);
 
 /**
  * @generated from message blockparty.node.v1.ListBlocksResponse
  */
-export type ListBlocksResponse = Message<'blockparty.node.v1.ListBlocksResponse'> & {
+export type ListBlocksResponse = Message<"blockparty.node.v1.ListBlocksResponse"> & {
   /**
    * @generated from field: repeated blockparty.node.v1.BlockSummary blocks = 1;
    */
-  blocks: BlockSummary[]
-}
+  blocks: BlockSummary[];
+};
 
 /**
  * Describes the message blockparty.node.v1.ListBlocksResponse.
  * Use `create(ListBlocksResponseSchema)` to create a new message.
  */
-export const ListBlocksResponseSchema: GenMessage<ListBlocksResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 10)
+export const ListBlocksResponseSchema: GenMessage<ListBlocksResponse> = /*@__PURE__*/
+  messageDesc(file_node, 10);
 
 /**
  * @generated from message blockparty.node.v1.SubscribeBlocksRequest
  */
-export type SubscribeBlocksRequest = Message<'blockparty.node.v1.SubscribeBlocksRequest'> & {
+export type SubscribeBlocksRequest = Message<"blockparty.node.v1.SubscribeBlocksRequest"> & {
   /**
    * hex; empty = all audiences the node follows
    *
    * @generated from field: string audience_code = 1;
    */
-  audienceCode: string
-}
+  audienceCode: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.SubscribeBlocksRequest.
  * Use `create(SubscribeBlocksRequestSchema)` to create a new message.
  */
-export const SubscribeBlocksRequestSchema: GenMessage<SubscribeBlocksRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 11)
+export const SubscribeBlocksRequestSchema: GenMessage<SubscribeBlocksRequest> = /*@__PURE__*/
+  messageDesc(file_node, 11);
 
 /**
  * @generated from message blockparty.node.v1.BlockEvent
  */
-export type BlockEvent = Message<'blockparty.node.v1.BlockEvent'> & {
+export type BlockEvent = Message<"blockparty.node.v1.BlockEvent"> & {
   /**
    * @generated from field: blockparty.node.v1.BlockSummary summary = 1;
    */
-  summary?: BlockSummary | undefined
-}
+  summary?: BlockSummary | undefined;
+};
 
 /**
  * Describes the message blockparty.node.v1.BlockEvent.
  * Use `create(BlockEventSchema)` to create a new message.
  */
-export const BlockEventSchema: GenMessage<BlockEvent> = /*@__PURE__*/ messageDesc(file_node, 12)
+export const BlockEventSchema: GenMessage<BlockEvent> = /*@__PURE__*/
+  messageDesc(file_node, 12);
 
 /**
  * @generated from message blockparty.node.v1.GetIdentityRequest
  */
-export type GetIdentityRequest = Message<'blockparty.node.v1.GetIdentityRequest'> & {}
+export type GetIdentityRequest = Message<"blockparty.node.v1.GetIdentityRequest"> & {
+};
 
 /**
  * Describes the message blockparty.node.v1.GetIdentityRequest.
  * Use `create(GetIdentityRequestSchema)` to create a new message.
  */
-export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 13)
+export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> = /*@__PURE__*/
+  messageDesc(file_node, 13);
 
 /**
  * @generated from message blockparty.node.v1.GetIdentityResponse
  */
-export type GetIdentityResponse = Message<'blockparty.node.v1.GetIdentityResponse'> & {
+export type GetIdentityResponse = Message<"blockparty.node.v1.GetIdentityResponse"> & {
   /**
    * @generated from field: string address = 1;
    */
-  address: string
+  address: string;
 
   /**
    * hex
    *
    * @generated from field: string kyber_pub = 2;
    */
-  kyberPub: string
+  kyberPub: string;
 
   /**
    * hex
    *
    * @generated from field: string mldsa_pub = 3;
    */
-  mldsaPub: string
-}
+  mldsaPub: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.GetIdentityResponse.
  * Use `create(GetIdentityResponseSchema)` to create a new message.
  */
-export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 14)
+export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> = /*@__PURE__*/
+  messageDesc(file_node, 14);
 
 /**
  * @generated from message blockparty.node.v1.AddPeerRequest
  */
-export type AddPeerRequest = Message<'blockparty.node.v1.AddPeerRequest'> & {
+export type AddPeerRequest = Message<"blockparty.node.v1.AddPeerRequest"> & {
   /**
    * @generated from field: string address = 1;
    */
-  address: string
+  address: string;
 
   /**
    * hex
    *
    * @generated from field: string kyber_pub = 2;
    */
-  kyberPub: string
+  kyberPub: string;
 
   /**
    * hex
    *
    * @generated from field: string mldsa_pub = 3;
    */
-  mldsaPub: string
-}
+  mldsaPub: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.AddPeerRequest.
  * Use `create(AddPeerRequestSchema)` to create a new message.
  */
-export const AddPeerRequestSchema: GenMessage<AddPeerRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 15)
+export const AddPeerRequestSchema: GenMessage<AddPeerRequest> = /*@__PURE__*/
+  messageDesc(file_node, 15);
 
 /**
  * @generated from message blockparty.node.v1.AddPeerResponse
  */
-export type AddPeerResponse = Message<'blockparty.node.v1.AddPeerResponse'> & {}
+export type AddPeerResponse = Message<"blockparty.node.v1.AddPeerResponse"> & {
+};
 
 /**
  * Describes the message blockparty.node.v1.AddPeerResponse.
  * Use `create(AddPeerResponseSchema)` to create a new message.
  */
-export const AddPeerResponseSchema: GenMessage<AddPeerResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 16)
+export const AddPeerResponseSchema: GenMessage<AddPeerResponse> = /*@__PURE__*/
+  messageDesc(file_node, 16);
 
 /**
  * @generated from message blockparty.node.v1.StartConnectionRequest
  */
-export type StartConnectionRequest = Message<'blockparty.node.v1.StartConnectionRequest'> & {
+export type StartConnectionRequest = Message<"blockparty.node.v1.StartConnectionRequest"> & {
   /**
    * peer address
    *
    * @generated from field: string address = 1;
    */
-  address: string
-}
+  address: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.StartConnectionRequest.
  * Use `create(StartConnectionRequestSchema)` to create a new message.
  */
-export const StartConnectionRequestSchema: GenMessage<StartConnectionRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 17)
+export const StartConnectionRequestSchema: GenMessage<StartConnectionRequest> = /*@__PURE__*/
+  messageDesc(file_node, 17);
 
 /**
  * @generated from message blockparty.node.v1.StartConnectionResponse
  */
-export type StartConnectionResponse = Message<'blockparty.node.v1.StartConnectionResponse'> & {
+export type StartConnectionResponse = Message<"blockparty.node.v1.StartConnectionResponse"> & {
   /**
    * connect.request block id (correlates the response)
    *
    * @generated from field: string request_id = 1;
    */
-  requestId: string
-}
+  requestId: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.StartConnectionResponse.
  * Use `create(StartConnectionResponseSchema)` to create a new message.
  */
-export const StartConnectionResponseSchema: GenMessage<StartConnectionResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 18)
+export const StartConnectionResponseSchema: GenMessage<StartConnectionResponse> = /*@__PURE__*/
+  messageDesc(file_node, 18);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionInfo
  */
-export type ConnectionInfo = Message<'blockparty.node.v1.ConnectionInfo'> & {
+export type ConnectionInfo = Message<"blockparty.node.v1.ConnectionInfo"> & {
   /**
    * @generated from field: string peer = 1;
    */
-  peer: string
+  peer: string;
 
   /**
    * @generated from field: uint64 epoch = 2;
    */
-  epoch: bigint
+  epoch: bigint;
 
   /**
    * current private audience, hex
    *
    * @generated from field: string audience_code = 3;
    */
-  audienceCode: string
-}
+  audienceCode: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.ConnectionInfo.
  * Use `create(ConnectionInfoSchema)` to create a new message.
  */
-export const ConnectionInfoSchema: GenMessage<ConnectionInfo> =
-  /*@__PURE__*/
-  messageDesc(file_node, 19)
+export const ConnectionInfoSchema: GenMessage<ConnectionInfo> = /*@__PURE__*/
+  messageDesc(file_node, 19);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionsRequest
  */
-export type ListConnectionsRequest = Message<'blockparty.node.v1.ListConnectionsRequest'> & {}
+export type ListConnectionsRequest = Message<"blockparty.node.v1.ListConnectionsRequest"> & {
+};
 
 /**
  * Describes the message blockparty.node.v1.ListConnectionsRequest.
  * Use `create(ListConnectionsRequestSchema)` to create a new message.
  */
-export const ListConnectionsRequestSchema: GenMessage<ListConnectionsRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 20)
+export const ListConnectionsRequestSchema: GenMessage<ListConnectionsRequest> = /*@__PURE__*/
+  messageDesc(file_node, 20);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionsResponse
  */
-export type ListConnectionsResponse = Message<'blockparty.node.v1.ListConnectionsResponse'> & {
+export type ListConnectionsResponse = Message<"blockparty.node.v1.ListConnectionsResponse"> & {
   /**
    * @generated from field: repeated blockparty.node.v1.ConnectionInfo connections = 1;
    */
-  connections: ConnectionInfo[]
-}
+  connections: ConnectionInfo[];
+};
 
 /**
  * Describes the message blockparty.node.v1.ListConnectionsResponse.
  * Use `create(ListConnectionsResponseSchema)` to create a new message.
  */
-export const ListConnectionsResponseSchema: GenMessage<ListConnectionsResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 21)
+export const ListConnectionsResponseSchema: GenMessage<ListConnectionsResponse> = /*@__PURE__*/
+  messageDesc(file_node, 21);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionRef
  */
-export type ConnectionRef = Message<'blockparty.node.v1.ConnectionRef'> & {
+export type ConnectionRef = Message<"blockparty.node.v1.ConnectionRef"> & {
   /**
    * peer address
    *
    * @generated from field: string address = 1;
    */
-  address: string
-}
+  address: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.ConnectionRef.
  * Use `create(ConnectionRefSchema)` to create a new message.
  */
-export const ConnectionRefSchema: GenMessage<ConnectionRef> =
-  /*@__PURE__*/
-  messageDesc(file_node, 22)
+export const ConnectionRefSchema: GenMessage<ConnectionRef> = /*@__PURE__*/
+  messageDesc(file_node, 22);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionResult
  */
-export type ConnectionResult = Message<'blockparty.node.v1.ConnectionResult'> & {}
+export type ConnectionResult = Message<"blockparty.node.v1.ConnectionResult"> & {
+};
 
 /**
  * Describes the message blockparty.node.v1.ConnectionResult.
  * Use `create(ConnectionResultSchema)` to create a new message.
  */
-export const ConnectionResultSchema: GenMessage<ConnectionResult> =
-  /*@__PURE__*/
-  messageDesc(file_node, 23)
+export const ConnectionResultSchema: GenMessage<ConnectionResult> = /*@__PURE__*/
+  messageDesc(file_node, 23);
 
 /**
  * @generated from message blockparty.node.v1.SendPrivateTextRequest
  */
-export type SendPrivateTextRequest = Message<'blockparty.node.v1.SendPrivateTextRequest'> & {
+export type SendPrivateTextRequest = Message<"blockparty.node.v1.SendPrivateTextRequest"> & {
   /**
    * peer address
    *
    * @generated from field: string address = 1;
    */
-  address: string
+  address: string;
 
   /**
    * @generated from field: string text = 2;
    */
-  text: string
-}
+  text: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.SendPrivateTextRequest.
  * Use `create(SendPrivateTextRequestSchema)` to create a new message.
  */
-export const SendPrivateTextRequestSchema: GenMessage<SendPrivateTextRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 24)
+export const SendPrivateTextRequestSchema: GenMessage<SendPrivateTextRequest> = /*@__PURE__*/
+  messageDesc(file_node, 24);
 
 /**
  * @generated from message blockparty.node.v1.PrivateMessage
  */
-export type PrivateMessage = Message<'blockparty.node.v1.PrivateMessage'> & {
+export type PrivateMessage = Message<"blockparty.node.v1.PrivateMessage"> & {
   /**
    * hex address ("" if unresolved)
    *
    * @generated from field: string author = 1;
    */
-  author: string
+  author: string;
 
   /**
    * @generated from field: string text = 2;
    */
-  text: string
+  text: string;
 
   /**
    * @generated from field: int64 timestamp = 3;
    */
-  timestamp: bigint
-}
+  timestamp: bigint;
+};
 
 /**
  * Describes the message blockparty.node.v1.PrivateMessage.
  * Use `create(PrivateMessageSchema)` to create a new message.
  */
-export const PrivateMessageSchema: GenMessage<PrivateMessage> =
-  /*@__PURE__*/
-  messageDesc(file_node, 25)
+export const PrivateMessageSchema: GenMessage<PrivateMessage> = /*@__PURE__*/
+  messageDesc(file_node, 25);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionMessagesResponse
  */
-export type ListConnectionMessagesResponse =
-  Message<'blockparty.node.v1.ListConnectionMessagesResponse'> & {
-    /**
-     * @generated from field: repeated blockparty.node.v1.PrivateMessage messages = 1;
-     */
-    messages: PrivateMessage[]
-  }
+export type ListConnectionMessagesResponse = Message<"blockparty.node.v1.ListConnectionMessagesResponse"> & {
+  /**
+   * @generated from field: repeated blockparty.node.v1.PrivateMessage messages = 1;
+   */
+  messages: PrivateMessage[];
+};
 
 /**
  * Describes the message blockparty.node.v1.ListConnectionMessagesResponse.
  * Use `create(ListConnectionMessagesResponseSchema)` to create a new message.
  */
-export const ListConnectionMessagesResponseSchema: GenMessage<ListConnectionMessagesResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 26)
+export const ListConnectionMessagesResponseSchema: GenMessage<ListConnectionMessagesResponse> = /*@__PURE__*/
+  messageDesc(file_node, 26);
 
 /**
  * @generated from message blockparty.node.v1.RotateIdentityRequest
  */
-export type RotateIdentityRequest = Message<'blockparty.node.v1.RotateIdentityRequest'> & {
+export type RotateIdentityRequest = Message<"blockparty.node.v1.RotateIdentityRequest"> & {
   /**
    * @generated from field: string new_passphrase = 1;
    */
-  newPassphrase: string
+  newPassphrase: string;
 
   /**
    * must be true (#29 gate)
    *
    * @generated from field: bool confirm = 2;
    */
-  confirm: boolean
-}
+  confirm: boolean;
+};
 
 /**
  * Describes the message blockparty.node.v1.RotateIdentityRequest.
  * Use `create(RotateIdentityRequestSchema)` to create a new message.
  */
-export const RotateIdentityRequestSchema: GenMessage<RotateIdentityRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 27)
+export const RotateIdentityRequestSchema: GenMessage<RotateIdentityRequest> = /*@__PURE__*/
+  messageDesc(file_node, 27);
 
 /**
  * @generated from message blockparty.node.v1.RotateIdentityResponse
  */
-export type RotateIdentityResponse = Message<'blockparty.node.v1.RotateIdentityResponse'> & {
+export type RotateIdentityResponse = Message<"blockparty.node.v1.RotateIdentityResponse"> & {
   /**
    * new address
    *
    * @generated from field: string identity = 1;
    */
-  identity: string
-}
+  identity: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.RotateIdentityResponse.
  * Use `create(RotateIdentityResponseSchema)` to create a new message.
  */
-export const RotateIdentityResponseSchema: GenMessage<RotateIdentityResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 28)
+export const RotateIdentityResponseSchema: GenMessage<RotateIdentityResponse> = /*@__PURE__*/
+  messageDesc(file_node, 28);
 
 /**
  * @generated from message blockparty.node.v1.BurnIdentityRequest
  */
-export type BurnIdentityRequest = Message<'blockparty.node.v1.BurnIdentityRequest'> & {
+export type BurnIdentityRequest = Message<"blockparty.node.v1.BurnIdentityRequest"> & {
   /**
    * "voluntary" | "compromised" | "rotated" | "other"
    *
    * @generated from field: string notice = 1;
    */
-  notice: string
+  notice: string;
 
   /**
    * must be true (#29 gate)
    *
    * @generated from field: bool confirm = 2;
    */
-  confirm: boolean
-}
+  confirm: boolean;
+};
 
 /**
  * Describes the message blockparty.node.v1.BurnIdentityRequest.
  * Use `create(BurnIdentityRequestSchema)` to create a new message.
  */
-export const BurnIdentityRequestSchema: GenMessage<BurnIdentityRequest> =
-  /*@__PURE__*/
-  messageDesc(file_node, 29)
+export const BurnIdentityRequestSchema: GenMessage<BurnIdentityRequest> = /*@__PURE__*/
+  messageDesc(file_node, 29);
 
 /**
  * @generated from message blockparty.node.v1.BurnIdentityResponse
  */
-export type BurnIdentityResponse = Message<'blockparty.node.v1.BurnIdentityResponse'> & {
+export type BurnIdentityResponse = Message<"blockparty.node.v1.BurnIdentityResponse"> & {
   /**
    * the published identity.burn block id
    *
    * @generated from field: string block_id = 1;
    */
-  blockId: string
-}
+  blockId: string;
+};
 
 /**
  * Describes the message blockparty.node.v1.BurnIdentityResponse.
  * Use `create(BurnIdentityResponseSchema)` to create a new message.
  */
-export const BurnIdentityResponseSchema: GenMessage<BurnIdentityResponse> =
-  /*@__PURE__*/
-  messageDesc(file_node, 30)
+export const BurnIdentityResponseSchema: GenMessage<BurnIdentityResponse> = /*@__PURE__*/
+  messageDesc(file_node, 30);
 
 /**
  * NodeService is the bpnode client API (#38), consumed by the desktop client
@@ -803,10 +784,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.GetStatus
    */
   getStatus: {
-    methodKind: 'unary'
-    input: typeof GetStatusRequestSchema
-    output: typeof GetStatusResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof GetStatusRequestSchema;
+    output: typeof GetStatusResponseSchema;
+  },
   /**
    * BootstrapWorld configures the node's World at runtime when none is loaded
    * (personal mode only): it initializes the keystore from the supplied secrets.
@@ -815,10 +796,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.BootstrapWorld
    */
   bootstrapWorld: {
-    methodKind: 'unary'
-    input: typeof BootstrapWorldRequestSchema
-    output: typeof BootstrapWorldResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof BootstrapWorldRequestSchema;
+    output: typeof BootstrapWorldResponseSchema;
+  },
   /**
    * PostText authors a content.post to a public audience. The client submits
    * intent (audience + text); the node encrypts and signs (world_sig+author_sig)
@@ -827,10 +808,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.PostText
    */
   postText: {
-    methodKind: 'unary'
-    input: typeof PostTextRequestSchema
-    output: typeof PostTextResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof PostTextRequestSchema;
+    output: typeof PostTextResponseSchema;
+  },
   /**
    * GetBlock fetches a stored block by ID, returning plaintext when the node can
    * open the audience (public audience in personal mode), ciphertext otherwise.
@@ -838,20 +819,20 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.GetBlock
    */
   getBlock: {
-    methodKind: 'unary'
-    input: typeof GetBlockRequestSchema
-    output: typeof GetBlockResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof GetBlockRequestSchema;
+    output: typeof GetBlockResponseSchema;
+  },
   /**
    * ListBlocks queries the local index by audience, type, author, or time range.
    *
    * @generated from rpc blockparty.node.v1.NodeService.ListBlocks
    */
   listBlocks: {
-    methodKind: 'unary'
-    input: typeof ListBlocksRequestSchema
-    output: typeof ListBlocksResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof ListBlocksRequestSchema;
+    output: typeof ListBlocksResponseSchema;
+  },
   /**
    * SubscribeBlocks streams a BlockEvent for each block accepted onto an
    * audience after subscription — the live feed (#44). Pair with ListBlocks for
@@ -860,10 +841,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.SubscribeBlocks
    */
   subscribeBlocks: {
-    methodKind: 'server_streaming'
-    input: typeof SubscribeBlocksRequestSchema
-    output: typeof BlockEventSchema
-  }
+    methodKind: "server_streaming";
+    input: typeof SubscribeBlocksRequestSchema;
+    output: typeof BlockEventSchema;
+  },
   /**
    * GetIdentity returns this node's connection card (address + public keys) to
    * share out-of-band so a peer can connect.
@@ -871,10 +852,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.GetIdentity
    */
   getIdentity: {
-    methodKind: 'unary'
-    input: typeof GetIdentityRequestSchema
-    output: typeof GetIdentityResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof GetIdentityRequestSchema;
+    output: typeof GetIdentityResponseSchema;
+  },
   /**
    * AddPeer registers a known peer's card so the node can connect to it and
    * recognize its handshake blocks.
@@ -882,60 +863,60 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.AddPeer
    */
   addPeer: {
-    methodKind: 'unary'
-    input: typeof AddPeerRequestSchema
-    output: typeof AddPeerResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof AddPeerRequestSchema;
+    output: typeof AddPeerResponseSchema;
+  },
   /**
    * StartConnection initiates a connect.request handshake to a registered peer.
    *
    * @generated from rpc blockparty.node.v1.NodeService.StartConnection
    */
   startConnection: {
-    methodKind: 'unary'
-    input: typeof StartConnectionRequestSchema
-    output: typeof StartConnectionResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof StartConnectionRequestSchema;
+    output: typeof StartConnectionResponseSchema;
+  },
   /**
    * ListConnections lists the node's active connections.
    *
    * @generated from rpc blockparty.node.v1.NodeService.ListConnections
    */
   listConnections: {
-    methodKind: 'unary'
-    input: typeof ListConnectionsRequestSchema
-    output: typeof ListConnectionsResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof ListConnectionsRequestSchema;
+    output: typeof ListConnectionsResponseSchema;
+  },
   /**
    * RotateConnection advances a connection to a new epoch (re-keys the channel).
    *
    * @generated from rpc blockparty.node.v1.NodeService.RotateConnection
    */
   rotateConnection: {
-    methodKind: 'unary'
-    input: typeof ConnectionRefSchema
-    output: typeof ConnectionResultSchema
-  }
+    methodKind: "unary";
+    input: typeof ConnectionRefSchema;
+    output: typeof ConnectionResultSchema;
+  },
   /**
    * CloseConnection tears a connection down and notifies the peer.
    *
    * @generated from rpc blockparty.node.v1.NodeService.CloseConnection
    */
   closeConnection: {
-    methodKind: 'unary'
-    input: typeof ConnectionRefSchema
-    output: typeof ConnectionResultSchema
-  }
+    methodKind: "unary";
+    input: typeof ConnectionRefSchema;
+    output: typeof ConnectionResultSchema;
+  },
   /**
    * SendPrivateText posts an encrypted message on a connection's private audience.
    *
    * @generated from rpc blockparty.node.v1.NodeService.SendPrivateText
    */
   sendPrivateText: {
-    methodKind: 'unary'
-    input: typeof SendPrivateTextRequestSchema
-    output: typeof PostTextResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof SendPrivateTextRequestSchema;
+    output: typeof PostTextResponseSchema;
+  },
   /**
    * ListConnectionMessages returns the decrypted messages on a connection's
    * current private audience.
@@ -943,10 +924,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.ListConnectionMessages
    */
   listConnectionMessages: {
-    methodKind: 'unary'
-    input: typeof ConnectionRefSchema
-    output: typeof ListConnectionMessagesResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof ConnectionRefSchema;
+    output: typeof ListConnectionMessagesResponseSchema;
+  },
   /**
    * RotateIdentity replaces the identity passphrase, yielding a new identity.
    * Dangerous: requires confirm=true (the #29 confirmation gate).
@@ -954,10 +935,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.RotateIdentity
    */
   rotateIdentity: {
-    methodKind: 'unary'
-    input: typeof RotateIdentityRequestSchema
-    output: typeof RotateIdentityResponseSchema
-  }
+    methodKind: "unary";
+    input: typeof RotateIdentityRequestSchema;
+    output: typeof RotateIdentityResponseSchema;
+  },
   /**
    * BurnIdentity authors and publishes an identity.burn revoking this identity.
    * Irreversible: requires confirm=true.
@@ -965,8 +946,10 @@ export const NodeService: GenService<{
    * @generated from rpc blockparty.node.v1.NodeService.BurnIdentity
    */
   burnIdentity: {
-    methodKind: 'unary'
-    input: typeof BurnIdentityRequestSchema
-    output: typeof BurnIdentityResponseSchema
-  }
-}> = /*@__PURE__*/ serviceDesc(file_node, 0)
+    methodKind: "unary";
+    input: typeof BurnIdentityRequestSchema;
+    output: typeof BurnIdentityResponseSchema;
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_node, 0);
+

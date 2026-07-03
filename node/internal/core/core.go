@@ -89,6 +89,7 @@ type Core struct {
 	conns         *connections.Manager // personal mode connection handshakes (#37)
 	resolver      *blocktypes.Resolver // personal mode, for reading plaintext
 	publicSecrets map[string][]byte    // audience_code hex → secret (public audiences)
+	publicNums    map[string]int       // audience_code hex → public-N (1..16), for the feed (#44)
 
 	feedMu     sync.Mutex
 	feeds      map[int]*feedSub // live block subscribers (#44)
@@ -158,9 +159,11 @@ func (c *Core) activate() error {
 		w := c.ks.World()
 		c.resolver = blocktypes.NewResolver(w)
 		c.publicSecrets = make(map[string][]byte, audiences.ReservedPublicCount)
+		c.publicNums = make(map[string]int, audiences.ReservedPublicCount)
 		for n := 1; n <= audiences.ReservedPublicCount; n++ {
 			a := audiences.PublicAudience(w, n)
 			c.publicSecrets[a.Code.Hex()] = a.Secret
+			c.publicNums[a.Code.Hex()] = n
 		}
 
 		// Build the connection manager once the gossip transport is wired (#37).
@@ -517,6 +520,17 @@ func (c *Core) Connections() []connections.ConnInfo {
 // SubscribeBlocks registers a live subscriber for an audience ("" = all). It
 // returns a buffered channel of events and an unsubscribe function that must be
 // called to release it.
+// PublicAudienceNum maps an audience_code hex to its public-N (1..16), or 0 if
+// the code is not one of the World's well-known public audiences (e.g. a private
+// connection audience or the inbox). The feed (#44) uses it to scope to and
+// label public posts. Only a node that can derive the World's audiences (personal
+// mode) knows these codes, which is why the mapping lives here, not in clients.
+func (c *Core) PublicAudienceNum(audienceHex string) int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.publicNums[audienceHex]
+}
+
 func (c *Core) SubscribeBlocks(audienceHex string) (<-chan FeedEvent, func()) {
 	c.feedMu.Lock()
 	defer c.feedMu.Unlock()

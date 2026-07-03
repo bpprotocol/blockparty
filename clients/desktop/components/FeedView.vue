@@ -28,13 +28,16 @@ onUnmounted(stop)
 
     <p v-if="error" class="err">{{ error }}</p>
     <p v-else-if="items.length === 0 && !loading" class="empty">
-      No posts yet. Posting lands in #45.
+      No public posts yet. Compose one above, or wait for peers.
     </p>
 
     <ul>
       <li v-for="item in items" :key="item.id" class="post">
         <p class="text">{{ item.text }}</p>
-        <p class="meta">{{ short(item.author) }} · {{ when(item.timestamp) }}</p>
+        <p class="meta">
+          <span class="aud">public-{{ item.publicAudience }}</span>
+          · {{ short(item.author) }} · {{ when(item.timestamp) }}
+        </p>
       </li>
     </ul>
   </section>
@@ -70,6 +73,11 @@ ul {
   font-size: 0.8rem;
   opacity: 0.55;
   font-family: ui-monospace, monospace;
+}
+.aud {
+  opacity: 1;
+  font-weight: 600;
+  color: #1a7f37;
 }
 .empty {
   opacity: 0.6;

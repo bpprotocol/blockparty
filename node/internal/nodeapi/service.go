@@ -79,7 +79,7 @@ func (s *Service) GetBlock(_ context.Context, req *connect.Request[nodepb.GetBlo
 		return nil, mapErr(err)
 	}
 	return connect.NewResponse(&nodepb.GetBlockResponse{
-		Summary:   summary(res.Record),
+		Summary:   s.summary(res.Record),
 		Data:      res.Record.Block.Data,
 		Decrypted: res.Decrypted,
 		Text:      res.Text,
@@ -101,12 +101,13 @@ func (s *Service) ListBlocks(_ context.Context, req *connect.Request[nodepb.List
 	out := make([]*nodepb.BlockSummary, 0, len(entries))
 	for _, e := range entries {
 		out = append(out, &nodepb.BlockSummary{
-			Id:           e.ID,
-			AudienceCode: e.Audience,
-			TypeCode:     e.Type,
-			Author:       e.Author,
-			Timestamp:    e.Timestamp,
-			ReceivedAt:   e.ReceivedAt,
+			Id:             e.ID,
+			AudienceCode:   e.Audience,
+			TypeCode:       e.Type,
+			Author:         e.Author,
+			Timestamp:      e.Timestamp,
+			ReceivedAt:     e.ReceivedAt,
+			PublicAudience: uint32(s.core.PublicAudienceNum(e.Audience)),
 		})
 	}
 	return connect.NewResponse(&nodepb.ListBlocksResponse{Blocks: out}), nil
@@ -125,12 +126,13 @@ func (s *Service) SubscribeBlocks(ctx context.Context, req *connect.Request[node
 			}
 			err := stream.Send(&nodepb.BlockEvent{
 				Summary: &nodepb.BlockSummary{
-					Id:           ev.ID,
-					AudienceCode: ev.Audience,
-					TypeCode:     ev.Type,
-					Author:       ev.Author,
-					Timestamp:    ev.Timestamp,
-					ReceivedAt:   ev.ReceivedAt,
+					Id:             ev.ID,
+					AudienceCode:   ev.Audience,
+					TypeCode:       ev.Type,
+					Author:         ev.Author,
+					Timestamp:      ev.Timestamp,
+					ReceivedAt:     ev.ReceivedAt,
+					PublicAudience: uint32(s.core.PublicAudienceNum(ev.Audience)),
 				},
 			})
 			if err != nil {
@@ -232,15 +234,17 @@ func (s *Service) BurnIdentity(_ context.Context, req *connect.Request[nodepb.Bu
 	return connect.NewResponse(&nodepb.BurnIdentityResponse{BlockId: id}), nil
 }
 
-func summary(rec *store.Record) *nodepb.BlockSummary {
+func (s *Service) summary(rec *store.Record) *nodepb.BlockSummary {
 	b := rec.Block
+	audHex := hexID(b.AudienceCode)
 	return &nodepb.BlockSummary{
-		Id:           hexID(b.Id),
-		AudienceCode: hexID(b.AudienceCode),
-		TypeCode:     hexID(b.TypeCode),
-		Author:       rec.Author,
-		Timestamp:    b.Timestamp,
-		ReceivedAt:   rec.ReceivedAt,
+		Id:             hexID(b.Id),
+		AudienceCode:   audHex,
+		TypeCode:       hexID(b.TypeCode),
+		Author:         rec.Author,
+		Timestamp:      b.Timestamp,
+		ReceivedAt:     rec.ReceivedAt,
+		PublicAudience: uint32(s.core.PublicAudienceNum(audHex)),
 	}
 }
 

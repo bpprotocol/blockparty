@@ -6,6 +6,7 @@ export interface FeedItem {
   author: string
   timestamp: number
   text: string
+  publicAudience: number // public-N this post belongs to
 }
 
 // mergeItem inserts an item keeping the list de-duplicated by id and ordered
@@ -27,10 +28,13 @@ export function useFeed() {
     return typeof window !== 'undefined' ? window.bpDesktop : undefined
   }
 
-  // toItem fetches a block's text; returns null if it isn't a readable post.
+  // toItem fetches a block's text; returns null if it isn't a readable post on a
+  // public audience. The feed is scoped to public audiences (#44) — private
+  // connection messages (publicAudience === 0) live in the connections UI (#46).
   async function toItem(summary: BlockSummary): Promise<FeedItem | null> {
     const node = bridge()?.node
     if (!node) return null
+    if (summary.publicAudience <= 0) return null
     const g = await node.getBlock(summary.id)
     if (!g.ok || !g.value.decrypted || !g.value.text) return null
     return {
@@ -38,6 +42,7 @@ export function useFeed() {
       author: summary.author,
       timestamp: summary.timestamp,
       text: g.value.text,
+      publicAudience: summary.publicAudience,
     }
   }
 

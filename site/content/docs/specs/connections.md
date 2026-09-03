@@ -17,7 +17,7 @@ Depends on: [Derivations](./derivations.md), [Block Encryption](./encryption.md)
 
 ## 🧷 Prerequisites
 
-Each identity publishes an [`identity`](./block-types.md) block listing its post-quantum public keys (`dilithiumKey.pub`, `kyberKey.pub`) — see [Identity](./identity.md). To start a connection, the initiator must know the target's address and static `kyberKey.pub` (typically learned from the target's `identity` block on a [public audience](./audiences.md)).
+Each identity publishes an [`identity`](./block-types.md) block listing its post-quantum public keys (`mldsaKey.pub`, `kyberKey.pub`) — see [Identity](./identity.md). To start a connection, the initiator must know the target's address and static `kyberKey.pub` (typically learned from the target's `identity` block on a [public audience](./audiences.md)).
 
 ### Inbox audience (rendezvous)
 

@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { PUBLIC_AUDIENCE_MAX, useCompose } from '../composables/useCompose'
+import UserAvatar from './UserAvatar.vue'
+import AppIcon from './AppIcon.vue'
 
+const props = withDefaults(defineProps<{ author?: string }>(), { author: '' })
 const emit = defineEmits<{ posted: [id: string] }>()
 
 const { busy, error, post } = useCompose()
@@ -9,7 +12,10 @@ const text = ref('')
 const audience = ref(1)
 const audiences = Array.from({ length: PUBLIC_AUDIENCE_MAX }, (_, i) => i + 1)
 
+const canPost = computed(() => !busy.value && text.value.trim().length > 0)
+
 async function submit(): Promise<void> {
+  if (!canPost.value) return
   const id = await post(audience.value, text.value)
   if (id) {
     text.value = ''
@@ -19,76 +25,103 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <section class="compose">
+  <section class="card compose">
     <form @submit.prevent="submit">
-      <textarea
-        v-model="text"
-        rows="3"
-        placeholder="Share something…"
-        :disabled="busy"
-        @keydown.meta.enter="submit"
-        @keydown.ctrl.enter="submit"
-      />
-      <div class="row">
-        <label>
-          to
-          <select v-model.number="audience" :disabled="busy">
+      <div class="compose-row">
+        <UserAvatar :seed="props.author" :size="42" />
+        <textarea
+          v-model="text"
+          class="textarea"
+          rows="3"
+          placeholder="What's on your mind?"
+          :disabled="busy"
+          @keydown.meta.enter="submit"
+          @keydown.ctrl.enter="submit"
+        />
+      </div>
+
+      <div class="compose-options">
+        <label class="audience">
+          <AppIcon name="globe" :size="14" />
+          <span>Post to</span>
+          <select v-model.number="audience" class="audience-select" :disabled="busy">
             <option v-for="n in audiences" :key="n" :value="n">public-{{ n }}</option>
           </select>
         </label>
-        <button type="submit" class="primary" :disabled="busy">
+
+        <span class="hint meta">⌘/Ctrl + ↵</span>
+
+        <button type="submit" class="btn is-primary is-pill" :disabled="!canPost">
+          <AppIcon name="send" :size="14" />
           {{ busy ? 'Posting…' : 'Post' }}
         </button>
       </div>
-      <p v-if="error" class="err">{{ error }}</p>
+
+      <p v-if="error" class="err compose-err">{{ error }}</p>
     </form>
   </section>
 </template>
 
 <style scoped>
-.compose {
-  margin-top: 1.5rem;
+.compose-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem;
 }
-form {
-  display: grid;
-  gap: 0.5rem;
-}
-textarea {
-  font: inherit;
-  padding: 0.6rem;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 8px;
+
+.compose-row .textarea {
+  padding: 0.5rem 0;
   background: transparent;
-  color: inherit;
-  resize: vertical;
+  border: none;
+  font-size: 0.95rem;
 }
-.row {
+
+.compose-row .textarea:focus {
+  box-shadow: none;
+}
+
+.compose-options {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-alt);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
-label {
-  opacity: 0.7;
-  font-size: 0.9rem;
+
+.audience {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
-select {
+
+.audience-select {
   font: inherit;
-  margin-left: 0.3rem;
-}
-.primary {
-  background: #1a7f37;
-  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
   border: none;
-  padding: 0.45rem 1.1rem;
-  border-radius: 6px;
   cursor: pointer;
 }
-.primary:disabled {
-  opacity: 0.6;
+
+.audience-select:focus {
+  outline: none;
 }
-.err {
-  color: #cf222e;
-  font-size: 0.9rem;
-  margin: 0;
+
+.hint {
+  margin-left: auto;
+}
+
+.compose-err {
+  padding: 0 1rem 0.85rem;
 }
 </style>

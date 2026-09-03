@@ -5,6 +5,8 @@ import { defineNuxtConfig } from 'nuxt/config'
 // Electron main process loads via loadFile in production.
 export default defineNuxtConfig({
   ssr: false,
+  // Global design tokens + UI primitives (Friendkit-inspired social styling).
+  css: ['~/assets/css/main.css'],
   devtools: { enabled: false },
   // Work around a Nuxt 3.21 SPA-dev regression: with `ssr: false` the
   // vite-node-server plugin resolves the *client* server as if it were the SSR

@@ -1,18 +1,40 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRuntimeConfig } from '#imports'
 import type { BootstrapRequest } from './electron/bridge'
 import { useNode } from './composables/useNode'
+import { shortHex } from './composables/useFormat'
 import OnboardingView from './components/OnboardingView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
 import ComposeView from './components/ComposeView.vue'
 import FeedView from './components/FeedView.vue'
 import ConnectionsView from './components/ConnectionsView.vue'
 import IdentityView from './components/IdentityView.vue'
+import UserAvatar from './components/UserAvatar.vue'
+import AppIcon from './components/AppIcon.vue'
 
 const { status, lifecycle, error, busy, view, refresh, bootstrap } = useNode()
 const bootstrapError = ref<string | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
+
+type Tab = 'feed' | 'connections' | 'identity'
+const tab = ref<Tab>('feed')
+
+// Connections and Identity need author keys; a read-only node only sees a feed,
+// so the nav collapses to it (and any active tab falls back).
+const canAuthor = computed(() => !!status.value?.canAuthor)
+const tabs = computed(() =>
+  (
+    [
+      { id: 'feed' as Tab, label: 'Feed', icon: 'feed', always: true },
+      { id: 'connections' as Tab, label: 'Connections', icon: 'users', always: false },
+      { id: 'identity' as Tab, label: 'Identity', icon: 'shield', always: false },
+    ] as const
+  ).filter((t) => t.always || canAuthor.value),
+)
+watch(canAuthor, (ok) => {
+  if (!ok) tab.value = 'feed'
+})
 
 // Background image lives in public/. Resolve it through the app's baseURL so the
 // URL is correct both under `nuxt dev` (served at /) and in the packaged SPA,
@@ -40,92 +62,299 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Dashboard: shown once the node is ready and a World is loaded. -->
-  <main v-if="view === 'ready' && status" class="app">
-    <header>
-      <h1>BlockParty</h1>
-      <span class="conn up">Connected</span>
+  <!-- App shell: shown once the node is ready and a World is loaded. -->
+  <div v-if="view === 'ready' && status" class="shell">
+    <header class="navbar">
+      <div class="brand">
+        <span class="mark">bp</span>
+        <span class="name">BlockParty</span>
+      </div>
+      <div class="nav-actions">
+        <span class="chip is-success"><span class="dot" /> Connected</span>
+        <UserAvatar :seed="status.identity" :size="34" />
+      </div>
     </header>
 
-    <NodeDashboard :status="status" />
-    <ComposeView v-if="status.canAuthor" />
-    <ConnectionsView v-if="status.canAuthor" />
-    <IdentityView v-if="status.canAuthor" />
-    <FeedView />
+    <div class="layout">
+      <aside class="col col-left">
+        <section class="card profile">
+          <UserAvatar :seed="status.identity" :size="64" />
+          <p class="who mono">{{ shortHex(status.identity, 8, 6) }}</p>
+          <p class="meta">
+            <span class="mode">{{ status.mode }}</span> node · v{{ status.version }}
+          </p>
+          <span class="chip is-primary">
+            <AppIcon name="globe" :size="12" /> {{ shortHex(status.world, 6, 4) }}
+          </span>
+        </section>
 
-    <footer v-if="lifecycle" class="lifecycle">
-      node process: {{ lifecycle.mode }} · {{ lifecycle.state }}
-      <span v-if="lifecycle.restarts > 0">· {{ lifecycle.restarts }} restart(s)</span>
-      · {{ lifecycle.endpoint }}
-    </footer>
-  </main>
+        <nav class="card nav">
+          <button
+            v-for="t in tabs"
+            :key="t.id"
+            class="nav-item"
+            :class="{ 'is-active': tab === t.id }"
+            @click="tab = t.id"
+          >
+            <AppIcon :name="t.icon" />
+            <span>{{ t.label }}</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="col col-main">
+        <template v-if="tab === 'feed'">
+          <ComposeView v-if="status.canAuthor" :author="status.identity" />
+          <FeedView />
+        </template>
+        <ConnectionsView v-else-if="tab === 'connections'" />
+        <IdentityView v-else />
+      </main>
+
+      <aside class="col col-right">
+        <NodeDashboard :status="status" />
+
+        <section v-if="lifecycle" class="card">
+          <div class="card-heading">
+            <AppIcon name="server" :size="16" />
+            <h3>Node process</h3>
+          </div>
+          <div class="card-body lifecycle">
+            <div class="row">
+              <span class="meta">Mode</span><span class="val">{{ lifecycle.mode }}</span>
+            </div>
+            <div class="row">
+              <span class="meta">State</span>
+              <span
+                class="chip"
+                :class="lifecycle.state === 'running' ? 'is-success' : 'is-danger'"
+              >
+                {{ lifecycle.state }}
+              </span>
+            </div>
+            <div class="row">
+              <span class="meta">Endpoint</span
+              ><span class="val mono">{{ lifecycle.endpoint }}</span>
+            </div>
+            <div v-if="lifecycle.restarts > 0" class="row">
+              <span class="meta">Restarts</span><span class="val">{{ lifecycle.restarts }}</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
 
   <!-- Login / setup: a centered card over the background image, shown until the
-       dashboard is ready (connecting, onboarding, or disconnected states). -->
+       shell is ready (connecting, onboarding, or disconnected states). -->
   <div v-else class="auth" :style="authBgStyle">
-    <div class="auth-card">
-      <h1 class="brand">BlockParty</h1>
+    <div class="auth-card card">
+      <div class="auth-brand">
+        <span class="mark">bp</span>
+        <span class="name">BlockParty</span>
+      </div>
 
       <OnboardingView v-if="view === 'onboarding'" :busy="busy" @submit="onBootstrap" />
 
-      <section v-else class="status">
-        <p v-if="view === 'no-bridge'">Running outside Electron — no node bridge.</p>
-        <p v-else class="connecting">Connecting to the local node…</p>
+      <section v-else class="auth-status">
+        <p v-if="view === 'no-bridge'" class="muted">Running outside Electron — no node bridge.</p>
+        <template v-else>
+          <span class="spinner" />
+          <p class="muted">Connecting to the local node…</p>
+        </template>
         <p v-if="error" class="err">{{ error }}</p>
-        <button v-if="view !== 'no-bridge'" class="primary" @click="refresh">Retry</button>
+        <button v-if="view !== 'no-bridge'" class="btn is-primary" @click="refresh">Retry</button>
       </section>
 
       <p v-if="bootstrapError" class="err">{{ bootstrapError }}</p>
 
-      <p v-if="lifecycle" class="lifecycle">
+      <p v-if="lifecycle" class="meta mono auth-lifecycle">
         node: {{ lifecycle.mode }} · {{ lifecycle.state }} · {{ lifecycle.endpoint }}
       </p>
     </div>
   </div>
 </template>
 
-<style>
-:root {
-  color-scheme: light dark;
-  font-family: system-ui, sans-serif;
+<style scoped>
+/* ---------- Shell ---------- */
+.shell {
+  min-height: 100vh;
 }
-body {
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 60px;
+  padding: 0 1.25rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand,
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand .mark,
+.auth-brand .mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  width: 34px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  box-shadow: var(--shadow-primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 640px) 300px;
+  gap: 1.25rem;
+  justify-content: center;
+  align-items: start;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.col {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+/* Sticky rails: the feed column is the one that scrolls. */
+.col-left,
+.col-right {
+  position: sticky;
+  top: 76px;
+}
+
+/* ---------- Left rail ---------- */
+.profile {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  padding: 1.25rem 1rem;
+  text-align: center;
+}
+
+.profile .who {
+  margin: 0.25rem 0 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile .meta {
   margin: 0;
 }
 
-/* Dashboard */
-.app {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 2.5rem 1.5rem;
-}
-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-.conn {
-  font-size: 0.8rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-}
-.conn.up {
-  background: #1a7f37;
-  color: white;
-}
-.err {
-  color: #cf222e;
-  font-family: ui-monospace, monospace;
-  font-size: 0.9rem;
-}
-.lifecycle {
-  margin-top: 2rem;
-  font-family: ui-monospace, monospace;
-  font-size: 0.8rem;
-  opacity: 0.55;
+.profile .mode {
+  text-transform: capitalize;
 }
 
-/* Login / setup screen */
+.nav {
+  padding: 0.4rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-medium);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.nav-item:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+.nav-item.is-active {
+  background: rgba(85, 150, 230, 0.14);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ---------- Right rail ---------- */
+.lifecycle {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.lifecycle .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.lifecycle .val {
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .col-right {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .col-left {
+    position: static;
+  }
+  .profile {
+    display: none;
+  }
+  .nav {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .nav-item {
+    justify-content: center;
+  }
+}
+
+/* ---------- Login / setup ---------- */
 .auth {
   position: relative;
   min-height: 100vh;
@@ -133,18 +362,19 @@ header {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  box-sizing: border-box;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
+
 /* Scrim for legibility over the photo. */
 .auth::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: linear-gradient(160deg, rgba(20, 28, 45, 0.55), rgba(10, 14, 24, 0.72));
 }
+
 .auth-card {
   position: relative;
   z-index: 1;
@@ -152,37 +382,42 @@ header {
   max-width: 30rem;
   max-height: calc(100vh - 4rem);
   overflow-y: auto;
-  box-sizing: border-box;
   padding: 2rem 1.75rem;
-  border-radius: 14px;
-  background: color-mix(in srgb, Canvas 90%, transparent);
-  color: CanvasText;
-  border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-md);
 }
-.auth-card .brand {
-  margin: 0 0 1.25rem;
-  font-size: 1.6rem;
-  letter-spacing: 0.02em;
+
+.auth-brand {
+  margin-bottom: 1.5rem;
+  font-size: 1.15rem;
 }
-.auth-card .status {
+
+.auth-status {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.85rem;
   justify-items: start;
 }
-.auth-card .connecting {
-  opacity: 0.8;
+
+.auth-status p {
+  margin: 0;
 }
-.auth-card .lifecycle {
-  margin-top: 1.5rem;
+
+.auth-lifecycle {
+  margin: 1.5rem 0 0;
+  opacity: 0.75;
 }
-.auth-card .primary {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  background: #1a7f37;
-  color: white;
-  cursor: pointer;
+
+.spinner {
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--primary);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

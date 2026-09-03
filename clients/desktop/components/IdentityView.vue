@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useIdentity } from '../composables/useIdentity'
+import { shortHex } from '../composables/useFormat'
 import type { IdentityCard } from '../electron/bridge'
+import UserAvatar from './UserAvatar.vue'
+import AppIcon from './AppIcon.vue'
 
 const { busy, error, notice, rotate, burn } = useIdentity()
 
@@ -45,155 +48,227 @@ async function doBurn(): Promise<void> {
   await loadCard()
 }
 
-function short(s: string): string {
-  return s ? `${s.slice(0, 16)}…` : '—'
-}
-
 onMounted(loadCard)
 </script>
 
 <template>
   <section class="identity">
-    <h2>Identity</h2>
-    <dl v-if="card">
-      <dt>Address</dt>
-      <dd>{{ card.address }}</dd>
-      <dt>World</dt>
-      <dd>{{ short(world) }}</dd>
-      <dt>Signing key</dt>
-      <dd>{{ short(card.mldsaPub) }}</dd>
-      <dt>KEM key</dt>
-      <dd>{{ short(card.kyberPub) }}</dd>
-    </dl>
+    <!-- Profile header: the closest thing an identity has to a profile page. -->
+    <section class="card profile">
+      <div class="cover" />
+      <div class="profile-body">
+        <UserAvatar :seed="card?.address ?? ''" :size="84" />
+        <h2 class="mono addr">{{ card ? shortHex(card.address, 12, 8) : '—' }}</h2>
+        <span class="chip is-primary">
+          <AppIcon name="globe" :size="12" /> world {{ shortHex(world, 6, 4) }}
+        </span>
+      </div>
+    </section>
+
+    <section v-if="card" class="card keys">
+      <div class="card-heading">
+        <AppIcon name="key" :size="16" />
+        <h3>Keys</h3>
+      </div>
+      <dl class="card-body">
+        <dt class="meta">Address</dt>
+        <dd class="mono">{{ card.address }}</dd>
+        <dt class="meta">Signing key</dt>
+        <dd class="mono">{{ shortHex(card.mldsaPub, 24, 8) }}</dd>
+        <dt class="meta">KEM key</dt>
+        <dd class="mono">{{ shortHex(card.kyberPub, 24, 8) }}</dd>
+      </dl>
+    </section>
 
     <p v-if="notice" class="notice">{{ notice }}</p>
     <p v-if="error" class="err">{{ error }}</p>
 
-    <div class="danger">
-      <h3>Key management</h3>
+    <!-- Key management: destructive, so it reads as a danger zone. -->
+    <section class="card danger">
+      <div class="card-heading">
+        <AppIcon name="alert" :size="16" />
+        <h3>Key management</h3>
+      </div>
 
-      <button v-if="!rotateOpen" class="ghost" @click="rotateOpen = true">Rotate identity…</button>
-      <form v-else class="op" @submit.prevent="doRotate">
-        <p class="warn">
-          Rotating derives a new identity from a new passphrase. Existing connections are dropped.
-        </p>
-        <input
-          v-model="newPass"
-          type="password"
-          placeholder="New identity passphrase"
-          autocomplete="off"
-        />
-        <div class="row">
-          <button type="button" class="ghost" @click="rotateOpen = false">Cancel</button>
-          <button type="submit" class="primary" :disabled="busy">Confirm rotate</button>
+      <div class="card-body">
+        <div class="op-row">
+          <div>
+            <p class="op-title">Rotate identity</p>
+            <p class="meta">Derive a new identity from a new passphrase.</p>
+          </div>
+          <button v-if="!rotateOpen" class="btn is-small is-pill" @click="rotateOpen = true">
+            Rotate…
+          </button>
         </div>
-      </form>
 
-      <button v-if="!burnOpen" class="danger-btn" @click="burnOpen = true">Burn identity…</button>
-      <form v-else class="op" @submit.prevent="doBurn">
-        <p class="warn">
-          Burning publishes an <code>identity.burn</code> that reveals this identity's private keys
-          so peers stop trusting it. <strong>This is irreversible.</strong>
-        </p>
-        <label>
-          Reason
-          <select v-model="burnReason">
-            <option value="voluntary">voluntary</option>
-            <option value="compromised">compromised</option>
-            <option value="rotated">rotated</option>
-            <option value="other">other</option>
-          </select>
-        </label>
-        <input v-model="burnConfirmText" placeholder="Type BURN to confirm" autocomplete="off" />
-        <div class="row">
-          <button type="button" class="ghost" @click="burnOpen = false">Cancel</button>
-          <button type="submit" class="danger-btn" :disabled="busy">Burn identity</button>
+        <form v-if="rotateOpen" class="op" @submit.prevent="doRotate">
+          <p class="warn">
+            Rotating derives a new identity from a new passphrase. Existing connections are dropped.
+          </p>
+          <input
+            v-model="newPass"
+            class="input"
+            type="password"
+            placeholder="New identity passphrase"
+            autocomplete="off"
+          />
+          <div class="row">
+            <button type="button" class="btn is-small" @click="rotateOpen = false">Cancel</button>
+            <button type="submit" class="btn is-small is-primary" :disabled="busy">
+              Confirm rotate
+            </button>
+          </div>
+        </form>
+
+        <div class="op-row">
+          <div>
+            <p class="op-title">Burn identity</p>
+            <p class="meta">Publish proof this identity is dead. Irreversible.</p>
+          </div>
+          <button v-if="!burnOpen" class="btn is-small is-pill is-danger" @click="burnOpen = true">
+            Burn…
+          </button>
         </div>
-      </form>
-    </div>
+
+        <form v-if="burnOpen" class="op is-burn" @submit.prevent="doBurn">
+          <p class="warn">
+            Burning publishes an <code>identity.burn</code> that reveals this identity's private
+            keys so peers stop trusting it. <strong>This is irreversible.</strong>
+          </p>
+          <label class="field">
+            <span class="label">Reason</span>
+            <select v-model="burnReason" class="select">
+              <option value="voluntary">voluntary</option>
+              <option value="compromised">compromised</option>
+              <option value="rotated">rotated</option>
+              <option value="other">other</option>
+            </select>
+          </label>
+          <input
+            v-model="burnConfirmText"
+            class="input"
+            placeholder="Type BURN to confirm"
+            autocomplete="off"
+          />
+          <div class="row">
+            <button type="button" class="btn is-small" @click="burnOpen = false">Cancel</button>
+            <button type="submit" class="btn is-small is-danger" :disabled="busy">
+              Burn identity
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   </section>
 </template>
 
 <style scoped>
 .identity {
-  margin-top: 1.5rem;
-}
-dl {
   display: grid;
-  grid-template-columns: 8rem 1fr;
-  row-gap: 0.3rem;
+  gap: 1rem;
 }
-dt {
-  opacity: 0.6;
+
+/* ---------- Profile header ---------- */
+.profile {
+  overflow: hidden;
 }
-dd {
-  margin: 0;
-  font-family: ui-monospace, monospace;
-  font-size: 0.85rem;
+
+.cover {
+  height: 96px;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+}
+
+.profile-body {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem 1.25rem;
+  margin-top: -42px;
+  text-align: center;
+}
+
+.profile-body :deep(.avatar) {
+  box-shadow: 0 0 0 4px var(--surface);
+}
+
+.addr {
+  font-size: 0.95rem;
+  font-weight: 600;
   word-break: break-all;
 }
-.danger {
-  margin-top: 1.25rem;
-  border: 1px solid color-mix(in srgb, #cf222e 40%, transparent);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-}
-.danger h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
-}
-.op {
+
+/* ---------- Keys ---------- */
+.keys dl {
   display: grid;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-}
-.warn {
-  font-size: 0.85rem;
-  opacity: 0.8;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.4rem 0.75rem;
   margin: 0;
 }
-input,
-select {
-  font: inherit;
-  padding: 0.45rem;
-  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
+
+.keys dd {
+  margin: 0;
+  word-break: break-all;
 }
+
+/* ---------- Danger zone ---------- */
+.danger {
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.danger .card-heading {
+  color: var(--danger);
+  border-bottom-color: color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.danger .card-body {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.op-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.op-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.op-row .meta {
+  margin: 0;
+}
+
+.op {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+}
+
+.op.is-burn {
+  background: var(--danger-soft);
+}
+
+.warn {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-medium);
+}
+
 .row {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
 }
-button {
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.primary {
-  background: #1a7f37;
-  color: white;
-  border: none;
-}
-.ghost {
-  background: transparent;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  color: inherit;
-}
-.danger-btn {
-  background: #cf222e;
-  color: white;
-  border: none;
-  margin-top: 0.5rem;
-}
-button:disabled {
-  opacity: 0.6;
-}
-.notice {
-  color: #1a7f37;
-}
-.err {
-  color: #cf222e;
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
 }
 </style>

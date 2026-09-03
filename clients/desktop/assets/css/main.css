@@ -1,0 +1,371 @@
+/*
+ * BlockParty desktop — global design tokens and UI primitives.
+ *
+ * The look follows the Friendkit social UI kit: a soft grey app canvas, white
+ * rounded cards with hairline borders, a blue primary, circular avatars and
+ * muted grey meta text. Fonts stay on the system stack (the packaged app runs
+ * from file:// with no network, so webfonts are not an option).
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Canvas & surfaces */
+  --bg: #f2f3f7;
+  --surface: #ffffff;
+  --surface-alt: #f5f6fa;
+  --border: #e8e8e8;
+  --border-strong: #dcdde5;
+
+  /* Text */
+  --text: #393a4f;
+  --text-medium: #757a91;
+  --text-muted: #888da8;
+  --text-faint: #a2a5b9;
+
+  /* Brand & state */
+  --primary: #3d70b2;
+  --primary-hover: #35619b;
+  --accent: #5596e6;
+  --secondary: #41d6c3;
+  --success: #12b76a;
+  --danger: #e63946;
+  --danger-soft: rgba(230, 57, 70, 0.12);
+  --warning: #ff9700;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow: -1px 3px 10px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 5px 25px 0 rgba(0, 0, 0, 0.09);
+  --shadow-primary: 0 8px 20px -10px rgba(61, 112, 178, 0.65);
+
+  --radius: 0.85rem;
+  --radius-sm: 0.5rem;
+  --radius-pill: 500px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #2b3648;
+    --surface: #202836;
+    --surface-alt: #263043;
+    --border: #323d51;
+    --border-strong: #3c4961;
+
+    --text: #e7e9f0;
+    --text-medium: #b4b9c9;
+    --text-muted: #98a0b5;
+    --text-faint: #7f889e;
+
+    --primary: #5596e6;
+    --primary-hover: #6ba5ea;
+    --success: #35d08a;
+    --danger: #ff6b74;
+    --danger-soft: rgba(255, 107, 116, 0.15);
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow: -1px 3px 12px 0 rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 5px 25px 0 rgba(0, 0, 0, 0.45);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--primary);
+}
+
+::placeholder {
+  color: var(--text-faint);
+}
+
+/* Thin, unobtrusive scrollbars — the shell scrolls its columns, not the page. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-heading h2,
+.card-heading h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.card-heading .spacer {
+  margin-left: auto;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-medium);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
+}
+
+.btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn.is-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn.is-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn.is-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn.is-danger:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.06);
+}
+
+.btn.is-ghost {
+  background: transparent;
+}
+
+.btn.is-small {
+  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.btn.is-pill {
+  border-radius: var(--radius-pill);
+}
+
+/* Round icon button, as used in card headings. */
+.btn.is-icon {
+  padding: 0;
+  height: 34px;
+  width: 34px;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+.input,
+.textarea,
+.select {
+  font: inherit;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(85, 150, 230, 0.18);
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field > .label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-medium);
+}
+
+.field > .help {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Chips, badges & text helpers
+   ========================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.chip.is-primary {
+  background: rgba(85, 150, 230, 0.14);
+  border-color: transparent;
+  color: var(--primary);
+}
+
+.chip.is-success {
+  background: rgba(18, 183, 106, 0.14);
+  border-color: transparent;
+  color: var(--success);
+}
+
+.chip.is-danger {
+  background: var(--danger-soft);
+  border-color: transparent;
+  color: var(--danger);
+}
+
+.dot {
+  height: 7px;
+  width: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.err {
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.notice {
+  color: var(--success);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}

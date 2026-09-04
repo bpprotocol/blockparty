@@ -59,6 +59,38 @@ describe('NodeClient', () => {
     if (r.ok) expect(r.value.identity).toBe('id123')
   })
 
+  it('forwards the confirmation flag to ClearKeystore', async () => {
+    let seen: boolean | undefined
+    const client = new NodeClient(
+      fakeNode({
+        clearKeystore: (req: { confirm: boolean }) => {
+          seen = req.confirm
+          return {}
+        },
+      }),
+    )
+    const r = await client.clearKeystore(true)
+    expect(seen).toBe(true)
+    expect(r.ok).toBe(true)
+  })
+
+  it('surfaces an unconfirmed clear as an error result', async () => {
+    const client = new NodeClient(
+      fakeNode({
+        // What the node returns without confirm: true (authz #29).
+        clearKeystore: () => {
+          throw new ConnectError(
+            'authz: operation requires explicit confirmation',
+            Code.FailedPrecondition,
+          )
+        },
+      }),
+    )
+    const r = await client.clearKeystore(false)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.error).toContain('requires explicit confirmation')
+  })
+
   it('surfaces a wrong keystore passphrase as an error result', async () => {
     const client = new NodeClient(
       fakeNode({

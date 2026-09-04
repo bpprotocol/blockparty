@@ -365,6 +365,86 @@ func (x *UnlockKeystoreResponse) GetIdentity() string {
 	return ""
 }
 
+type ClearKeystoreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Confirm       bool                   `protobuf:"varint,1,opt,name=confirm,proto3" json:"confirm,omitempty"` // must be true: the user explicitly confirmed the loss
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearKeystoreRequest) Reset() {
+	*x = ClearKeystoreRequest{}
+	mi := &file_node_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearKeystoreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearKeystoreRequest) ProtoMessage() {}
+
+func (x *ClearKeystoreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearKeystoreRequest.ProtoReflect.Descriptor instead.
+func (*ClearKeystoreRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ClearKeystoreRequest) GetConfirm() bool {
+	if x != nil {
+		return x.Confirm
+	}
+	return false
+}
+
+type ClearKeystoreResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearKeystoreResponse) Reset() {
+	*x = ClearKeystoreResponse{}
+	mi := &file_node_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearKeystoreResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearKeystoreResponse) ProtoMessage() {}
+
+func (x *ClearKeystoreResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearKeystoreResponse.ProtoReflect.Descriptor instead.
+func (*ClearKeystoreResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{7}
+}
+
 type PostTextRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	PublicAudience uint32                 `protobuf:"varint,1,opt,name=public_audience,json=publicAudience,proto3" json:"public_audience,omitempty"` // public-N (1..16)
@@ -375,7 +455,7 @@ type PostTextRequest struct {
 
 func (x *PostTextRequest) Reset() {
 	*x = PostTextRequest{}
-	mi := &file_node_proto_msgTypes[6]
+	mi := &file_node_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -387,7 +467,7 @@ func (x *PostTextRequest) String() string {
 func (*PostTextRequest) ProtoMessage() {}
 
 func (x *PostTextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[6]
+	mi := &file_node_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -400,7 +480,7 @@ func (x *PostTextRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostTextRequest.ProtoReflect.Descriptor instead.
 func (*PostTextRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{6}
+	return file_node_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *PostTextRequest) GetPublicAudience() uint32 {
@@ -426,7 +506,7 @@ type PostTextResponse struct {
 
 func (x *PostTextResponse) Reset() {
 	*x = PostTextResponse{}
-	mi := &file_node_proto_msgTypes[7]
+	mi := &file_node_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -438,7 +518,7 @@ func (x *PostTextResponse) String() string {
 func (*PostTextResponse) ProtoMessage() {}
 
 func (x *PostTextResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[7]
+	mi := &file_node_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,7 +531,7 @@ func (x *PostTextResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostTextResponse.ProtoReflect.Descriptor instead.
 func (*PostTextResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{7}
+	return file_node_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *PostTextResponse) GetId() string {
@@ -477,7 +557,7 @@ type BlockSummary struct {
 
 func (x *BlockSummary) Reset() {
 	*x = BlockSummary{}
-	mi := &file_node_proto_msgTypes[8]
+	mi := &file_node_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -489,7 +569,7 @@ func (x *BlockSummary) String() string {
 func (*BlockSummary) ProtoMessage() {}
 
 func (x *BlockSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[8]
+	mi := &file_node_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -502,7 +582,7 @@ func (x *BlockSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockSummary.ProtoReflect.Descriptor instead.
 func (*BlockSummary) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{8}
+	return file_node_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *BlockSummary) GetId() string {
@@ -563,7 +643,7 @@ type GetBlockRequest struct {
 
 func (x *GetBlockRequest) Reset() {
 	*x = GetBlockRequest{}
-	mi := &file_node_proto_msgTypes[9]
+	mi := &file_node_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -575,7 +655,7 @@ func (x *GetBlockRequest) String() string {
 func (*GetBlockRequest) ProtoMessage() {}
 
 func (x *GetBlockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[9]
+	mi := &file_node_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -588,7 +668,7 @@ func (x *GetBlockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBlockRequest.ProtoReflect.Descriptor instead.
 func (*GetBlockRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{9}
+	return file_node_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetBlockRequest) GetId() string {
@@ -610,7 +690,7 @@ type GetBlockResponse struct {
 
 func (x *GetBlockResponse) Reset() {
 	*x = GetBlockResponse{}
-	mi := &file_node_proto_msgTypes[10]
+	mi := &file_node_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -622,7 +702,7 @@ func (x *GetBlockResponse) String() string {
 func (*GetBlockResponse) ProtoMessage() {}
 
 func (x *GetBlockResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[10]
+	mi := &file_node_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -635,7 +715,7 @@ func (x *GetBlockResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBlockResponse.ProtoReflect.Descriptor instead.
 func (*GetBlockResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{10}
+	return file_node_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetBlockResponse) GetSummary() *BlockSummary {
@@ -681,7 +761,7 @@ type ListBlocksRequest struct {
 
 func (x *ListBlocksRequest) Reset() {
 	*x = ListBlocksRequest{}
-	mi := &file_node_proto_msgTypes[11]
+	mi := &file_node_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -693,7 +773,7 @@ func (x *ListBlocksRequest) String() string {
 func (*ListBlocksRequest) ProtoMessage() {}
 
 func (x *ListBlocksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[11]
+	mi := &file_node_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -706,7 +786,7 @@ func (x *ListBlocksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBlocksRequest.ProtoReflect.Descriptor instead.
 func (*ListBlocksRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{11}
+	return file_node_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListBlocksRequest) GetAudienceCode() string {
@@ -753,7 +833,7 @@ type ListBlocksResponse struct {
 
 func (x *ListBlocksResponse) Reset() {
 	*x = ListBlocksResponse{}
-	mi := &file_node_proto_msgTypes[12]
+	mi := &file_node_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -765,7 +845,7 @@ func (x *ListBlocksResponse) String() string {
 func (*ListBlocksResponse) ProtoMessage() {}
 
 func (x *ListBlocksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[12]
+	mi := &file_node_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -778,7 +858,7 @@ func (x *ListBlocksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBlocksResponse.ProtoReflect.Descriptor instead.
 func (*ListBlocksResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{12}
+	return file_node_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListBlocksResponse) GetBlocks() []*BlockSummary {
@@ -797,7 +877,7 @@ type SubscribeBlocksRequest struct {
 
 func (x *SubscribeBlocksRequest) Reset() {
 	*x = SubscribeBlocksRequest{}
-	mi := &file_node_proto_msgTypes[13]
+	mi := &file_node_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -809,7 +889,7 @@ func (x *SubscribeBlocksRequest) String() string {
 func (*SubscribeBlocksRequest) ProtoMessage() {}
 
 func (x *SubscribeBlocksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[13]
+	mi := &file_node_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -822,7 +902,7 @@ func (x *SubscribeBlocksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeBlocksRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeBlocksRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{13}
+	return file_node_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SubscribeBlocksRequest) GetAudienceCode() string {
@@ -841,7 +921,7 @@ type BlockEvent struct {
 
 func (x *BlockEvent) Reset() {
 	*x = BlockEvent{}
-	mi := &file_node_proto_msgTypes[14]
+	mi := &file_node_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -853,7 +933,7 @@ func (x *BlockEvent) String() string {
 func (*BlockEvent) ProtoMessage() {}
 
 func (x *BlockEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[14]
+	mi := &file_node_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -866,7 +946,7 @@ func (x *BlockEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockEvent.ProtoReflect.Descriptor instead.
 func (*BlockEvent) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{14}
+	return file_node_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BlockEvent) GetSummary() *BlockSummary {
@@ -884,7 +964,7 @@ type GetIdentityRequest struct {
 
 func (x *GetIdentityRequest) Reset() {
 	*x = GetIdentityRequest{}
-	mi := &file_node_proto_msgTypes[15]
+	mi := &file_node_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +976,7 @@ func (x *GetIdentityRequest) String() string {
 func (*GetIdentityRequest) ProtoMessage() {}
 
 func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[15]
+	mi := &file_node_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -909,7 +989,7 @@ func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{15}
+	return file_node_proto_rawDescGZIP(), []int{17}
 }
 
 type GetIdentityResponse struct {
@@ -923,7 +1003,7 @@ type GetIdentityResponse struct {
 
 func (x *GetIdentityResponse) Reset() {
 	*x = GetIdentityResponse{}
-	mi := &file_node_proto_msgTypes[16]
+	mi := &file_node_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -935,7 +1015,7 @@ func (x *GetIdentityResponse) String() string {
 func (*GetIdentityResponse) ProtoMessage() {}
 
 func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[16]
+	mi := &file_node_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -948,7 +1028,7 @@ func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{16}
+	return file_node_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetIdentityResponse) GetAddress() string {
@@ -983,7 +1063,7 @@ type AddPeerRequest struct {
 
 func (x *AddPeerRequest) Reset() {
 	*x = AddPeerRequest{}
-	mi := &file_node_proto_msgTypes[17]
+	mi := &file_node_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -995,7 +1075,7 @@ func (x *AddPeerRequest) String() string {
 func (*AddPeerRequest) ProtoMessage() {}
 
 func (x *AddPeerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[17]
+	mi := &file_node_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1008,7 +1088,7 @@ func (x *AddPeerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPeerRequest.ProtoReflect.Descriptor instead.
 func (*AddPeerRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{17}
+	return file_node_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AddPeerRequest) GetAddress() string {
@@ -1040,7 +1120,7 @@ type AddPeerResponse struct {
 
 func (x *AddPeerResponse) Reset() {
 	*x = AddPeerResponse{}
-	mi := &file_node_proto_msgTypes[18]
+	mi := &file_node_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1052,7 +1132,7 @@ func (x *AddPeerResponse) String() string {
 func (*AddPeerResponse) ProtoMessage() {}
 
 func (x *AddPeerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[18]
+	mi := &file_node_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1065,7 +1145,7 @@ func (x *AddPeerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPeerResponse.ProtoReflect.Descriptor instead.
 func (*AddPeerResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{18}
+	return file_node_proto_rawDescGZIP(), []int{20}
 }
 
 type StartConnectionRequest struct {
@@ -1077,7 +1157,7 @@ type StartConnectionRequest struct {
 
 func (x *StartConnectionRequest) Reset() {
 	*x = StartConnectionRequest{}
-	mi := &file_node_proto_msgTypes[19]
+	mi := &file_node_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1089,7 +1169,7 @@ func (x *StartConnectionRequest) String() string {
 func (*StartConnectionRequest) ProtoMessage() {}
 
 func (x *StartConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[19]
+	mi := &file_node_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1102,7 +1182,7 @@ func (x *StartConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartConnectionRequest.ProtoReflect.Descriptor instead.
 func (*StartConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{19}
+	return file_node_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *StartConnectionRequest) GetAddress() string {
@@ -1121,7 +1201,7 @@ type StartConnectionResponse struct {
 
 func (x *StartConnectionResponse) Reset() {
 	*x = StartConnectionResponse{}
-	mi := &file_node_proto_msgTypes[20]
+	mi := &file_node_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1133,7 +1213,7 @@ func (x *StartConnectionResponse) String() string {
 func (*StartConnectionResponse) ProtoMessage() {}
 
 func (x *StartConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[20]
+	mi := &file_node_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1146,7 +1226,7 @@ func (x *StartConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartConnectionResponse.ProtoReflect.Descriptor instead.
 func (*StartConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{20}
+	return file_node_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *StartConnectionResponse) GetRequestId() string {
@@ -1167,7 +1247,7 @@ type ConnectionInfo struct {
 
 func (x *ConnectionInfo) Reset() {
 	*x = ConnectionInfo{}
-	mi := &file_node_proto_msgTypes[21]
+	mi := &file_node_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1259,7 @@ func (x *ConnectionInfo) String() string {
 func (*ConnectionInfo) ProtoMessage() {}
 
 func (x *ConnectionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[21]
+	mi := &file_node_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1192,7 +1272,7 @@ func (x *ConnectionInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionInfo.ProtoReflect.Descriptor instead.
 func (*ConnectionInfo) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{21}
+	return file_node_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ConnectionInfo) GetPeer() string {
@@ -1224,7 +1304,7 @@ type ListConnectionsRequest struct {
 
 func (x *ListConnectionsRequest) Reset() {
 	*x = ListConnectionsRequest{}
-	mi := &file_node_proto_msgTypes[22]
+	mi := &file_node_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1236,7 +1316,7 @@ func (x *ListConnectionsRequest) String() string {
 func (*ListConnectionsRequest) ProtoMessage() {}
 
 func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[22]
+	mi := &file_node_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1249,7 +1329,7 @@ func (x *ListConnectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*ListConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{22}
+	return file_node_proto_rawDescGZIP(), []int{24}
 }
 
 type ListConnectionsResponse struct {
@@ -1261,7 +1341,7 @@ type ListConnectionsResponse struct {
 
 func (x *ListConnectionsResponse) Reset() {
 	*x = ListConnectionsResponse{}
-	mi := &file_node_proto_msgTypes[23]
+	mi := &file_node_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1273,7 +1353,7 @@ func (x *ListConnectionsResponse) String() string {
 func (*ListConnectionsResponse) ProtoMessage() {}
 
 func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[23]
+	mi := &file_node_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1286,7 +1366,7 @@ func (x *ListConnectionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{23}
+	return file_node_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListConnectionsResponse) GetConnections() []*ConnectionInfo {
@@ -1305,7 +1385,7 @@ type ConnectionRef struct {
 
 func (x *ConnectionRef) Reset() {
 	*x = ConnectionRef{}
-	mi := &file_node_proto_msgTypes[24]
+	mi := &file_node_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1397,7 @@ func (x *ConnectionRef) String() string {
 func (*ConnectionRef) ProtoMessage() {}
 
 func (x *ConnectionRef) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[24]
+	mi := &file_node_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1410,7 @@ func (x *ConnectionRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionRef.ProtoReflect.Descriptor instead.
 func (*ConnectionRef) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{24}
+	return file_node_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ConnectionRef) GetAddress() string {
@@ -1348,7 +1428,7 @@ type ConnectionResult struct {
 
 func (x *ConnectionResult) Reset() {
 	*x = ConnectionResult{}
-	mi := &file_node_proto_msgTypes[25]
+	mi := &file_node_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1360,7 +1440,7 @@ func (x *ConnectionResult) String() string {
 func (*ConnectionResult) ProtoMessage() {}
 
 func (x *ConnectionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[25]
+	mi := &file_node_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1373,7 +1453,7 @@ func (x *ConnectionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionResult.ProtoReflect.Descriptor instead.
 func (*ConnectionResult) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{25}
+	return file_node_proto_rawDescGZIP(), []int{27}
 }
 
 type SendPrivateTextRequest struct {
@@ -1386,7 +1466,7 @@ type SendPrivateTextRequest struct {
 
 func (x *SendPrivateTextRequest) Reset() {
 	*x = SendPrivateTextRequest{}
-	mi := &file_node_proto_msgTypes[26]
+	mi := &file_node_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1398,7 +1478,7 @@ func (x *SendPrivateTextRequest) String() string {
 func (*SendPrivateTextRequest) ProtoMessage() {}
 
 func (x *SendPrivateTextRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[26]
+	mi := &file_node_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1411,7 +1491,7 @@ func (x *SendPrivateTextRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendPrivateTextRequest.ProtoReflect.Descriptor instead.
 func (*SendPrivateTextRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{26}
+	return file_node_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *SendPrivateTextRequest) GetAddress() string {
@@ -1439,7 +1519,7 @@ type PrivateMessage struct {
 
 func (x *PrivateMessage) Reset() {
 	*x = PrivateMessage{}
-	mi := &file_node_proto_msgTypes[27]
+	mi := &file_node_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1451,7 +1531,7 @@ func (x *PrivateMessage) String() string {
 func (*PrivateMessage) ProtoMessage() {}
 
 func (x *PrivateMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[27]
+	mi := &file_node_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1464,7 +1544,7 @@ func (x *PrivateMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrivateMessage.ProtoReflect.Descriptor instead.
 func (*PrivateMessage) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{27}
+	return file_node_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PrivateMessage) GetAuthor() string {
@@ -1497,7 +1577,7 @@ type ListConnectionMessagesResponse struct {
 
 func (x *ListConnectionMessagesResponse) Reset() {
 	*x = ListConnectionMessagesResponse{}
-	mi := &file_node_proto_msgTypes[28]
+	mi := &file_node_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1509,7 +1589,7 @@ func (x *ListConnectionMessagesResponse) String() string {
 func (*ListConnectionMessagesResponse) ProtoMessage() {}
 
 func (x *ListConnectionMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[28]
+	mi := &file_node_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1522,7 +1602,7 @@ func (x *ListConnectionMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConnectionMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListConnectionMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{28}
+	return file_node_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListConnectionMessagesResponse) GetMessages() []*PrivateMessage {
@@ -1542,7 +1622,7 @@ type RotateIdentityRequest struct {
 
 func (x *RotateIdentityRequest) Reset() {
 	*x = RotateIdentityRequest{}
-	mi := &file_node_proto_msgTypes[29]
+	mi := &file_node_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1554,7 +1634,7 @@ func (x *RotateIdentityRequest) String() string {
 func (*RotateIdentityRequest) ProtoMessage() {}
 
 func (x *RotateIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[29]
+	mi := &file_node_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1567,7 +1647,7 @@ func (x *RotateIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateIdentityRequest.ProtoReflect.Descriptor instead.
 func (*RotateIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{29}
+	return file_node_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *RotateIdentityRequest) GetNewPassphrase() string {
@@ -1593,7 +1673,7 @@ type RotateIdentityResponse struct {
 
 func (x *RotateIdentityResponse) Reset() {
 	*x = RotateIdentityResponse{}
-	mi := &file_node_proto_msgTypes[30]
+	mi := &file_node_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1605,7 +1685,7 @@ func (x *RotateIdentityResponse) String() string {
 func (*RotateIdentityResponse) ProtoMessage() {}
 
 func (x *RotateIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[30]
+	mi := &file_node_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1618,7 +1698,7 @@ func (x *RotateIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateIdentityResponse.ProtoReflect.Descriptor instead.
 func (*RotateIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{30}
+	return file_node_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *RotateIdentityResponse) GetIdentity() string {
@@ -1638,7 +1718,7 @@ type BurnIdentityRequest struct {
 
 func (x *BurnIdentityRequest) Reset() {
 	*x = BurnIdentityRequest{}
-	mi := &file_node_proto_msgTypes[31]
+	mi := &file_node_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1650,7 +1730,7 @@ func (x *BurnIdentityRequest) String() string {
 func (*BurnIdentityRequest) ProtoMessage() {}
 
 func (x *BurnIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[31]
+	mi := &file_node_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1663,7 +1743,7 @@ func (x *BurnIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BurnIdentityRequest.ProtoReflect.Descriptor instead.
 func (*BurnIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{31}
+	return file_node_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *BurnIdentityRequest) GetNotice() string {
@@ -1689,7 +1769,7 @@ type BurnIdentityResponse struct {
 
 func (x *BurnIdentityResponse) Reset() {
 	*x = BurnIdentityResponse{}
-	mi := &file_node_proto_msgTypes[32]
+	mi := &file_node_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1701,7 +1781,7 @@ func (x *BurnIdentityResponse) String() string {
 func (*BurnIdentityResponse) ProtoMessage() {}
 
 func (x *BurnIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[32]
+	mi := &file_node_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1714,7 +1794,7 @@ func (x *BurnIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BurnIdentityResponse.ProtoReflect.Descriptor instead.
 func (*BurnIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{32}
+	return file_node_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *BurnIdentityResponse) GetBlockId() string {
@@ -1754,7 +1834,10 @@ const file_node_proto_rawDesc = "" +
 	"\x13keystore_passphrase\x18\x01 \x01(\tR\x12keystorePassphrase\"J\n" +
 	"\x16UnlockKeystoreResponse\x12\x14\n" +
 	"\x05world\x18\x01 \x01(\tR\x05world\x12\x1a\n" +
-	"\bidentity\x18\x02 \x01(\tR\bidentity\"N\n" +
+	"\bidentity\x18\x02 \x01(\tR\bidentity\"0\n" +
+	"\x14ClearKeystoreRequest\x12\x18\n" +
+	"\aconfirm\x18\x01 \x01(\bR\aconfirm\"\x17\n" +
+	"\x15ClearKeystoreResponse\"N\n" +
 	"\x0fPostTextRequest\x12'\n" +
 	"\x0fpublic_audience\x18\x01 \x01(\rR\x0epublicAudience\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\"\"\n" +
@@ -1832,11 +1915,12 @@ const file_node_proto_rawDesc = "" +
 	"\x06notice\x18\x01 \x01(\tR\x06notice\x12\x18\n" +
 	"\aconfirm\x18\x02 \x01(\bR\aconfirm\"1\n" +
 	"\x14BurnIdentityResponse\x12\x19\n" +
-	"\bblock_id\x18\x01 \x01(\tR\ablockId2\x8c\r\n" +
+	"\bblock_id\x18\x01 \x01(\tR\ablockId2\xf2\r\n" +
 	"\vNodeService\x12X\n" +
 	"\tGetStatus\x12$.blockparty.node.v1.GetStatusRequest\x1a%.blockparty.node.v1.GetStatusResponse\x12g\n" +
 	"\x0eBootstrapWorld\x12).blockparty.node.v1.BootstrapWorldRequest\x1a*.blockparty.node.v1.BootstrapWorldResponse\x12g\n" +
-	"\x0eUnlockKeystore\x12).blockparty.node.v1.UnlockKeystoreRequest\x1a*.blockparty.node.v1.UnlockKeystoreResponse\x12U\n" +
+	"\x0eUnlockKeystore\x12).blockparty.node.v1.UnlockKeystoreRequest\x1a*.blockparty.node.v1.UnlockKeystoreResponse\x12d\n" +
+	"\rClearKeystore\x12(.blockparty.node.v1.ClearKeystoreRequest\x1a).blockparty.node.v1.ClearKeystoreResponse\x12U\n" +
 	"\bPostText\x12#.blockparty.node.v1.PostTextRequest\x1a$.blockparty.node.v1.PostTextResponse\x12U\n" +
 	"\bGetBlock\x12#.blockparty.node.v1.GetBlockRequest\x1a$.blockparty.node.v1.GetBlockResponse\x12[\n" +
 	"\n" +
@@ -1865,7 +1949,7 @@ func file_node_proto_rawDescGZIP() []byte {
 	return file_node_proto_rawDescData
 }
 
-var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_node_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),               // 0: blockparty.node.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),              // 1: blockparty.node.v1.GetStatusResponse
@@ -1873,76 +1957,80 @@ var file_node_proto_goTypes = []any{
 	(*BootstrapWorldResponse)(nil),         // 3: blockparty.node.v1.BootstrapWorldResponse
 	(*UnlockKeystoreRequest)(nil),          // 4: blockparty.node.v1.UnlockKeystoreRequest
 	(*UnlockKeystoreResponse)(nil),         // 5: blockparty.node.v1.UnlockKeystoreResponse
-	(*PostTextRequest)(nil),                // 6: blockparty.node.v1.PostTextRequest
-	(*PostTextResponse)(nil),               // 7: blockparty.node.v1.PostTextResponse
-	(*BlockSummary)(nil),                   // 8: blockparty.node.v1.BlockSummary
-	(*GetBlockRequest)(nil),                // 9: blockparty.node.v1.GetBlockRequest
-	(*GetBlockResponse)(nil),               // 10: blockparty.node.v1.GetBlockResponse
-	(*ListBlocksRequest)(nil),              // 11: blockparty.node.v1.ListBlocksRequest
-	(*ListBlocksResponse)(nil),             // 12: blockparty.node.v1.ListBlocksResponse
-	(*SubscribeBlocksRequest)(nil),         // 13: blockparty.node.v1.SubscribeBlocksRequest
-	(*BlockEvent)(nil),                     // 14: blockparty.node.v1.BlockEvent
-	(*GetIdentityRequest)(nil),             // 15: blockparty.node.v1.GetIdentityRequest
-	(*GetIdentityResponse)(nil),            // 16: blockparty.node.v1.GetIdentityResponse
-	(*AddPeerRequest)(nil),                 // 17: blockparty.node.v1.AddPeerRequest
-	(*AddPeerResponse)(nil),                // 18: blockparty.node.v1.AddPeerResponse
-	(*StartConnectionRequest)(nil),         // 19: blockparty.node.v1.StartConnectionRequest
-	(*StartConnectionResponse)(nil),        // 20: blockparty.node.v1.StartConnectionResponse
-	(*ConnectionInfo)(nil),                 // 21: blockparty.node.v1.ConnectionInfo
-	(*ListConnectionsRequest)(nil),         // 22: blockparty.node.v1.ListConnectionsRequest
-	(*ListConnectionsResponse)(nil),        // 23: blockparty.node.v1.ListConnectionsResponse
-	(*ConnectionRef)(nil),                  // 24: blockparty.node.v1.ConnectionRef
-	(*ConnectionResult)(nil),               // 25: blockparty.node.v1.ConnectionResult
-	(*SendPrivateTextRequest)(nil),         // 26: blockparty.node.v1.SendPrivateTextRequest
-	(*PrivateMessage)(nil),                 // 27: blockparty.node.v1.PrivateMessage
-	(*ListConnectionMessagesResponse)(nil), // 28: blockparty.node.v1.ListConnectionMessagesResponse
-	(*RotateIdentityRequest)(nil),          // 29: blockparty.node.v1.RotateIdentityRequest
-	(*RotateIdentityResponse)(nil),         // 30: blockparty.node.v1.RotateIdentityResponse
-	(*BurnIdentityRequest)(nil),            // 31: blockparty.node.v1.BurnIdentityRequest
-	(*BurnIdentityResponse)(nil),           // 32: blockparty.node.v1.BurnIdentityResponse
+	(*ClearKeystoreRequest)(nil),           // 6: blockparty.node.v1.ClearKeystoreRequest
+	(*ClearKeystoreResponse)(nil),          // 7: blockparty.node.v1.ClearKeystoreResponse
+	(*PostTextRequest)(nil),                // 8: blockparty.node.v1.PostTextRequest
+	(*PostTextResponse)(nil),               // 9: blockparty.node.v1.PostTextResponse
+	(*BlockSummary)(nil),                   // 10: blockparty.node.v1.BlockSummary
+	(*GetBlockRequest)(nil),                // 11: blockparty.node.v1.GetBlockRequest
+	(*GetBlockResponse)(nil),               // 12: blockparty.node.v1.GetBlockResponse
+	(*ListBlocksRequest)(nil),              // 13: blockparty.node.v1.ListBlocksRequest
+	(*ListBlocksResponse)(nil),             // 14: blockparty.node.v1.ListBlocksResponse
+	(*SubscribeBlocksRequest)(nil),         // 15: blockparty.node.v1.SubscribeBlocksRequest
+	(*BlockEvent)(nil),                     // 16: blockparty.node.v1.BlockEvent
+	(*GetIdentityRequest)(nil),             // 17: blockparty.node.v1.GetIdentityRequest
+	(*GetIdentityResponse)(nil),            // 18: blockparty.node.v1.GetIdentityResponse
+	(*AddPeerRequest)(nil),                 // 19: blockparty.node.v1.AddPeerRequest
+	(*AddPeerResponse)(nil),                // 20: blockparty.node.v1.AddPeerResponse
+	(*StartConnectionRequest)(nil),         // 21: blockparty.node.v1.StartConnectionRequest
+	(*StartConnectionResponse)(nil),        // 22: blockparty.node.v1.StartConnectionResponse
+	(*ConnectionInfo)(nil),                 // 23: blockparty.node.v1.ConnectionInfo
+	(*ListConnectionsRequest)(nil),         // 24: blockparty.node.v1.ListConnectionsRequest
+	(*ListConnectionsResponse)(nil),        // 25: blockparty.node.v1.ListConnectionsResponse
+	(*ConnectionRef)(nil),                  // 26: blockparty.node.v1.ConnectionRef
+	(*ConnectionResult)(nil),               // 27: blockparty.node.v1.ConnectionResult
+	(*SendPrivateTextRequest)(nil),         // 28: blockparty.node.v1.SendPrivateTextRequest
+	(*PrivateMessage)(nil),                 // 29: blockparty.node.v1.PrivateMessage
+	(*ListConnectionMessagesResponse)(nil), // 30: blockparty.node.v1.ListConnectionMessagesResponse
+	(*RotateIdentityRequest)(nil),          // 31: blockparty.node.v1.RotateIdentityRequest
+	(*RotateIdentityResponse)(nil),         // 32: blockparty.node.v1.RotateIdentityResponse
+	(*BurnIdentityRequest)(nil),            // 33: blockparty.node.v1.BurnIdentityRequest
+	(*BurnIdentityResponse)(nil),           // 34: blockparty.node.v1.BurnIdentityResponse
 }
 var file_node_proto_depIdxs = []int32{
-	8,  // 0: blockparty.node.v1.GetBlockResponse.summary:type_name -> blockparty.node.v1.BlockSummary
-	8,  // 1: blockparty.node.v1.ListBlocksResponse.blocks:type_name -> blockparty.node.v1.BlockSummary
-	8,  // 2: blockparty.node.v1.BlockEvent.summary:type_name -> blockparty.node.v1.BlockSummary
-	21, // 3: blockparty.node.v1.ListConnectionsResponse.connections:type_name -> blockparty.node.v1.ConnectionInfo
-	27, // 4: blockparty.node.v1.ListConnectionMessagesResponse.messages:type_name -> blockparty.node.v1.PrivateMessage
+	10, // 0: blockparty.node.v1.GetBlockResponse.summary:type_name -> blockparty.node.v1.BlockSummary
+	10, // 1: blockparty.node.v1.ListBlocksResponse.blocks:type_name -> blockparty.node.v1.BlockSummary
+	10, // 2: blockparty.node.v1.BlockEvent.summary:type_name -> blockparty.node.v1.BlockSummary
+	23, // 3: blockparty.node.v1.ListConnectionsResponse.connections:type_name -> blockparty.node.v1.ConnectionInfo
+	29, // 4: blockparty.node.v1.ListConnectionMessagesResponse.messages:type_name -> blockparty.node.v1.PrivateMessage
 	0,  // 5: blockparty.node.v1.NodeService.GetStatus:input_type -> blockparty.node.v1.GetStatusRequest
 	2,  // 6: blockparty.node.v1.NodeService.BootstrapWorld:input_type -> blockparty.node.v1.BootstrapWorldRequest
 	4,  // 7: blockparty.node.v1.NodeService.UnlockKeystore:input_type -> blockparty.node.v1.UnlockKeystoreRequest
-	6,  // 8: blockparty.node.v1.NodeService.PostText:input_type -> blockparty.node.v1.PostTextRequest
-	9,  // 9: blockparty.node.v1.NodeService.GetBlock:input_type -> blockparty.node.v1.GetBlockRequest
-	11, // 10: blockparty.node.v1.NodeService.ListBlocks:input_type -> blockparty.node.v1.ListBlocksRequest
-	13, // 11: blockparty.node.v1.NodeService.SubscribeBlocks:input_type -> blockparty.node.v1.SubscribeBlocksRequest
-	15, // 12: blockparty.node.v1.NodeService.GetIdentity:input_type -> blockparty.node.v1.GetIdentityRequest
-	17, // 13: blockparty.node.v1.NodeService.AddPeer:input_type -> blockparty.node.v1.AddPeerRequest
-	19, // 14: blockparty.node.v1.NodeService.StartConnection:input_type -> blockparty.node.v1.StartConnectionRequest
-	22, // 15: blockparty.node.v1.NodeService.ListConnections:input_type -> blockparty.node.v1.ListConnectionsRequest
-	24, // 16: blockparty.node.v1.NodeService.RotateConnection:input_type -> blockparty.node.v1.ConnectionRef
-	24, // 17: blockparty.node.v1.NodeService.CloseConnection:input_type -> blockparty.node.v1.ConnectionRef
-	26, // 18: blockparty.node.v1.NodeService.SendPrivateText:input_type -> blockparty.node.v1.SendPrivateTextRequest
-	24, // 19: blockparty.node.v1.NodeService.ListConnectionMessages:input_type -> blockparty.node.v1.ConnectionRef
-	29, // 20: blockparty.node.v1.NodeService.RotateIdentity:input_type -> blockparty.node.v1.RotateIdentityRequest
-	31, // 21: blockparty.node.v1.NodeService.BurnIdentity:input_type -> blockparty.node.v1.BurnIdentityRequest
-	1,  // 22: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
-	3,  // 23: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
-	5,  // 24: blockparty.node.v1.NodeService.UnlockKeystore:output_type -> blockparty.node.v1.UnlockKeystoreResponse
-	7,  // 25: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
-	10, // 26: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
-	12, // 27: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
-	14, // 28: blockparty.node.v1.NodeService.SubscribeBlocks:output_type -> blockparty.node.v1.BlockEvent
-	16, // 29: blockparty.node.v1.NodeService.GetIdentity:output_type -> blockparty.node.v1.GetIdentityResponse
-	18, // 30: blockparty.node.v1.NodeService.AddPeer:output_type -> blockparty.node.v1.AddPeerResponse
-	20, // 31: blockparty.node.v1.NodeService.StartConnection:output_type -> blockparty.node.v1.StartConnectionResponse
-	23, // 32: blockparty.node.v1.NodeService.ListConnections:output_type -> blockparty.node.v1.ListConnectionsResponse
-	25, // 33: blockparty.node.v1.NodeService.RotateConnection:output_type -> blockparty.node.v1.ConnectionResult
-	25, // 34: blockparty.node.v1.NodeService.CloseConnection:output_type -> blockparty.node.v1.ConnectionResult
-	7,  // 35: blockparty.node.v1.NodeService.SendPrivateText:output_type -> blockparty.node.v1.PostTextResponse
-	28, // 36: blockparty.node.v1.NodeService.ListConnectionMessages:output_type -> blockparty.node.v1.ListConnectionMessagesResponse
-	30, // 37: blockparty.node.v1.NodeService.RotateIdentity:output_type -> blockparty.node.v1.RotateIdentityResponse
-	32, // 38: blockparty.node.v1.NodeService.BurnIdentity:output_type -> blockparty.node.v1.BurnIdentityResponse
-	22, // [22:39] is the sub-list for method output_type
-	5,  // [5:22] is the sub-list for method input_type
+	6,  // 8: blockparty.node.v1.NodeService.ClearKeystore:input_type -> blockparty.node.v1.ClearKeystoreRequest
+	8,  // 9: blockparty.node.v1.NodeService.PostText:input_type -> blockparty.node.v1.PostTextRequest
+	11, // 10: blockparty.node.v1.NodeService.GetBlock:input_type -> blockparty.node.v1.GetBlockRequest
+	13, // 11: blockparty.node.v1.NodeService.ListBlocks:input_type -> blockparty.node.v1.ListBlocksRequest
+	15, // 12: blockparty.node.v1.NodeService.SubscribeBlocks:input_type -> blockparty.node.v1.SubscribeBlocksRequest
+	17, // 13: blockparty.node.v1.NodeService.GetIdentity:input_type -> blockparty.node.v1.GetIdentityRequest
+	19, // 14: blockparty.node.v1.NodeService.AddPeer:input_type -> blockparty.node.v1.AddPeerRequest
+	21, // 15: blockparty.node.v1.NodeService.StartConnection:input_type -> blockparty.node.v1.StartConnectionRequest
+	24, // 16: blockparty.node.v1.NodeService.ListConnections:input_type -> blockparty.node.v1.ListConnectionsRequest
+	26, // 17: blockparty.node.v1.NodeService.RotateConnection:input_type -> blockparty.node.v1.ConnectionRef
+	26, // 18: blockparty.node.v1.NodeService.CloseConnection:input_type -> blockparty.node.v1.ConnectionRef
+	28, // 19: blockparty.node.v1.NodeService.SendPrivateText:input_type -> blockparty.node.v1.SendPrivateTextRequest
+	26, // 20: blockparty.node.v1.NodeService.ListConnectionMessages:input_type -> blockparty.node.v1.ConnectionRef
+	31, // 21: blockparty.node.v1.NodeService.RotateIdentity:input_type -> blockparty.node.v1.RotateIdentityRequest
+	33, // 22: blockparty.node.v1.NodeService.BurnIdentity:input_type -> blockparty.node.v1.BurnIdentityRequest
+	1,  // 23: blockparty.node.v1.NodeService.GetStatus:output_type -> blockparty.node.v1.GetStatusResponse
+	3,  // 24: blockparty.node.v1.NodeService.BootstrapWorld:output_type -> blockparty.node.v1.BootstrapWorldResponse
+	5,  // 25: blockparty.node.v1.NodeService.UnlockKeystore:output_type -> blockparty.node.v1.UnlockKeystoreResponse
+	7,  // 26: blockparty.node.v1.NodeService.ClearKeystore:output_type -> blockparty.node.v1.ClearKeystoreResponse
+	9,  // 27: blockparty.node.v1.NodeService.PostText:output_type -> blockparty.node.v1.PostTextResponse
+	12, // 28: blockparty.node.v1.NodeService.GetBlock:output_type -> blockparty.node.v1.GetBlockResponse
+	14, // 29: blockparty.node.v1.NodeService.ListBlocks:output_type -> blockparty.node.v1.ListBlocksResponse
+	16, // 30: blockparty.node.v1.NodeService.SubscribeBlocks:output_type -> blockparty.node.v1.BlockEvent
+	18, // 31: blockparty.node.v1.NodeService.GetIdentity:output_type -> blockparty.node.v1.GetIdentityResponse
+	20, // 32: blockparty.node.v1.NodeService.AddPeer:output_type -> blockparty.node.v1.AddPeerResponse
+	22, // 33: blockparty.node.v1.NodeService.StartConnection:output_type -> blockparty.node.v1.StartConnectionResponse
+	25, // 34: blockparty.node.v1.NodeService.ListConnections:output_type -> blockparty.node.v1.ListConnectionsResponse
+	27, // 35: blockparty.node.v1.NodeService.RotateConnection:output_type -> blockparty.node.v1.ConnectionResult
+	27, // 36: blockparty.node.v1.NodeService.CloseConnection:output_type -> blockparty.node.v1.ConnectionResult
+	9,  // 37: blockparty.node.v1.NodeService.SendPrivateText:output_type -> blockparty.node.v1.PostTextResponse
+	30, // 38: blockparty.node.v1.NodeService.ListConnectionMessages:output_type -> blockparty.node.v1.ListConnectionMessagesResponse
+	32, // 39: blockparty.node.v1.NodeService.RotateIdentity:output_type -> blockparty.node.v1.RotateIdentityResponse
+	34, // 40: blockparty.node.v1.NodeService.BurnIdentity:output_type -> blockparty.node.v1.BurnIdentityResponse
+	23, // [23:41] is the sub-list for method output_type
+	5,  // [5:23] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
 	5,  // [5:5] is the sub-list for extension extendee
 	0,  // [0:5] is the sub-list for field type_name
@@ -1959,7 +2047,7 @@ func file_node_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

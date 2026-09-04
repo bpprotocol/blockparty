@@ -97,6 +97,17 @@ type secretsFile struct {
 	IdentityPassphrase string `json:"identity_passphrase"`
 }
 
+// Delete removes the keystore at path. The secrets it protects — the World seed
+// phrase and identity passphrase — are unrecoverable afterwards, and with them
+// the World and identity they derive. Returns ErrNotExist if there is nothing
+// to delete.
+func Delete(path string) error {
+	if !Exists(path) {
+		return ErrNotExist
+	}
+	return os.Remove(path)
+}
+
 // Init creates a new keystore at path, encrypted under unlock, storing the given
 // secrets. It errors if a keystore already exists there.
 func Init(path, unlock string, s Secrets) (*Keystore, error) {

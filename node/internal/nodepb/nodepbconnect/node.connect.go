@@ -41,6 +41,9 @@ const (
 	// NodeServiceUnlockKeystoreProcedure is the fully-qualified name of the NodeService's
 	// UnlockKeystore RPC.
 	NodeServiceUnlockKeystoreProcedure = "/blockparty.node.v1.NodeService/UnlockKeystore"
+	// NodeServiceClearKeystoreProcedure is the fully-qualified name of the NodeService's ClearKeystore
+	// RPC.
+	NodeServiceClearKeystoreProcedure = "/blockparty.node.v1.NodeService/ClearKeystore"
 	// NodeServicePostTextProcedure is the fully-qualified name of the NodeService's PostText RPC.
 	NodeServicePostTextProcedure = "/blockparty.node.v1.NodeService/PostText"
 	// NodeServiceGetBlockProcedure is the fully-qualified name of the NodeService's GetBlock RPC.
@@ -95,6 +98,11 @@ type NodeServiceClient interface {
 	// the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
 	// reports keystore_exists=true and waits here.
 	UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error)
+	// ClearKeystore deletes the encrypted keystore, discarding the World seed and
+	// identity it protects so the node can be onboarded fresh. The recovery path
+	// for a lost passphrase; only valid while no World is loaded. Irreversible:
+	// requires confirm=true (the #29 confirmation gate).
+	ClearKeystore(context.Context, *connect.Request[nodepb.ClearKeystoreRequest]) (*connect.Response[nodepb.ClearKeystoreResponse], error)
 	// PostText authors a content.post to a public audience. The client submits
 	// intent (audience + text); the node encrypts and signs (world_sig+author_sig)
 	// and stores it. The client never handles a private key.
@@ -162,6 +170,12 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+NodeServiceUnlockKeystoreProcedure,
 			connect.WithSchema(nodeServiceMethods.ByName("UnlockKeystore")),
+			connect.WithClientOptions(opts...),
+		),
+		clearKeystore: connect.NewClient[nodepb.ClearKeystoreRequest, nodepb.ClearKeystoreResponse](
+			httpClient,
+			baseURL+NodeServiceClearKeystoreProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ClearKeystore")),
 			connect.WithClientOptions(opts...),
 		),
 		postText: connect.NewClient[nodepb.PostTextRequest, nodepb.PostTextResponse](
@@ -256,6 +270,7 @@ type nodeServiceClient struct {
 	getStatus              *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
 	bootstrapWorld         *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
 	unlockKeystore         *connect.Client[nodepb.UnlockKeystoreRequest, nodepb.UnlockKeystoreResponse]
+	clearKeystore          *connect.Client[nodepb.ClearKeystoreRequest, nodepb.ClearKeystoreResponse]
 	postText               *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
 	getBlock               *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
 	listBlocks             *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
@@ -285,6 +300,11 @@ func (c *nodeServiceClient) BootstrapWorld(ctx context.Context, req *connect.Req
 // UnlockKeystore calls blockparty.node.v1.NodeService.UnlockKeystore.
 func (c *nodeServiceClient) UnlockKeystore(ctx context.Context, req *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error) {
 	return c.unlockKeystore.CallUnary(ctx, req)
+}
+
+// ClearKeystore calls blockparty.node.v1.NodeService.ClearKeystore.
+func (c *nodeServiceClient) ClearKeystore(ctx context.Context, req *connect.Request[nodepb.ClearKeystoreRequest]) (*connect.Response[nodepb.ClearKeystoreResponse], error) {
+	return c.clearKeystore.CallUnary(ctx, req)
 }
 
 // PostText calls blockparty.node.v1.NodeService.PostText.
@@ -372,6 +392,11 @@ type NodeServiceHandler interface {
 	// the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
 	// reports keystore_exists=true and waits here.
 	UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error)
+	// ClearKeystore deletes the encrypted keystore, discarding the World seed and
+	// identity it protects so the node can be onboarded fresh. The recovery path
+	// for a lost passphrase; only valid while no World is loaded. Irreversible:
+	// requires confirm=true (the #29 confirmation gate).
+	ClearKeystore(context.Context, *connect.Request[nodepb.ClearKeystoreRequest]) (*connect.Response[nodepb.ClearKeystoreResponse], error)
 	// PostText authors a content.post to a public audience. The client submits
 	// intent (audience + text); the node encrypts and signs (world_sig+author_sig)
 	// and stores it. The client never handles a private key.
@@ -435,6 +460,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		NodeServiceUnlockKeystoreProcedure,
 		svc.UnlockKeystore,
 		connect.WithSchema(nodeServiceMethods.ByName("UnlockKeystore")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceClearKeystoreHandler := connect.NewUnaryHandler(
+		NodeServiceClearKeystoreProcedure,
+		svc.ClearKeystore,
+		connect.WithSchema(nodeServiceMethods.ByName("ClearKeystore")),
 		connect.WithHandlerOptions(opts...),
 	)
 	nodeServicePostTextHandler := connect.NewUnaryHandler(
@@ -529,6 +560,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceBootstrapWorldHandler.ServeHTTP(w, r)
 		case NodeServiceUnlockKeystoreProcedure:
 			nodeServiceUnlockKeystoreHandler.ServeHTTP(w, r)
+		case NodeServiceClearKeystoreProcedure:
+			nodeServiceClearKeystoreHandler.ServeHTTP(w, r)
 		case NodeServicePostTextProcedure:
 			nodeServicePostTextHandler.ServeHTTP(w, r)
 		case NodeServiceGetBlockProcedure:
@@ -576,6 +609,10 @@ func (UnimplementedNodeServiceHandler) BootstrapWorld(context.Context, *connect.
 
 func (UnimplementedNodeServiceHandler) UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.UnlockKeystore is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ClearKeystore(context.Context, *connect.Request[nodepb.ClearKeystoreRequest]) (*connect.Response[nodepb.ClearKeystoreResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.ClearKeystore is not implemented"))
 }
 
 func (UnimplementedNodeServiceHandler) PostText(context.Context, *connect.Request[nodepb.PostTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {

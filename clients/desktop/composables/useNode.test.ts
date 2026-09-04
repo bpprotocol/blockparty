@@ -54,13 +54,23 @@ describe('deriveView', () => {
 
 // fakeBridge installs a window.bpDesktop stub for the composable.
 function installBridge(
-  over: Partial<{ status: NodeStatus; bootstrapOk: boolean; unlockOk: boolean }> = {},
+  over: Partial<{
+    status: NodeStatus
+    bootstrapOk: boolean
+    unlockOk: boolean
+    clearOk: boolean
+  }> = {},
 ) {
   const status = over.status ?? baseStatus
   const bootstrapWorld = vi.fn(async () =>
     over.bootstrapOk === false
       ? { ok: false as const, error: 'bad seed' }
       : { ok: true as const, value: { world: 'w1', identity: 'i1' } },
+  )
+  const clearKeystore = vi.fn(async () =>
+    over.clearOk === false
+      ? { ok: false as const, error: 'core: clear keystore: keystore: does not exist' }
+      : { ok: true as const, value: undefined },
   )
   const unlockKeystore = vi.fn(async () =>
     over.unlockOk === false
@@ -74,6 +84,7 @@ function installBridge(
         getStatus,
         bootstrapWorld,
         unlockKeystore,
+        clearKeystore,
         postText: vi.fn(),
         getBlock: vi.fn(),
         listBlocks: vi.fn(),
@@ -82,7 +93,7 @@ function installBridge(
       versions: () => ({ electron: '', chrome: '', node: '' }),
     },
   }
-  return { bootstrapWorld, unlockKeystore, getStatus }
+  return { bootstrapWorld, unlockKeystore, clearKeystore, getStatus }
 }
 
 afterEach(() => {
@@ -156,6 +167,33 @@ describe('useNode', () => {
     const res = await n.unlock('')
     expect(res.ok).toBe(false)
     expect(unlockKeystore).not.toHaveBeenCalled()
+  })
+
+  it('clearKeystore confirms explicitly and falls through to onboarding', async () => {
+    const { clearKeystore, getStatus } = installBridge({
+      status: { ...baseStatus, keystoreExists: true },
+    })
+    const n = useNode()
+    await n.refresh()
+    expect(n.view.value).toBe('unlock')
+
+    // After clearing, the node reports no keystore.
+    getStatus.mockResolvedValue({ ok: true, value: baseStatus })
+    const res = await n.clearKeystore()
+    expect(res.ok).toBe(true)
+    // The node's confirmation gate (#29) is only satisfied with confirm: true.
+    expect(clearKeystore).toHaveBeenCalledWith(true)
+    expect(n.view.value).toBe('onboarding')
+  })
+
+  it('clearKeystore surfaces the node error and stays on unlock', async () => {
+    installBridge({ status: { ...baseStatus, keystoreExists: true }, clearOk: false })
+    const n = useNode()
+    await n.refresh()
+    const res = await n.clearKeystore()
+    expect(res.ok).toBe(false)
+    expect(res.error).toContain('does not exist')
+    expect(n.view.value).toBe('unlock')
   })
 
   it('bootstrap surfaces the node error on failure', async () => {

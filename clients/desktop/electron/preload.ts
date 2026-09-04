@@ -20,6 +20,7 @@ const node: NodeApi = {
   getStatus: () => ipcRenderer.invoke(NODE_CHANNELS.getStatus),
   bootstrapWorld: (req) => ipcRenderer.invoke(NODE_CHANNELS.bootstrapWorld, req),
   unlockKeystore: (passphrase) => ipcRenderer.invoke(NODE_CHANNELS.unlockKeystore, passphrase),
+  clearKeystore: (confirm) => ipcRenderer.invoke(NODE_CHANNELS.clearKeystore, confirm),
   postText: (req) => ipcRenderer.invoke(NODE_CHANNELS.postText, req),
   getBlock: (id) => ipcRenderer.invoke(NODE_CHANNELS.getBlock, id),
   listBlocks: (filter) => ipcRenderer.invoke(NODE_CHANNELS.listBlocks, filter),

@@ -328,6 +328,38 @@ func (c *Core) UnlockKeystore(keystorePass string) (Status, error) {
 	return c.statusLocked(), nil
 }
 
+// ClearKeystore deletes the keystore, discarding the World seed and identity
+// passphrase it protects — the recovery path when the keystore passphrase is
+// lost, after which a client can bootstrap a new World. Irreversible; the API
+// gates it behind an explicit confirmation (#29).
+//
+// Only permitted while no World is loaded, i.e. from the client's unlock
+// screen: a node that has already opened its keystore keeps it (an unlocked
+// node's destructive operation is identity burn, not this).
+//
+// Blocks authored under the discarded World stay in the store; they belong to a
+// World the node can no longer open, so they are inert.
+func (c *Core) ClearKeystore() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cfg.Mode != config.ModePersonal {
+		return ErrRelayBootstrap
+	}
+	if c.world.Loaded {
+		return ErrAlreadyLoaded
+	}
+	path := keystore.Path(c.cfg.DataDir)
+	if !keystore.Exists(path) {
+		return ErrNoKeystore
+	}
+	if err := keystore.Delete(path); err != nil {
+		return fmt.Errorf("core: clear keystore: %w", err)
+	}
+	c.log.Warn("keystore cleared via client; its World seed and identity are unrecoverable")
+	return nil
+}
+
 // PostText authors a content.post to public audience n (1..16), signs and
 // encrypts it, and stores it through the guard. Returns the block ID.
 func (c *Core) PostText(n int, text string) (string, error) {

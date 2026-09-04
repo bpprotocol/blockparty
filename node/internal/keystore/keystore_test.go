@@ -59,6 +59,29 @@ func TestInitExists(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	path := Path(t.TempDir())
+	if err := Delete(path); err != ErrNotExist {
+		t.Errorf("Delete with no keystore err = %v, want ErrNotExist", err)
+	}
+	if _, err := Init(path, testUnlock, Secrets{WorldSeed: testSeed}); err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+	if err := Delete(path); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+	if Exists(path) {
+		t.Error("keystore still exists after Delete")
+	}
+	// Gone for good: Open finds nothing, and Init may start over.
+	if _, err := Open(path, testUnlock); err != ErrNotExist {
+		t.Errorf("Open after Delete err = %v, want ErrNotExist", err)
+	}
+	if _, err := Init(path, "another-pass", Secrets{WorldSeed: testSeed}); err != nil {
+		t.Errorf("Init after Delete: %v", err)
+	}
+}
+
 // TestNoRawSecretsOnDisk is the core custody guarantee: neither the private keys
 // nor the cleartext secrets ever touch disk.
 func TestNoRawSecretsOnDisk(t *testing.T) {

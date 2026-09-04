@@ -79,6 +79,16 @@ func (s *Service) UnlockKeystore(_ context.Context, req *connect.Request[nodepb.
 	}), nil
 }
 
+func (s *Service) ClearKeystore(_ context.Context, req *connect.Request[nodepb.ClearKeystoreRequest]) (*connect.Response[nodepb.ClearKeystoreResponse], error) {
+	if err := s.confirmer.Confirm("keystore.clear", req.Msg.Confirm); err != nil {
+		return nil, mapErr(err)
+	}
+	if err := s.core.ClearKeystore(); err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.ClearKeystoreResponse{}), nil
+}
+
 func (s *Service) PostText(_ context.Context, req *connect.Request[nodepb.PostTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {
 	id, err := s.core.PostText(int(req.Msg.PublicAudience), req.Msg.Text)
 	if err != nil {

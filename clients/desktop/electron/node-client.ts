@@ -72,6 +72,12 @@ export class NodeClient implements NodeApi {
     })
   }
 
+  async clearKeystore(confirm: boolean): Promise<Result<void>> {
+    return wrap(async () => {
+      await this.client.clearKeystore({ confirm })
+    })
+  }
+
   async postText(req: PostTextRequest): Promise<Result<{ id: string }>> {
     return wrap(async () => {
       const r = await this.client.postText({ publicAudience: req.publicAudience, text: req.text })

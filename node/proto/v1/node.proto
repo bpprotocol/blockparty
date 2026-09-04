@@ -25,6 +25,12 @@ service NodeService {
   // reports keystore_exists=true and waits here.
   rpc UnlockKeystore(UnlockKeystoreRequest) returns (UnlockKeystoreResponse);
 
+  // ClearKeystore deletes the encrypted keystore, discarding the World seed and
+  // identity it protects so the node can be onboarded fresh. The recovery path
+  // for a lost passphrase; only valid while no World is loaded. Irreversible:
+  // requires confirm=true (the #29 confirmation gate).
+  rpc ClearKeystore(ClearKeystoreRequest) returns (ClearKeystoreResponse);
+
   // PostText authors a content.post to a public audience. The client submits
   // intent (audience + text); the node encrypts and signs (world_sig+author_sig)
   // and stores it. The client never handles a private key.
@@ -114,6 +120,12 @@ message UnlockKeystoreResponse {
   string world = 1;     // World fingerprint
   string identity = 2;  // identity address
 }
+
+message ClearKeystoreRequest {
+  bool confirm = 1; // must be true: the user explicitly confirmed the loss
+}
+
+message ClearKeystoreResponse {}
 
 message PostTextRequest {
   uint32 public_audience = 1; // public-N (1..16)

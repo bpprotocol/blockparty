@@ -58,6 +58,8 @@ Personal mode persists **only secrets** — the World seed phrase and identity p
 
 A personal node started **without** `BPNODE_KEYSTORE_PASSPHRASE` boots unconfigured even when `<data-dir>/keystore.json` exists — it has no way to open it. `GetStatus` then reports `world_loaded: false` **and** `keystore_exists: true`, which tells a client to ask for the passphrase and call `UnlockKeystore` rather than offer onboarding (`BootstrapWorld` refuses to overwrite an existing keystore, returning `failed_precondition`). Unlock derives the World and identity in memory exactly as the boot path does; a wrong passphrase returns `permission_denied` and leaves the node unconfigured.
 
+When the passphrase is lost there is nothing to unlock with — the secrets are encrypted under it — so the only way forward is `ClearKeystore`, which deletes `keystore.json` and lets the client bootstrap a new World. It is irreversible and therefore gated by the #29 confirmation (`confirm: true`, refused otherwise), and it is only accepted while **no World is loaded**: a node that has already unlocked its keystore keeps it. Blocks authored under the discarded World stay in the store, inert — the node can no longer open that World.
+
 ```sh
 # First run: initialize the keystore from a seed (one time).
 BPNODE_KEYSTORE_PASSPHRASE=unlock BPNODE_WORLD_SEED="…seed…" \
@@ -86,6 +88,7 @@ The client API is the Connect `NodeService` (`node/proto/v1/node.proto`), mounte
 | `GetStatus` | mode, world-loaded, identity, block count (onboarding, #26 Q5) |
 | `BootstrapWorld` | configure the node's World at runtime (personal, when none loaded) |
 | `UnlockKeystore` | unlock an existing keystore at runtime — the alternative to `BPNODE_KEYSTORE_PASSPHRASE` at boot |
+| `ClearKeystore` | delete the keystore when its passphrase is lost (locked node only) — irreversible, `confirm=true` |
 | `PostText` | author a `content.post` to a public audience — node signs + encrypts |
 | `GetBlock` | fetch by ID; plaintext when the node can open the audience |
 | `ListBlocks` | query the index by audience / type / author / time |

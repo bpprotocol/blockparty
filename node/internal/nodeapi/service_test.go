@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -568,5 +570,84 @@ func TestUnlockWithoutKeystore(t *testing.T) {
 	}
 	if got := connect.CodeOf(err); got != connect.CodeFailedPrecondition {
 		t.Errorf("unlock without keystore: code = %v, want failed_precondition", got)
+	}
+}
+
+// Clearing the keystore is the recovery path for a lost passphrase: gated by an
+// explicit confirmation, allowed only while the node is locked, and followed by
+// a normal bootstrap.
+func TestClearKeystoreGatedAndRecovers(t *testing.T) {
+	dir := t.TempDir()
+	ctx := context.Background()
+
+	first, stopFirst := setupDir(t, dir)
+	if _, err := first.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed:          seed,
+		IdentityPassphrase: idPass,
+		KeystorePassphrase: ksPass,
+	})); err != nil {
+		t.Fatalf("BootstrapWorld: %v", err)
+	}
+
+	// An unlocked node keeps its keystore: clearing is refused.
+	if _, err := first.ClearKeystore(ctx, connect.NewRequest(&nodepb.ClearKeystoreRequest{
+		Confirm: true,
+	})); err == nil {
+		t.Error("expected clear to be refused while a World is loaded")
+	} else if got := connect.CodeOf(err); got != connect.CodeFailedPrecondition {
+		t.Errorf("clear while loaded: code = %v, want failed_precondition", got)
+	}
+
+	// Restart locked, as a node started without the passphrase.
+	stopFirst()
+	second, _ := setupDir(t, dir)
+
+	// Without confirmation the keystore must survive.
+	_, err := second.ClearKeystore(ctx, connect.NewRequest(&nodepb.ClearKeystoreRequest{}))
+	if err == nil {
+		t.Fatal("expected unconfirmed clear to be rejected")
+	}
+	if got := connect.CodeOf(err); got != connect.CodeFailedPrecondition {
+		t.Errorf("unconfirmed clear: code = %v, want failed_precondition", got)
+	}
+	st, _ := second.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if !st.Msg.KeystoreExists {
+		t.Fatal("unconfirmed clear must leave the keystore in place")
+	}
+
+	// Confirmed: the keystore is gone and the node reports itself unconfigured,
+	// which routes the client back to onboarding.
+	if _, err := second.ClearKeystore(ctx, connect.NewRequest(&nodepb.ClearKeystoreRequest{
+		Confirm: true,
+	})); err != nil {
+		t.Fatalf("ClearKeystore: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "keystore.json")); !os.IsNotExist(err) {
+		t.Errorf("keystore.json still present after clear (err = %v)", err)
+	}
+	st, _ = second.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if st.Msg.KeystoreExists || st.Msg.WorldLoaded {
+		t.Fatalf("after clear keystore_exists=%v world_loaded=%v, want both false",
+			st.Msg.KeystoreExists, st.Msg.WorldLoaded)
+	}
+
+	// Clearing again has nothing to clear.
+	if _, err := second.ClearKeystore(ctx, connect.NewRequest(&nodepb.ClearKeystoreRequest{
+		Confirm: true,
+	})); err == nil {
+		t.Error("expected clear with no keystore to fail")
+	}
+
+	// Recovery completes: a fresh World can now be bootstrapped.
+	bs, err := second.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed:          "a different world",
+		IdentityPassphrase: idPass,
+		KeystorePassphrase: "new-pass",
+	}))
+	if err != nil {
+		t.Fatalf("BootstrapWorld after clear: %v", err)
+	}
+	if bs.Msg.World == "" {
+		t.Error("expected a new World after clearing the keystore")
 	}
 }

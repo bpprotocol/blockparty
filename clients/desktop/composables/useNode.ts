@@ -85,5 +85,34 @@ export function useNode() {
     return { ok: false, error: r.error }
   }
 
-  return { status, lifecycle, connected, error, busy, view, hasBridge, refresh, bootstrap, unlock }
+  // clearKeystore discards the keystore the node holds — the way out when its
+  // passphrase is lost. Irreversible, so the node requires an explicit
+  // confirmation (#29) that the UI collects before calling this. On success the
+  // node reports no keystore, which routes the view to onboarding.
+  async function clearKeystore(): Promise<{ ok: boolean; error?: string }> {
+    const bridge = typeof window !== 'undefined' ? window.bpDesktop : undefined
+    if (!bridge) return { ok: false, error: 'no bridge' }
+    busy.value = true
+    const r = await bridge.node.clearKeystore(true)
+    busy.value = false
+    if (r.ok) {
+      await refresh()
+      return { ok: true }
+    }
+    return { ok: false, error: r.error }
+  }
+
+  return {
+    status,
+    lifecycle,
+    connected,
+    error,
+    busy,
+    view,
+    hasBridge,
+    refresh,
+    bootstrap,
+    unlock,
+    clearKeystore,
+  }
 }

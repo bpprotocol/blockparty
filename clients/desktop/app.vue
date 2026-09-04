@@ -14,7 +14,8 @@ import IdentityView from './components/IdentityView.vue'
 import UserAvatar from './components/UserAvatar.vue'
 import AppIcon from './components/AppIcon.vue'
 
-const { status, lifecycle, error, busy, view, refresh, bootstrap, unlock } = useNode()
+const { status, lifecycle, error, busy, view, refresh, bootstrap, unlock, clearKeystore } =
+  useNode()
 // Errors from the setup screens (bootstrap or unlock), shown under the card.
 const setupError = ref<string | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
@@ -56,6 +57,14 @@ async function onUnlock(passphrase: string): Promise<void> {
   setupError.value = null
   const r = await unlock(passphrase)
   if (!r.ok) setupError.value = r.error ?? 'Unlock failed.'
+}
+
+// The unlock screen's recovery action, already confirmed there. On success the
+// node reports no keystore and the view falls through to onboarding.
+async function onClearKeystore(): Promise<void> {
+  setupError.value = null
+  const r = await clearKeystore()
+  if (!r.ok) setupError.value = r.error ?? 'Could not clear the keystore.'
 }
 
 onMounted(() => {
@@ -162,7 +171,12 @@ onUnmounted(() => {
         <span class="name">BlockParty</span>
       </div>
 
-      <UnlockView v-if="view === 'unlock'" :busy="busy" @submit="onUnlock" />
+      <UnlockView
+        v-if="view === 'unlock'"
+        :busy="busy"
+        @submit="onUnlock"
+        @clear="onClearKeystore"
+      />
 
       <OnboardingView v-else-if="view === 'onboarding'" :busy="busy" @submit="onBootstrap" />
 

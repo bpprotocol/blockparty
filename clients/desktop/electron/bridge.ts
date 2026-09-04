@@ -71,6 +71,10 @@ export interface NodeApi {
   // passphrase it was created with. The node derives the keys in memory; the
   // passphrase is not persisted by the client.
   unlockKeystore(keystorePassphrase: string): Promise<Result<BootstrapResult>>
+  // clearKeystore deletes the node's keystore, discarding the World seed and
+  // identity it protects — the recovery path for a lost passphrase. confirm
+  // must be the user's explicit confirmation; the node rejects it otherwise.
+  clearKeystore(confirm: boolean): Promise<Result<void>>
   postText(req: PostTextRequest): Promise<Result<{ id: string }>>
   getBlock(id: string): Promise<Result<BlockView>>
   listBlocks(filter: ListFilter): Promise<Result<BlockSummary[]>>
@@ -159,6 +163,7 @@ export const NODE_CHANNELS = {
   getStatus: 'node:getStatus',
   bootstrapWorld: 'node:bootstrapWorld',
   unlockKeystore: 'node:unlockKeystore',
+  clearKeystore: 'node:clearKeystore',
   postText: 'node:postText',
   getBlock: 'node:getBlock',
   listBlocks: 'node:listBlocks',

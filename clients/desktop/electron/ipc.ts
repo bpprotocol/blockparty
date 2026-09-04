@@ -25,6 +25,7 @@ export function registerNodeIpc(api: NodeApi): void {
   ipcMain.handle(NODE_CHANNELS.unlockKeystore, (_e, keystorePassphrase: string) =>
     api.unlockKeystore(keystorePassphrase),
   )
+  ipcMain.handle(NODE_CHANNELS.clearKeystore, (_e, confirm: boolean) => api.clearKeystore(confirm))
   ipcMain.handle(NODE_CHANNELS.postText, (_e, req: PostTextRequest) => api.postText(req))
   ipcMain.handle(NODE_CHANNELS.getBlock, (_e, id: string) => api.getBlock(id))
   ipcMain.handle(NODE_CHANNELS.listBlocks, (_e, filter: ListFilter) => api.listBlocks(filter))

@@ -6,10 +6,13 @@ import AppIcon from './AppIcon.vue'
 // passphrase (no BPNODE_KEYSTORE_PASSPHRASE), so no World is loaded. The
 // passphrase goes straight to the node, which derives the keys in memory.
 const props = defineProps<{ busy: boolean }>()
-const emit = defineEmits<{ submit: [passphrase: string] }>()
+const emit = defineEmits<{ submit: [passphrase: string]; clear: [] }>()
 
 const passphrase = ref('')
 const localError = ref<string | null>(null)
+
+const clearOpen = ref(false)
+const clearConfirmText = ref('')
 
 function submit(): void {
   localError.value = null
@@ -19,6 +22,26 @@ function submit(): void {
   }
   emit('submit', passphrase.value)
   passphrase.value = ''
+}
+
+function cancelClear(): void {
+  clearOpen.value = false
+  clearConfirmText.value = ''
+  localError.value = null
+}
+
+// Clearing throws away the World seed and identity for good, so — like the
+// identity burn — it takes a second, deliberate confirmation: the user types
+// CLEAR. The node enforces its own confirm flag on top of this (#29).
+function doClear(): void {
+  localError.value = null
+  if (clearConfirmText.value !== 'CLEAR') {
+    localError.value = 'Type CLEAR to confirm.'
+    return
+  }
+  clearConfirmText.value = ''
+  clearOpen.value = false
+  emit('clear')
 }
 </script>
 
@@ -50,10 +73,31 @@ function submit(): void {
       </button>
     </form>
 
-    <p class="hint meta">
-      Forgotten it? The World seed inside the keystore can't be recovered — clear the node's data
-      directory to start a new World.
-    </p>
+    <div class="recovery">
+      <button v-if="!clearOpen" class="btn is-small is-ghost" @click="clearOpen = true">
+        Forgotten your passphrase?
+      </button>
+
+      <form v-else class="op" @submit.prevent="doClear">
+        <p class="warn">
+          <strong>Clearing the keystore is irreversible.</strong> The World seed and identity it
+          protects cannot be recovered without the passphrase, so you would start a new World — with
+          a new address, no connections, and existing posts left unreadable.
+        </p>
+        <input
+          v-model="clearConfirmText"
+          class="input"
+          placeholder="Type CLEAR to confirm"
+          autocomplete="off"
+        />
+        <div class="row">
+          <button type="button" class="btn is-small" @click="cancelClear">Cancel</button>
+          <button type="submit" class="btn is-small is-danger" :disabled="props.busy">
+            Clear keystore
+          </button>
+        </div>
+      </form>
+    </div>
   </section>
 </template>
 
@@ -79,7 +123,29 @@ form {
   font-size: 0.9rem;
 }
 
-.hint {
-  margin: 1.25rem 0 0;
+.recovery {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.op {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+}
+
+.warn {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-medium);
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 </style>

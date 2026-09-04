@@ -54,6 +54,8 @@ On connect the app queries the node's status and routes to one of:
 
 **Unlock** covers the node started without `BPNODE_KEYSTORE_PASSPHRASE`: it holds an encrypted keystore it cannot open, so it boots with no World. Status reports `keystoreExists`, the app asks for the passphrase and calls `unlockKeystore`, and the node re-derives the World and identity in memory. Offering onboarding there would fail — the node never overwrites an existing keystore. A wrong passphrase is surfaced in place and the node stays unconfigured.
 
+The unlock screen also carries the way out of a **lost** passphrase: *Forgotten your passphrase?* reveals a warning and requires typing `CLEAR` before calling `clearKeystore`, which passes the node's `confirm: true` gate (#29) — the same two-step pattern as the identity burn. The node deletes the keystore, status flips to no keystore, and the view falls through to onboarding for a new World.
+
 Onboarding submits the secrets to the node via `bootstrapWorld` (#38) — the node holds the keys; the renderer never persists them. Once the node reports a loaded World, the view advances to the dashboard. The routing logic (`deriveView`) and the bootstrap flow live in `composables/useNode.ts` and are unit-tested.
 
 ## Node lifecycle (#42)

@@ -41,15 +41,18 @@ The feed is **scoped to public audiences**: every `BlockSummary` carries a `publ
 
 The merge/ordering (`mergeItem`) and public-only scoping live in `composables/useFeed.ts` and are unit-tested; the live stream was verified end-to-end against a running node.
 
-## Onboarding (#43)
+## Onboarding & unlock (#43)
 
 On connect the app queries the node's status and routes to one of:
 
-| `getStatus`                    | view                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| disconnected                   | "connecting…" with retry                                                       |
-| connected, **no World loaded** | **onboarding** — enter/generate a World seed + identity & keystore passphrases |
-| connected, **World loaded**    | dashboard (skips onboarding)                                                   |
+| `getStatus`                                        | view                                                                           |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| disconnected                                        | "connecting…" with retry                                                       |
+| connected, no World, **keystore on disk**           | **unlock** — enter the keystore passphrase                                     |
+| connected, no World, **no keystore**                | **onboarding** — enter/generate a World seed + identity & keystore passphrases |
+| connected, **World loaded**                         | dashboard (skips both)                                                         |
+
+**Unlock** covers the node started without `BPNODE_KEYSTORE_PASSPHRASE`: it holds an encrypted keystore it cannot open, so it boots with no World. Status reports `keystoreExists`, the app asks for the passphrase and calls `unlockKeystore`, and the node re-derives the World and identity in memory. Offering onboarding there would fail — the node never overwrites an existing keystore. A wrong passphrase is surfaced in place and the node stays unconfigured.
 
 Onboarding submits the secrets to the node via `bootstrapWorld` (#38) — the node holds the keys; the renderer never persists them. Once the node reports a loaded World, the view advances to the dashboard. The routing logic (`deriveView`) and the bootstrap flow live in `composables/useNode.ts` and are unit-tested.
 

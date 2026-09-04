@@ -15,6 +15,7 @@ import (
 	"github.com/bpprotocol/blockparty/node/internal/authz"
 	"github.com/bpprotocol/blockparty/node/internal/connections"
 	"github.com/bpprotocol/blockparty/node/internal/core"
+	"github.com/bpprotocol/blockparty/node/internal/keystore"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb"
 	"github.com/bpprotocol/blockparty/node/internal/nodepb/nodepbconnect"
 	"github.com/bpprotocol/blockparty/node/internal/store"
@@ -50,6 +51,8 @@ func (s *Service) GetStatus(_ context.Context, _ *connect.Request[nodepb.GetStat
 		Identity:    st.Identity,
 		BlockCount:  int64(st.BlockCount),
 		CanAuthor:   st.CanAuthor,
+		// Tells the client to offer unlock instead of onboarding (#43).
+		KeystoreExists: st.KeystoreExists,
 	}), nil
 }
 
@@ -60,6 +63,17 @@ func (s *Service) BootstrapWorld(_ context.Context, req *connect.Request[nodepb.
 		return nil, mapErr(err)
 	}
 	return connect.NewResponse(&nodepb.BootstrapWorldResponse{
+		World:    st.World,
+		Identity: st.Identity,
+	}), nil
+}
+
+func (s *Service) UnlockKeystore(_ context.Context, req *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error) {
+	st, err := s.core.UnlockKeystore(req.Msg.KeystorePassphrase)
+	if err != nil {
+		return nil, mapErr(err)
+	}
+	return connect.NewResponse(&nodepb.UnlockKeystoreResponse{
 		World:    st.World,
 		Identity: st.Identity,
 	}), nil
@@ -255,8 +269,15 @@ func mapErr(err error) error {
 		return connect.NewError(connect.CodeNotFound, err)
 	case errors.Is(err, core.ErrNoWorld),
 		errors.Is(err, core.ErrAlreadyLoaded),
-		errors.Is(err, core.ErrCannotAuthor):
+		errors.Is(err, core.ErrCannotAuthor),
+		errors.Is(err, core.ErrNoKeystore),
+		// A keystore already on disk is never overwritten: the client must
+		// unlock it instead of bootstrapping (#28).
+		errors.Is(err, keystore.ErrExists),
+		errors.Is(err, keystore.ErrNotExist):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
+	case errors.Is(err, keystore.ErrBadPassphrase):
+		return connect.NewError(connect.CodePermissionDenied, err)
 	case errors.Is(err, core.ErrRelayBootstrap):
 		return connect.NewError(connect.CodePermissionDenied, err)
 	case errors.Is(err, connections.ErrNoConnection):

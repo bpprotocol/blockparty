@@ -54,6 +54,11 @@ Resolved from (increasing precedence): **defaults → JSON config file → envir
 Personal mode persists **only secrets** — the World seed phrase and identity passphrase — in `<data-dir>/keystore.json`, encrypted at rest (XChaCha20-Poly1305 under an Argon2id-derived key). **Private keys are never written to disk**; they are re-derived in memory at unlock via the SDK (`OpenWorld` / `OpenIdentity`), exactly reproduced from the same secrets.
 
 ```sh
+### Unlocking
+
+A personal node started **without** `BPNODE_KEYSTORE_PASSPHRASE` boots unconfigured even when `<data-dir>/keystore.json` exists — it has no way to open it. `GetStatus` then reports `world_loaded: false` **and** `keystore_exists: true`, which tells a client to ask for the passphrase and call `UnlockKeystore` rather than offer onboarding (`BootstrapWorld` refuses to overwrite an existing keystore, returning `failed_precondition`). Unlock derives the World and identity in memory exactly as the boot path does; a wrong passphrase returns `permission_denied` and leaves the node unconfigured.
+
+```sh
 # First run: initialize the keystore from a seed (one time).
 BPNODE_KEYSTORE_PASSPHRASE=unlock BPNODE_WORLD_SEED="…seed…" \
   BPNODE_IDENTITY_PASSPHRASE=idpass bpnode --mode personal
@@ -80,6 +85,7 @@ The client API is the Connect `NodeService` (`node/proto/v1/node.proto`), mounte
 |-----|---------|
 | `GetStatus` | mode, world-loaded, identity, block count (onboarding, #26 Q5) |
 | `BootstrapWorld` | configure the node's World at runtime (personal, when none loaded) |
+| `UnlockKeystore` | unlock an existing keystore at runtime — the alternative to `BPNODE_KEYSTORE_PASSPHRASE` at boot |
 | `PostText` | author a `content.post` to a public audience — node signs + encrypts |
 | `GetBlock` | fetch by ID; plaintext when the node can open the audience |
 | `ListBlocks` | query the index by audience / type / author / time |
@@ -93,6 +99,10 @@ curl -X POST $BASE/BootstrapWorld -H "Authorization: Bearer $TOKEN" -H 'Content-
   -d '{"worldSeed":"…","identityPassphrase":"…","keystorePassphrase":"…"}'
 curl -X POST $BASE/PostText -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"publicAudience":1,"text":"hello"}'
+# A node started without BPNODE_KEYSTORE_PASSPHRASE reports keystore_exists=true
+# and no World; unlock it from the client instead of restarting the daemon.
+curl -X POST $BASE/UnlockKeystore -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"keystorePassphrase":"…"}'
 ```
 
 Regenerate the Go + Connect code with `go generate ./internal/nodepb` (needs `protoc`, `protoc-gen-go`, `protoc-gen-connect-go`).

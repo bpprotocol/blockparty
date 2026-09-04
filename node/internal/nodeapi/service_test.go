@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,17 +33,25 @@ const (
 )
 
 // setup builds an unconfigured personal core behind a token-protected Connect
-// server and returns an authenticated client plus the data dir.
+// server and returns an authenticated client.
 func setup(t *testing.T) nodepbconnect.NodeServiceClient {
 	t.Helper()
-	dir := t.TempDir()
+	client, _ := setupDir(t, t.TempDir())
+	return client
+}
+
+// setupDir is setup over a caller-chosen data dir, so a test can restart a node
+// against a dir that already holds a keystore. The returned stop shuts the node
+// down early — Badger holds a directory lock, so the first node must stop
+// before a second one opens the same dir. It is safe to call more than once.
+func setupDir(t *testing.T, dir string) (nodepbconnect.NodeServiceClient, func()) {
+	t.Helper()
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	st, err := store.Open(dir, log)
 	if err != nil {
 		t.Fatalf("store.Open: %v", err)
 	}
-	t.Cleanup(func() { st.Close() })
 
 	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
 	w, err := world.Load(cfg) // unloaded — no seed
@@ -58,9 +67,18 @@ func setup(t *testing.T) nodepbconnect.NodeServiceClient {
 	mux := http.NewServeMux()
 	mux.Handle(path, authz.RequireToken(token, log)(handler))
 	srv := httptest.NewServer(mux)
-	t.Cleanup(srv.Close)
 
-	return nodepbconnect.NewNodeServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(authInterceptor{token}))
+	var once sync.Once
+	stop := func() {
+		once.Do(func() {
+			srv.Close()
+			st.Close()
+		})
+	}
+	t.Cleanup(stop)
+
+	client := nodepbconnect.NewNodeServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(authInterceptor{token}))
+	return client, stop
 }
 
 // authInterceptor adds the bearer token to unary and streaming client calls.
@@ -291,7 +309,6 @@ func TestConnectionRPCs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("store.Open: %v", err)
 	}
-	t.Cleanup(func() { st.Close() })
 
 	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
 	w, _ := world.Load(cfg)
@@ -355,7 +372,6 @@ func TestIdentityRotateAndBurnGated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("store.Open: %v", err)
 	}
-	t.Cleanup(func() { st.Close() })
 
 	cfg := config.Config{Mode: config.ModePersonal, DataDir: dir}
 	w, _ := world.Load(cfg)
@@ -436,5 +452,121 @@ func TestRelayCannotBootstrapOrAuthor(t *testing.T) {
 		WorldSeed: seed, KeystorePassphrase: ksPass,
 	})); connect.CodeOf(err) != connect.CodePermissionDenied {
 		t.Errorf("relay bootstrap code = %v, want permission_denied", connect.CodeOf(err))
+	}
+}
+
+// A node started without BPNODE_KEYSTORE_PASSPHRASE boots unconfigured even
+// though a keystore is on disk. The client must then unlock it rather than
+// bootstrap (which would refuse to overwrite the keystore).
+func TestUnlockExistingKeystore(t *testing.T) {
+	dir := t.TempDir()
+	ctx := context.Background()
+
+	// First run: bootstrap, which initializes the keystore in dir.
+	first, stopFirst := setupDir(t, dir)
+	bs, err := first.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed:          seed,
+		IdentityPassphrase: idPass,
+		KeystorePassphrase: ksPass,
+	}))
+	if err != nil {
+		t.Fatalf("BootstrapWorld: %v", err)
+	}
+
+	// Restart against the same dir with no passphrase: unconfigured, but the
+	// keystore is visible so the client knows to offer unlock.
+	stopFirst()
+	second, _ := setupDir(t, dir)
+	st, err := second.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if err != nil {
+		t.Fatalf("GetStatus: %v", err)
+	}
+	if st.Msg.WorldLoaded {
+		t.Fatal("expected no World loaded without a passphrase")
+	}
+	if !st.Msg.KeystoreExists {
+		t.Fatal("expected keystore_exists=true with a keystore on disk")
+	}
+
+	// Bootstrapping over an existing keystore fails, and says so precisely.
+	_, err = second.BootstrapWorld(ctx, connect.NewRequest(&nodepb.BootstrapWorldRequest{
+		WorldSeed: seed, KeystorePassphrase: ksPass,
+	}))
+	if err == nil {
+		t.Fatal("expected bootstrap over an existing keystore to fail")
+	}
+	if got := connect.CodeOf(err); got != connect.CodeFailedPrecondition {
+		t.Errorf("bootstrap over keystore: code = %v, want failed_precondition", got)
+	}
+
+	// A wrong passphrase is denied, and leaves the node unconfigured.
+	_, err = second.UnlockKeystore(ctx, connect.NewRequest(&nodepb.UnlockKeystoreRequest{
+		KeystorePassphrase: "wrong",
+	}))
+	if err == nil {
+		t.Fatal("expected a wrong passphrase to be rejected")
+	}
+	if got := connect.CodeOf(err); got != connect.CodePermissionDenied {
+		t.Errorf("wrong passphrase: code = %v, want permission_denied", got)
+	}
+	st, _ = second.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if st.Msg.WorldLoaded {
+		t.Fatal("a failed unlock must leave the node unconfigured")
+	}
+
+	// The right passphrase loads the same World and identity as the first run.
+	un, err := second.UnlockKeystore(ctx, connect.NewRequest(&nodepb.UnlockKeystoreRequest{
+		KeystorePassphrase: ksPass,
+	}))
+	if err != nil {
+		t.Fatalf("UnlockKeystore: %v", err)
+	}
+	if un.Msg.World != bs.Msg.World || un.Msg.Identity != bs.Msg.Identity {
+		t.Errorf("unlock gave world/identity %q/%q, want %q/%q",
+			un.Msg.World, un.Msg.Identity, bs.Msg.World, bs.Msg.Identity)
+	}
+
+	st, _ = second.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if !st.Msg.WorldLoaded || !st.Msg.CanAuthor {
+		t.Fatalf("after unlock world_loaded=%v can_author=%v", st.Msg.WorldLoaded, st.Msg.CanAuthor)
+	}
+
+	// The unlocked node can author, proving the keys were re-derived in memory.
+	if _, err := second.PostText(ctx, connect.NewRequest(&nodepb.PostTextRequest{
+		PublicAudience: 1, Text: "posted after unlock",
+	})); err != nil {
+		t.Fatalf("PostText after unlock: %v", err)
+	}
+
+	// Unlocking again is refused: a World is already loaded.
+	if _, err := second.UnlockKeystore(ctx, connect.NewRequest(&nodepb.UnlockKeystoreRequest{
+		KeystorePassphrase: ksPass,
+	})); err == nil {
+		t.Error("expected a second unlock to fail")
+	}
+}
+
+// With no keystore on disk there is nothing to unlock; the client should be
+// offering onboarding instead.
+func TestUnlockWithoutKeystore(t *testing.T) {
+	client := setup(t)
+	ctx := context.Background()
+
+	st, err := client.GetStatus(ctx, connect.NewRequest(&nodepb.GetStatusRequest{}))
+	if err != nil {
+		t.Fatalf("GetStatus: %v", err)
+	}
+	if st.Msg.KeystoreExists {
+		t.Fatal("expected keystore_exists=false on a fresh data dir")
+	}
+
+	_, err = client.UnlockKeystore(ctx, connect.NewRequest(&nodepb.UnlockKeystoreRequest{
+		KeystorePassphrase: ksPass,
+	}))
+	if err == nil {
+		t.Fatal("expected unlock with no keystore to fail")
+	}
+	if got := connect.CodeOf(err); got != connect.CodeFailedPrecondition {
+		t.Errorf("unlock without keystore: code = %v, want failed_precondition", got)
 	}
 }

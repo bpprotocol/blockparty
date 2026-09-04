@@ -3,8 +3,9 @@ import type { BootstrapRequest, LifecycleState, NodeStatus } from '../electron/b
 
 // Which top-level view the app shows. Derived from the node connection + status,
 // implementing the onboarding decision (#43 / #26 Q5): a loaded World goes
-// straight to the dashboard, an unconfigured node shows onboarding.
-export type View = 'no-bridge' | 'disconnected' | 'onboarding' | 'ready'
+// straight to the dashboard, an unconfigured node shows onboarding — unless it
+// already holds a keystore, which only needs its passphrase to unlock.
+export type View = 'no-bridge' | 'disconnected' | 'unlock' | 'onboarding' | 'ready'
 
 export function deriveView(input: {
   hasBridge: boolean
@@ -13,7 +14,11 @@ export function deriveView(input: {
 }): View {
   if (!input.hasBridge) return 'no-bridge'
   if (!input.connected || !input.status) return 'disconnected'
-  return input.status.worldLoaded ? 'ready' : 'onboarding'
+  if (input.status.worldLoaded) return 'ready'
+  // A keystore on disk means the node was started without its passphrase (no
+  // BPNODE_KEYSTORE_PASSPHRASE): ask for it. Bootstrapping would fail — the
+  // node refuses to overwrite an existing keystore.
+  return input.status.keystoreExists ? 'unlock' : 'onboarding'
 }
 
 export function useNode() {
@@ -63,5 +68,22 @@ export function useNode() {
     return { ok: false, error: r.error }
   }
 
-  return { status, lifecycle, connected, error, busy, view, hasBridge, refresh, bootstrap }
+  // unlock opens the keystore the node already holds. Like bootstrap, the
+  // secret goes straight to the node — the renderer never stores it — and a
+  // success refreshes, flipping the view to the dashboard.
+  async function unlock(keystorePassphrase: string): Promise<{ ok: boolean; error?: string }> {
+    const bridge = typeof window !== 'undefined' ? window.bpDesktop : undefined
+    if (!bridge) return { ok: false, error: 'no bridge' }
+    if (!keystorePassphrase) return { ok: false, error: 'Enter your keystore passphrase.' }
+    busy.value = true
+    const r = await bridge.node.unlockKeystore(keystorePassphrase)
+    busy.value = false
+    if (r.ok) {
+      await refresh()
+      return { ok: true }
+    }
+    return { ok: false, error: r.error }
+  }
+
+  return { status, lifecycle, connected, error, busy, view, hasBridge, refresh, bootstrap, unlock }
 }

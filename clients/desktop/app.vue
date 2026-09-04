@@ -5,6 +5,7 @@ import type { BootstrapRequest } from './electron/bridge'
 import { useNode } from './composables/useNode'
 import { shortHex } from './composables/useFormat'
 import OnboardingView from './components/OnboardingView.vue'
+import UnlockView from './components/UnlockView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
 import ComposeView from './components/ComposeView.vue'
 import FeedView from './components/FeedView.vue'
@@ -13,8 +14,9 @@ import IdentityView from './components/IdentityView.vue'
 import UserAvatar from './components/UserAvatar.vue'
 import AppIcon from './components/AppIcon.vue'
 
-const { status, lifecycle, error, busy, view, refresh, bootstrap } = useNode()
-const bootstrapError = ref<string | null>(null)
+const { status, lifecycle, error, busy, view, refresh, bootstrap, unlock } = useNode()
+// Errors from the setup screens (bootstrap or unlock), shown under the card.
+const setupError = ref<string | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
 
 type Tab = 'feed' | 'connections' | 'identity'
@@ -45,9 +47,15 @@ const authBgStyle = computed(() => ({
 }))
 
 async function onBootstrap(req: BootstrapRequest): Promise<void> {
-  bootstrapError.value = null
+  setupError.value = null
   const r = await bootstrap(req)
-  if (!r.ok) bootstrapError.value = r.error ?? 'Bootstrap failed.'
+  if (!r.ok) setupError.value = r.error ?? 'Bootstrap failed.'
+}
+
+async function onUnlock(passphrase: string): Promise<void> {
+  setupError.value = null
+  const r = await unlock(passphrase)
+  if (!r.ok) setupError.value = r.error ?? 'Unlock failed.'
 }
 
 onMounted(() => {
@@ -154,7 +162,9 @@ onUnmounted(() => {
         <span class="name">BlockParty</span>
       </div>
 
-      <OnboardingView v-if="view === 'onboarding'" :busy="busy" @submit="onBootstrap" />
+      <UnlockView v-if="view === 'unlock'" :busy="busy" @submit="onUnlock" />
+
+      <OnboardingView v-else-if="view === 'onboarding'" :busy="busy" @submit="onBootstrap" />
 
       <section v-else class="auth-status">
         <p v-if="view === 'no-bridge'" class="muted">Running outside Electron — no node bridge.</p>
@@ -166,7 +176,7 @@ onUnmounted(() => {
         <button v-if="view !== 'no-bridge'" class="btn is-primary" @click="refresh">Retry</button>
       </section>
 
-      <p v-if="bootstrapError" class="err">{{ bootstrapError }}</p>
+      <p v-if="setupError" class="err setup-err">{{ setupError }}</p>
 
       <p v-if="lifecycle" class="meta mono auth-lifecycle">
         node: {{ lifecycle.mode }} · {{ lifecycle.state }} · {{ lifecycle.endpoint }}
@@ -399,6 +409,10 @@ onUnmounted(() => {
 
 .auth-status p {
   margin: 0;
+}
+
+.setup-err {
+  margin-top: 1rem;
 }
 
 .auth-lifecycle {

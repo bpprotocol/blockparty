@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file node.proto.
  */
 export const file_node: GenFile = /*@__PURE__*/
-  fileDesc("Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKSAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIImUKFUJvb3RzdHJhcFdvcmxkUmVxdWVzdBISCgp3b3JsZF9zZWVkGAEgASgJEhsKE2lkZW50aXR5X3Bhc3NwaHJhc2UYAiABKAkSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgDIAEoCSI5ChZCb290c3RyYXBXb3JsZFJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJIpUBCgxCbG9ja1N1bW1hcnkSCgoCaWQYASABKAkSFQoNYXVkaWVuY2VfY29kZRgCIAEoCRIRCgl0eXBlX2NvZGUYAyABKAkSDgoGYXV0aG9yGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAxITCgtyZWNlaXZlZF9hdBgGIAEoAxIXCg9wdWJsaWNfYXVkaWVuY2UYByABKA0iHQoPR2V0QmxvY2tSZXF1ZXN0EgoKAmlkGAEgASgJInQKEEdldEJsb2NrUmVzcG9uc2USMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkSDAoEZGF0YRgCIAEoDBIRCglkZWNyeXB0ZWQYAyABKAgSDAoEdGV4dBgEIAEoCSJnChFMaXN0QmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJEhEKCXR5cGVfY29kZRgCIAEoCRIOCgZhdXRob3IYAyABKAkSDAoEZnJvbRgEIAEoAxIKCgJ0bxgFIAEoAyJGChJMaXN0QmxvY2tzUmVzcG9uc2USMAoGYmxvY2tzGAEgAygLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIvChZTdWJzY3JpYmVCbG9ja3NSZXF1ZXN0EhUKDWF1ZGllbmNlX2NvZGUYASABKAkiPwoKQmxvY2tFdmVudBIxCgdzdW1tYXJ5GAEgASgLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIUChJHZXRJZGVudGl0eVJlcXVlc3QiTAoTR2V0SWRlbnRpdHlSZXNwb25zZRIPCgdhZGRyZXNzGAEgASgJEhEKCWt5YmVyX3B1YhgCIAEoCRIRCgltbGRzYV9wdWIYAyABKAkiRwoOQWRkUGVlclJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRIRCglreWJlcl9wdWIYAiABKAkSEQoJbWxkc2FfcHViGAMgASgJIhEKD0FkZFBlZXJSZXNwb25zZSIpChZTdGFydENvbm5lY3Rpb25SZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkiLQoXU3RhcnRDb25uZWN0aW9uUmVzcG9uc2USEgoKcmVxdWVzdF9pZBgBIAEoCSJECg5Db25uZWN0aW9uSW5mbxIMCgRwZWVyGAEgASgJEg0KBWVwb2NoGAIgASgEEhUKDWF1ZGllbmNlX2NvZGUYAyABKAkiGAoWTGlzdENvbm5lY3Rpb25zUmVxdWVzdCJSChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRI3Cgtjb25uZWN0aW9ucxgBIAMoCzIiLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uSW5mbyIgCg1Db25uZWN0aW9uUmVmEg8KB2FkZHJlc3MYASABKAkiEgoQQ29ubmVjdGlvblJlc3VsdCI3ChZTZW5kUHJpdmF0ZVRleHRSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDAoEdGV4dBgCIAEoCSJBCg5Qcml2YXRlTWVzc2FnZRIOCgZhdXRob3IYASABKAkSDAoEdGV4dBgCIAEoCRIRCgl0aW1lc3RhbXAYAyABKAMiVgoeTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEjQKCG1lc3NhZ2VzGAEgAygLMiIuYmxvY2twYXJ0eS5ub2RlLnYxLlByaXZhdGVNZXNzYWdlIkAKFVJvdGF0ZUlkZW50aXR5UmVxdWVzdBIWCg5uZXdfcGFzc3BocmFzZRgBIAEoCRIPCgdjb25maXJtGAIgASgIIioKFlJvdGF0ZUlkZW50aXR5UmVzcG9uc2USEAoIaWRlbnRpdHkYASABKAkiNgoTQnVybklkZW50aXR5UmVxdWVzdBIOCgZub3RpY2UYASABKAkSDwoHY29uZmlybRgCIAEoCCIoChRCdXJuSWRlbnRpdHlSZXNwb25zZRIQCghibG9ja19pZBgBIAEoCTKjDAoLTm9kZVNlcnZpY2USWAoJR2V0U3RhdHVzEiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1JlcXVlc3QaJS5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0U3RhdHVzUmVzcG9uc2USZwoOQm9vdHN0cmFwV29ybGQSKS5ibG9ja3BhcnR5Lm5vZGUudjEuQm9vdHN0cmFwV29ybGRSZXF1ZXN0GiouYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVzcG9uc2USVQoIUG9zdFRleHQSIy5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVzcG9uc2USVQoIR2V0QmxvY2sSIy5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0QmxvY2tSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVzcG9uc2USWwoKTGlzdEJsb2NrcxIlLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVxdWVzdBomLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVzcG9uc2USXwoPU3Vic2NyaWJlQmxvY2tzEiouYmxvY2twYXJ0eS5ub2RlLnYxLlN1YnNjcmliZUJsb2Nrc1JlcXVlc3QaHi5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tFdmVudDABEl4KC0dldElkZW50aXR5EiYuYmxvY2twYXJ0eS5ub2RlLnYxLkdldElkZW50aXR5UmVxdWVzdBonLmJsb2NrcGFydHkubm9kZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlElIKB0FkZFBlZXISIi5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlcXVlc3QaIy5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlc3BvbnNlEmoKD1N0YXJ0Q29ubmVjdGlvbhIqLmJsb2NrcGFydHkubm9kZS52MS5TdGFydENvbm5lY3Rpb25SZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLlN0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEmoKD0xpc3RDb25uZWN0aW9ucxIqLmJsb2NrcGFydHkubm9kZS52MS5MaXN0Q29ubmVjdGlvbnNSZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLkxpc3RDb25uZWN0aW9uc1Jlc3BvbnNlElsKEFJvdGF0ZUNvbm5lY3Rpb24SIS5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlZhokLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVzdWx0EloKD0Nsb3NlQ29ubmVjdGlvbhIhLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVmGiQuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZXN1bHQSYwoPU2VuZFByaXZhdGVUZXh0EiouYmxvY2twYXJ0eS5ub2RlLnYxLlNlbmRQcml2YXRlVGV4dFJlcXVlc3QaJC5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXNwb25zZRJvChZMaXN0Q29ubmVjdGlvbk1lc3NhZ2VzEiEuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZWYaMi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEmcKDlJvdGF0ZUlkZW50aXR5EikuYmxvY2twYXJ0eS5ub2RlLnYxLlJvdGF0ZUlkZW50aXR5UmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Sb3RhdGVJZGVudGl0eVJlc3BvbnNlEmEKDEJ1cm5JZGVudGl0eRInLmJsb2NrcGFydHkubm9kZS52MS5CdXJuSWRlbnRpdHlSZXF1ZXN0GiguYmxvY2twYXJ0eS5ub2RlLnYxLkJ1cm5JZGVudGl0eVJlc3BvbnNlQj5aPGdpdGh1Yi5jb20vYnBwcm90b2NvbC9ibG9ja3BhcnR5L25vZGUvaW50ZXJuYWwvbm9kZXBiO25vZGVwYmIGcHJvdG8z");
+  fileDesc("Cgpub2RlLnByb3RvEhJibG9ja3BhcnR5Lm5vZGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKrAQoRR2V0U3RhdHVzUmVzcG9uc2USDwoHdmVyc2lvbhgBIAEoCRIMCgRtb2RlGAIgASgJEhQKDHdvcmxkX2xvYWRlZBgDIAEoCBINCgV3b3JsZBgEIAEoCRIQCghpZGVudGl0eRgFIAEoCRITCgtibG9ja19jb3VudBgGIAEoAxISCgpjYW5fYXV0aG9yGAcgASgIEhcKD2tleXN0b3JlX2V4aXN0cxgIIAEoCCJlChVCb290c3RyYXBXb3JsZFJlcXVlc3QSEgoKd29ybGRfc2VlZBgBIAEoCRIbChNpZGVudGl0eV9wYXNzcGhyYXNlGAIgASgJEhsKE2tleXN0b3JlX3Bhc3NwaHJhc2UYAyABKAkiOQoWQm9vdHN0cmFwV29ybGRSZXNwb25zZRINCgV3b3JsZBgBIAEoCRIQCghpZGVudGl0eRgCIAEoCSI0ChVVbmxvY2tLZXlzdG9yZVJlcXVlc3QSGwoTa2V5c3RvcmVfcGFzc3BocmFzZRgBIAEoCSI5ChZVbmxvY2tLZXlzdG9yZVJlc3BvbnNlEg0KBXdvcmxkGAEgASgJEhAKCGlkZW50aXR5GAIgASgJIjgKD1Bvc3RUZXh0UmVxdWVzdBIXCg9wdWJsaWNfYXVkaWVuY2UYASABKA0SDAoEdGV4dBgCIAEoCSIeChBQb3N0VGV4dFJlc3BvbnNlEgoKAmlkGAEgASgJIpUBCgxCbG9ja1N1bW1hcnkSCgoCaWQYASABKAkSFQoNYXVkaWVuY2VfY29kZRgCIAEoCRIRCgl0eXBlX2NvZGUYAyABKAkSDgoGYXV0aG9yGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAxITCgtyZWNlaXZlZF9hdBgGIAEoAxIXCg9wdWJsaWNfYXVkaWVuY2UYByABKA0iHQoPR2V0QmxvY2tSZXF1ZXN0EgoKAmlkGAEgASgJInQKEEdldEJsb2NrUmVzcG9uc2USMQoHc3VtbWFyeRgBIAEoCzIgLmJsb2NrcGFydHkubm9kZS52MS5CbG9ja1N1bW1hcnkSDAoEZGF0YRgCIAEoDBIRCglkZWNyeXB0ZWQYAyABKAgSDAoEdGV4dBgEIAEoCSJnChFMaXN0QmxvY2tzUmVxdWVzdBIVCg1hdWRpZW5jZV9jb2RlGAEgASgJEhEKCXR5cGVfY29kZRgCIAEoCRIOCgZhdXRob3IYAyABKAkSDAoEZnJvbRgEIAEoAxIKCgJ0bxgFIAEoAyJGChJMaXN0QmxvY2tzUmVzcG9uc2USMAoGYmxvY2tzGAEgAygLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIvChZTdWJzY3JpYmVCbG9ja3NSZXF1ZXN0EhUKDWF1ZGllbmNlX2NvZGUYASABKAkiPwoKQmxvY2tFdmVudBIxCgdzdW1tYXJ5GAEgASgLMiAuYmxvY2twYXJ0eS5ub2RlLnYxLkJsb2NrU3VtbWFyeSIUChJHZXRJZGVudGl0eVJlcXVlc3QiTAoTR2V0SWRlbnRpdHlSZXNwb25zZRIPCgdhZGRyZXNzGAEgASgJEhEKCWt5YmVyX3B1YhgCIAEoCRIRCgltbGRzYV9wdWIYAyABKAkiRwoOQWRkUGVlclJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRIRCglreWJlcl9wdWIYAiABKAkSEQoJbWxkc2FfcHViGAMgASgJIhEKD0FkZFBlZXJSZXNwb25zZSIpChZTdGFydENvbm5lY3Rpb25SZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkiLQoXU3RhcnRDb25uZWN0aW9uUmVzcG9uc2USEgoKcmVxdWVzdF9pZBgBIAEoCSJECg5Db25uZWN0aW9uSW5mbxIMCgRwZWVyGAEgASgJEg0KBWVwb2NoGAIgASgEEhUKDWF1ZGllbmNlX2NvZGUYAyABKAkiGAoWTGlzdENvbm5lY3Rpb25zUmVxdWVzdCJSChdMaXN0Q29ubmVjdGlvbnNSZXNwb25zZRI3Cgtjb25uZWN0aW9ucxgBIAMoCzIiLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uSW5mbyIgCg1Db25uZWN0aW9uUmVmEg8KB2FkZHJlc3MYASABKAkiEgoQQ29ubmVjdGlvblJlc3VsdCI3ChZTZW5kUHJpdmF0ZVRleHRSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDAoEdGV4dBgCIAEoCSJBCg5Qcml2YXRlTWVzc2FnZRIOCgZhdXRob3IYASABKAkSDAoEdGV4dBgCIAEoCRIRCgl0aW1lc3RhbXAYAyABKAMiVgoeTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEjQKCG1lc3NhZ2VzGAEgAygLMiIuYmxvY2twYXJ0eS5ub2RlLnYxLlByaXZhdGVNZXNzYWdlIkAKFVJvdGF0ZUlkZW50aXR5UmVxdWVzdBIWCg5uZXdfcGFzc3BocmFzZRgBIAEoCRIPCgdjb25maXJtGAIgASgIIioKFlJvdGF0ZUlkZW50aXR5UmVzcG9uc2USEAoIaWRlbnRpdHkYASABKAkiNgoTQnVybklkZW50aXR5UmVxdWVzdBIOCgZub3RpY2UYASABKAkSDwoHY29uZmlybRgCIAEoCCIoChRCdXJuSWRlbnRpdHlSZXNwb25zZRIQCghibG9ja19pZBgBIAEoCTKMDQoLTm9kZVNlcnZpY2USWAoJR2V0U3RhdHVzEiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldFN0YXR1c1JlcXVlc3QaJS5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0U3RhdHVzUmVzcG9uc2USZwoOQm9vdHN0cmFwV29ybGQSKS5ibG9ja3BhcnR5Lm5vZGUudjEuQm9vdHN0cmFwV29ybGRSZXF1ZXN0GiouYmxvY2twYXJ0eS5ub2RlLnYxLkJvb3RzdHJhcFdvcmxkUmVzcG9uc2USZwoOVW5sb2NrS2V5c3RvcmUSKS5ibG9ja3BhcnR5Lm5vZGUudjEuVW5sb2NrS2V5c3RvcmVSZXF1ZXN0GiouYmxvY2twYXJ0eS5ub2RlLnYxLlVubG9ja0tleXN0b3JlUmVzcG9uc2USVQoIUG9zdFRleHQSIy5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLlBvc3RUZXh0UmVzcG9uc2USVQoIR2V0QmxvY2sSIy5ibG9ja3BhcnR5Lm5vZGUudjEuR2V0QmxvY2tSZXF1ZXN0GiQuYmxvY2twYXJ0eS5ub2RlLnYxLkdldEJsb2NrUmVzcG9uc2USWwoKTGlzdEJsb2NrcxIlLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVxdWVzdBomLmJsb2NrcGFydHkubm9kZS52MS5MaXN0QmxvY2tzUmVzcG9uc2USXwoPU3Vic2NyaWJlQmxvY2tzEiouYmxvY2twYXJ0eS5ub2RlLnYxLlN1YnNjcmliZUJsb2Nrc1JlcXVlc3QaHi5ibG9ja3BhcnR5Lm5vZGUudjEuQmxvY2tFdmVudDABEl4KC0dldElkZW50aXR5EiYuYmxvY2twYXJ0eS5ub2RlLnYxLkdldElkZW50aXR5UmVxdWVzdBonLmJsb2NrcGFydHkubm9kZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlElIKB0FkZFBlZXISIi5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlcXVlc3QaIy5ibG9ja3BhcnR5Lm5vZGUudjEuQWRkUGVlclJlc3BvbnNlEmoKD1N0YXJ0Q29ubmVjdGlvbhIqLmJsb2NrcGFydHkubm9kZS52MS5TdGFydENvbm5lY3Rpb25SZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLlN0YXJ0Q29ubmVjdGlvblJlc3BvbnNlEmoKD0xpc3RDb25uZWN0aW9ucxIqLmJsb2NrcGFydHkubm9kZS52MS5MaXN0Q29ubmVjdGlvbnNSZXF1ZXN0GisuYmxvY2twYXJ0eS5ub2RlLnYxLkxpc3RDb25uZWN0aW9uc1Jlc3BvbnNlElsKEFJvdGF0ZUNvbm5lY3Rpb24SIS5ibG9ja3BhcnR5Lm5vZGUudjEuQ29ubmVjdGlvblJlZhokLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVzdWx0EloKD0Nsb3NlQ29ubmVjdGlvbhIhLmJsb2NrcGFydHkubm9kZS52MS5Db25uZWN0aW9uUmVmGiQuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZXN1bHQSYwoPU2VuZFByaXZhdGVUZXh0EiouYmxvY2twYXJ0eS5ub2RlLnYxLlNlbmRQcml2YXRlVGV4dFJlcXVlc3QaJC5ibG9ja3BhcnR5Lm5vZGUudjEuUG9zdFRleHRSZXNwb25zZRJvChZMaXN0Q29ubmVjdGlvbk1lc3NhZ2VzEiEuYmxvY2twYXJ0eS5ub2RlLnYxLkNvbm5lY3Rpb25SZWYaMi5ibG9ja3BhcnR5Lm5vZGUudjEuTGlzdENvbm5lY3Rpb25NZXNzYWdlc1Jlc3BvbnNlEmcKDlJvdGF0ZUlkZW50aXR5EikuYmxvY2twYXJ0eS5ub2RlLnYxLlJvdGF0ZUlkZW50aXR5UmVxdWVzdBoqLmJsb2NrcGFydHkubm9kZS52MS5Sb3RhdGVJZGVudGl0eVJlc3BvbnNlEmEKDEJ1cm5JZGVudGl0eRInLmJsb2NrcGFydHkubm9kZS52MS5CdXJuSWRlbnRpdHlSZXF1ZXN0GiguYmxvY2twYXJ0eS5ub2RlLnYxLkJ1cm5JZGVudGl0eVJlc3BvbnNlQj5aPGdpdGh1Yi5jb20vYnBwcm90b2NvbC9ibG9ja3BhcnR5L25vZGUvaW50ZXJuYWwvbm9kZXBiO25vZGVwYmIGcHJvdG8z");
 
 /**
  * @generated from message blockparty.node.v1.GetStatusRequest
@@ -71,6 +71,13 @@ export type GetStatusResponse = Message<"blockparty.node.v1.GetStatusResponse"> 
    * @generated from field: bool can_author = 7;
    */
   canAuthor: boolean;
+
+  /**
+   * an encrypted keystore is on disk (unlock, don't bootstrap)
+   *
+   * @generated from field: bool keystore_exists = 8;
+   */
+  keystoreExists: boolean;
 };
 
 /**
@@ -140,6 +147,51 @@ export const BootstrapWorldResponseSchema: GenMessage<BootstrapWorldResponse> = 
   messageDesc(file_node, 3);
 
 /**
+ * @generated from message blockparty.node.v1.UnlockKeystoreRequest
+ */
+export type UnlockKeystoreRequest = Message<"blockparty.node.v1.UnlockKeystoreRequest"> & {
+  /**
+   * secret: unlocks the existing keystore
+   *
+   * @generated from field: string keystore_passphrase = 1;
+   */
+  keystorePassphrase: string;
+};
+
+/**
+ * Describes the message blockparty.node.v1.UnlockKeystoreRequest.
+ * Use `create(UnlockKeystoreRequestSchema)` to create a new message.
+ */
+export const UnlockKeystoreRequestSchema: GenMessage<UnlockKeystoreRequest> = /*@__PURE__*/
+  messageDesc(file_node, 4);
+
+/**
+ * @generated from message blockparty.node.v1.UnlockKeystoreResponse
+ */
+export type UnlockKeystoreResponse = Message<"blockparty.node.v1.UnlockKeystoreResponse"> & {
+  /**
+   * World fingerprint
+   *
+   * @generated from field: string world = 1;
+   */
+  world: string;
+
+  /**
+   * identity address
+   *
+   * @generated from field: string identity = 2;
+   */
+  identity: string;
+};
+
+/**
+ * Describes the message blockparty.node.v1.UnlockKeystoreResponse.
+ * Use `create(UnlockKeystoreResponseSchema)` to create a new message.
+ */
+export const UnlockKeystoreResponseSchema: GenMessage<UnlockKeystoreResponse> = /*@__PURE__*/
+  messageDesc(file_node, 5);
+
+/**
  * @generated from message blockparty.node.v1.PostTextRequest
  */
 export type PostTextRequest = Message<"blockparty.node.v1.PostTextRequest"> & {
@@ -161,7 +213,7 @@ export type PostTextRequest = Message<"blockparty.node.v1.PostTextRequest"> & {
  * Use `create(PostTextRequestSchema)` to create a new message.
  */
 export const PostTextRequestSchema: GenMessage<PostTextRequest> = /*@__PURE__*/
-  messageDesc(file_node, 4);
+  messageDesc(file_node, 6);
 
 /**
  * @generated from message blockparty.node.v1.PostTextResponse
@@ -180,7 +232,7 @@ export type PostTextResponse = Message<"blockparty.node.v1.PostTextResponse"> & 
  * Use `create(PostTextResponseSchema)` to create a new message.
  */
 export const PostTextResponseSchema: GenMessage<PostTextResponse> = /*@__PURE__*/
-  messageDesc(file_node, 5);
+  messageDesc(file_node, 7);
 
 /**
  * BlockSummary is the index view of a stored block (no payload).
@@ -237,7 +289,7 @@ export type BlockSummary = Message<"blockparty.node.v1.BlockSummary"> & {
  * Use `create(BlockSummarySchema)` to create a new message.
  */
 export const BlockSummarySchema: GenMessage<BlockSummary> = /*@__PURE__*/
-  messageDesc(file_node, 6);
+  messageDesc(file_node, 8);
 
 /**
  * @generated from message blockparty.node.v1.GetBlockRequest
@@ -254,7 +306,7 @@ export type GetBlockRequest = Message<"blockparty.node.v1.GetBlockRequest"> & {
  * Use `create(GetBlockRequestSchema)` to create a new message.
  */
 export const GetBlockRequestSchema: GenMessage<GetBlockRequest> = /*@__PURE__*/
-  messageDesc(file_node, 7);
+  messageDesc(file_node, 9);
 
 /**
  * @generated from message blockparty.node.v1.GetBlockResponse
@@ -292,7 +344,7 @@ export type GetBlockResponse = Message<"blockparty.node.v1.GetBlockResponse"> & 
  * Use `create(GetBlockResponseSchema)` to create a new message.
  */
 export const GetBlockResponseSchema: GenMessage<GetBlockResponse> = /*@__PURE__*/
-  messageDesc(file_node, 8);
+  messageDesc(file_node, 10);
 
 /**
  * @generated from message blockparty.node.v1.ListBlocksRequest
@@ -338,7 +390,7 @@ export type ListBlocksRequest = Message<"blockparty.node.v1.ListBlocksRequest"> 
  * Use `create(ListBlocksRequestSchema)` to create a new message.
  */
 export const ListBlocksRequestSchema: GenMessage<ListBlocksRequest> = /*@__PURE__*/
-  messageDesc(file_node, 9);
+  messageDesc(file_node, 11);
 
 /**
  * @generated from message blockparty.node.v1.ListBlocksResponse
@@ -355,7 +407,7 @@ export type ListBlocksResponse = Message<"blockparty.node.v1.ListBlocksResponse"
  * Use `create(ListBlocksResponseSchema)` to create a new message.
  */
 export const ListBlocksResponseSchema: GenMessage<ListBlocksResponse> = /*@__PURE__*/
-  messageDesc(file_node, 10);
+  messageDesc(file_node, 12);
 
 /**
  * @generated from message blockparty.node.v1.SubscribeBlocksRequest
@@ -374,7 +426,7 @@ export type SubscribeBlocksRequest = Message<"blockparty.node.v1.SubscribeBlocks
  * Use `create(SubscribeBlocksRequestSchema)` to create a new message.
  */
 export const SubscribeBlocksRequestSchema: GenMessage<SubscribeBlocksRequest> = /*@__PURE__*/
-  messageDesc(file_node, 11);
+  messageDesc(file_node, 13);
 
 /**
  * @generated from message blockparty.node.v1.BlockEvent
@@ -391,7 +443,7 @@ export type BlockEvent = Message<"blockparty.node.v1.BlockEvent"> & {
  * Use `create(BlockEventSchema)` to create a new message.
  */
 export const BlockEventSchema: GenMessage<BlockEvent> = /*@__PURE__*/
-  messageDesc(file_node, 12);
+  messageDesc(file_node, 14);
 
 /**
  * @generated from message blockparty.node.v1.GetIdentityRequest
@@ -404,7 +456,7 @@ export type GetIdentityRequest = Message<"blockparty.node.v1.GetIdentityRequest"
  * Use `create(GetIdentityRequestSchema)` to create a new message.
  */
 export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_node, 13);
+  messageDesc(file_node, 15);
 
 /**
  * @generated from message blockparty.node.v1.GetIdentityResponse
@@ -435,7 +487,7 @@ export type GetIdentityResponse = Message<"blockparty.node.v1.GetIdentityRespons
  * Use `create(GetIdentityResponseSchema)` to create a new message.
  */
 export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_node, 14);
+  messageDesc(file_node, 16);
 
 /**
  * @generated from message blockparty.node.v1.AddPeerRequest
@@ -466,7 +518,7 @@ export type AddPeerRequest = Message<"blockparty.node.v1.AddPeerRequest"> & {
  * Use `create(AddPeerRequestSchema)` to create a new message.
  */
 export const AddPeerRequestSchema: GenMessage<AddPeerRequest> = /*@__PURE__*/
-  messageDesc(file_node, 15);
+  messageDesc(file_node, 17);
 
 /**
  * @generated from message blockparty.node.v1.AddPeerResponse
@@ -479,7 +531,7 @@ export type AddPeerResponse = Message<"blockparty.node.v1.AddPeerResponse"> & {
  * Use `create(AddPeerResponseSchema)` to create a new message.
  */
 export const AddPeerResponseSchema: GenMessage<AddPeerResponse> = /*@__PURE__*/
-  messageDesc(file_node, 16);
+  messageDesc(file_node, 18);
 
 /**
  * @generated from message blockparty.node.v1.StartConnectionRequest
@@ -498,7 +550,7 @@ export type StartConnectionRequest = Message<"blockparty.node.v1.StartConnection
  * Use `create(StartConnectionRequestSchema)` to create a new message.
  */
 export const StartConnectionRequestSchema: GenMessage<StartConnectionRequest> = /*@__PURE__*/
-  messageDesc(file_node, 17);
+  messageDesc(file_node, 19);
 
 /**
  * @generated from message blockparty.node.v1.StartConnectionResponse
@@ -517,7 +569,7 @@ export type StartConnectionResponse = Message<"blockparty.node.v1.StartConnectio
  * Use `create(StartConnectionResponseSchema)` to create a new message.
  */
 export const StartConnectionResponseSchema: GenMessage<StartConnectionResponse> = /*@__PURE__*/
-  messageDesc(file_node, 18);
+  messageDesc(file_node, 20);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionInfo
@@ -546,7 +598,7 @@ export type ConnectionInfo = Message<"blockparty.node.v1.ConnectionInfo"> & {
  * Use `create(ConnectionInfoSchema)` to create a new message.
  */
 export const ConnectionInfoSchema: GenMessage<ConnectionInfo> = /*@__PURE__*/
-  messageDesc(file_node, 19);
+  messageDesc(file_node, 21);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionsRequest
@@ -559,7 +611,7 @@ export type ListConnectionsRequest = Message<"blockparty.node.v1.ListConnections
  * Use `create(ListConnectionsRequestSchema)` to create a new message.
  */
 export const ListConnectionsRequestSchema: GenMessage<ListConnectionsRequest> = /*@__PURE__*/
-  messageDesc(file_node, 20);
+  messageDesc(file_node, 22);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionsResponse
@@ -576,7 +628,7 @@ export type ListConnectionsResponse = Message<"blockparty.node.v1.ListConnection
  * Use `create(ListConnectionsResponseSchema)` to create a new message.
  */
 export const ListConnectionsResponseSchema: GenMessage<ListConnectionsResponse> = /*@__PURE__*/
-  messageDesc(file_node, 21);
+  messageDesc(file_node, 23);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionRef
@@ -595,7 +647,7 @@ export type ConnectionRef = Message<"blockparty.node.v1.ConnectionRef"> & {
  * Use `create(ConnectionRefSchema)` to create a new message.
  */
 export const ConnectionRefSchema: GenMessage<ConnectionRef> = /*@__PURE__*/
-  messageDesc(file_node, 22);
+  messageDesc(file_node, 24);
 
 /**
  * @generated from message blockparty.node.v1.ConnectionResult
@@ -608,7 +660,7 @@ export type ConnectionResult = Message<"blockparty.node.v1.ConnectionResult"> & 
  * Use `create(ConnectionResultSchema)` to create a new message.
  */
 export const ConnectionResultSchema: GenMessage<ConnectionResult> = /*@__PURE__*/
-  messageDesc(file_node, 23);
+  messageDesc(file_node, 25);
 
 /**
  * @generated from message blockparty.node.v1.SendPrivateTextRequest
@@ -632,7 +684,7 @@ export type SendPrivateTextRequest = Message<"blockparty.node.v1.SendPrivateText
  * Use `create(SendPrivateTextRequestSchema)` to create a new message.
  */
 export const SendPrivateTextRequestSchema: GenMessage<SendPrivateTextRequest> = /*@__PURE__*/
-  messageDesc(file_node, 24);
+  messageDesc(file_node, 26);
 
 /**
  * @generated from message blockparty.node.v1.PrivateMessage
@@ -661,7 +713,7 @@ export type PrivateMessage = Message<"blockparty.node.v1.PrivateMessage"> & {
  * Use `create(PrivateMessageSchema)` to create a new message.
  */
 export const PrivateMessageSchema: GenMessage<PrivateMessage> = /*@__PURE__*/
-  messageDesc(file_node, 25);
+  messageDesc(file_node, 27);
 
 /**
  * @generated from message blockparty.node.v1.ListConnectionMessagesResponse
@@ -678,7 +730,7 @@ export type ListConnectionMessagesResponse = Message<"blockparty.node.v1.ListCon
  * Use `create(ListConnectionMessagesResponseSchema)` to create a new message.
  */
 export const ListConnectionMessagesResponseSchema: GenMessage<ListConnectionMessagesResponse> = /*@__PURE__*/
-  messageDesc(file_node, 26);
+  messageDesc(file_node, 28);
 
 /**
  * @generated from message blockparty.node.v1.RotateIdentityRequest
@@ -702,7 +754,7 @@ export type RotateIdentityRequest = Message<"blockparty.node.v1.RotateIdentityRe
  * Use `create(RotateIdentityRequestSchema)` to create a new message.
  */
 export const RotateIdentityRequestSchema: GenMessage<RotateIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_node, 27);
+  messageDesc(file_node, 29);
 
 /**
  * @generated from message blockparty.node.v1.RotateIdentityResponse
@@ -721,7 +773,7 @@ export type RotateIdentityResponse = Message<"blockparty.node.v1.RotateIdentityR
  * Use `create(RotateIdentityResponseSchema)` to create a new message.
  */
 export const RotateIdentityResponseSchema: GenMessage<RotateIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_node, 28);
+  messageDesc(file_node, 30);
 
 /**
  * @generated from message blockparty.node.v1.BurnIdentityRequest
@@ -747,7 +799,7 @@ export type BurnIdentityRequest = Message<"blockparty.node.v1.BurnIdentityReques
  * Use `create(BurnIdentityRequestSchema)` to create a new message.
  */
 export const BurnIdentityRequestSchema: GenMessage<BurnIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_node, 29);
+  messageDesc(file_node, 31);
 
 /**
  * @generated from message blockparty.node.v1.BurnIdentityResponse
@@ -766,7 +818,7 @@ export type BurnIdentityResponse = Message<"blockparty.node.v1.BurnIdentityRespo
  * Use `create(BurnIdentityResponseSchema)` to create a new message.
  */
 export const BurnIdentityResponseSchema: GenMessage<BurnIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_node, 30);
+  messageDesc(file_node, 32);
 
 /**
  * NodeService is the bpnode client API (#38), consumed by the desktop client
@@ -799,6 +851,20 @@ export const NodeService: GenService<{
     methodKind: "unary";
     input: typeof BootstrapWorldRequestSchema;
     output: typeof BootstrapWorldResponseSchema;
+  },
+  /**
+   * UnlockKeystore unlocks an existing encrypted keystore at runtime, deriving
+   * the World and identity in memory (personal mode, when a keystore is present
+   * but no World is loaded). This is the client-driven alternative to handing
+   * the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
+   * reports keystore_exists=true and waits here.
+   *
+   * @generated from rpc blockparty.node.v1.NodeService.UnlockKeystore
+   */
+  unlockKeystore: {
+    methodKind: "unary";
+    input: typeof UnlockKeystoreRequestSchema;
+    output: typeof UnlockKeystoreResponseSchema;
   },
   /**
    * PostText authors a content.post to a public audience. The client submits

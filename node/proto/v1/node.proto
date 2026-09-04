@@ -18,6 +18,13 @@ service NodeService {
   // Honors the single-World invariant.
   rpc BootstrapWorld(BootstrapWorldRequest) returns (BootstrapWorldResponse);
 
+  // UnlockKeystore unlocks an existing encrypted keystore at runtime, deriving
+  // the World and identity in memory (personal mode, when a keystore is present
+  // but no World is loaded). This is the client-driven alternative to handing
+  // the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
+  // reports keystore_exists=true and waits here.
+  rpc UnlockKeystore(UnlockKeystoreRequest) returns (UnlockKeystoreResponse);
+
   // PostText authors a content.post to a public audience. The client submits
   // intent (audience + text); the node encrypts and signs (world_sig+author_sig)
   // and stores it. The client never handles a private key.
@@ -85,6 +92,7 @@ message GetStatusResponse {
   string identity = 5;      // identity address (personal, keystore unlocked)
   int64 block_count = 6;
   bool can_author = 7;      // node holds an unlocked keystore
+  bool keystore_exists = 8; // an encrypted keystore is on disk (unlock, don't bootstrap)
 }
 
 message BootstrapWorldRequest {
@@ -94,6 +102,15 @@ message BootstrapWorldRequest {
 }
 
 message BootstrapWorldResponse {
+  string world = 1;     // World fingerprint
+  string identity = 2;  // identity address
+}
+
+message UnlockKeystoreRequest {
+  string keystore_passphrase = 1; // secret: unlocks the existing keystore
+}
+
+message UnlockKeystoreResponse {
   string world = 1;     // World fingerprint
   string identity = 2;  // identity address
 }

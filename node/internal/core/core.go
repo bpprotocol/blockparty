@@ -36,6 +36,7 @@ var (
 	ErrAlreadyLoaded  = errors.New("core: a World is already loaded")
 	ErrRelayBootstrap = errors.New("core: relay mode cannot bootstrap or author")
 	ErrCannotAuthor   = errors.New("core: node cannot author (no unlocked keystore)")
+	ErrNoKeystore     = errors.New("core: no keystore to unlock")
 )
 
 // Per-peer ingress limits applied by the guard.
@@ -53,6 +54,10 @@ type Status struct {
 	Identity    string // address
 	BlockCount  int
 	CanAuthor   bool
+	// KeystoreExists reports an encrypted keystore on disk. With WorldLoaded
+	// false it tells a client to ask for the passphrase and unlock, rather than
+	// offer onboarding (which would fail: a keystore is never overwritten).
+	KeystoreExists bool
 }
 
 // Gossiper is the gossip layer (#35) the core drives: it follows audience topics
@@ -233,12 +238,13 @@ func (c *Core) Status() Status {
 func (c *Core) statusLocked() Status {
 	n, _ := c.store.Count()
 	s := Status{
-		Version:     c.version,
-		Mode:        string(c.cfg.Mode),
-		WorldLoaded: c.world.Loaded,
-		World:       c.world.Fingerprint,
-		BlockCount:  n,
-		CanAuthor:   c.ks != nil,
+		Version:        c.version,
+		Mode:           string(c.cfg.Mode),
+		WorldLoaded:    c.world.Loaded,
+		World:          c.world.Fingerprint,
+		BlockCount:     n,
+		CanAuthor:      c.ks != nil,
+		KeystoreExists: keystore.Exists(keystore.Path(c.cfg.DataDir)),
 	}
 	if c.ks != nil {
 		s.Identity = string(c.ks.Identity().Address)
@@ -278,6 +284,47 @@ func (c *Core) BootstrapWorld(seed, identityPass, keystorePass string) (Status, 
 		return Status{}, err
 	}
 	c.log.Info("world bootstrapped via client", "world", c.world.Fingerprint)
+	return c.statusLocked(), nil
+}
+
+// UnlockKeystore opens the keystore already on disk and loads its World —
+// the runtime counterpart of unlocking at boot with BPNODE_KEYSTORE_PASSPHRASE
+// (#28). A node started without that passphrase boots unconfigured, so the
+// client collects it and calls this instead of BootstrapWorld (which refuses to
+// overwrite an existing keystore).
+//
+// The passphrase is used to derive the master key and is not retained; private
+// keys stay in memory, as they do on the boot path.
+func (c *Core) UnlockKeystore(keystorePass string) (Status, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cfg.Mode != config.ModePersonal {
+		return Status{}, ErrRelayBootstrap
+	}
+	if c.world.Loaded {
+		return Status{}, ErrAlreadyLoaded
+	}
+	if keystorePass == "" {
+		return Status{}, errors.New("core: keystore passphrase required")
+	}
+
+	path := keystore.Path(c.cfg.DataDir)
+	if !keystore.Exists(path) {
+		return Status{}, ErrNoKeystore
+	}
+	ks, err := keystore.Open(path, keystorePass)
+	if err != nil {
+		// Wrapped, so the API can map a bad passphrase distinctly from an
+		// unreadable keystore.
+		return Status{}, fmt.Errorf("core: unlock keystore: %w", err)
+	}
+	c.ks = ks
+	c.world = world.FromWorld(ks.World())
+	if err := c.activate(); err != nil {
+		return Status{}, err
+	}
+	c.log.Info("keystore unlocked via client", "world", c.world.Fingerprint)
 	return c.statusLocked(), nil
 }
 

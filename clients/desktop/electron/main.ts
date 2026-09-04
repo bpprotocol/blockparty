@@ -27,6 +27,7 @@ function disconnectedNodeApi(reason: string): NodeApi {
   return {
     getStatus: fail,
     bootstrapWorld: fail,
+    unlockKeystore: fail,
     postText: fail,
     getBlock: fail,
     listBlocks: fail,

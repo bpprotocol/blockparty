@@ -16,6 +16,9 @@ export interface NodeStatus {
   identity: string
   blockCount: number
   canAuthor: boolean
+  // An encrypted keystore is on disk. With worldLoaded false the client must
+  // offer unlock rather than onboarding — a keystore is never overwritten.
+  keystoreExists: boolean
 }
 
 export interface BootstrapRequest {
@@ -64,6 +67,10 @@ export interface ListFilter {
 export interface NodeApi {
   getStatus(): Promise<Result<NodeStatus>>
   bootstrapWorld(req: BootstrapRequest): Promise<Result<BootstrapResult>>
+  // unlockKeystore opens a keystore the node already holds, using the
+  // passphrase it was created with. The node derives the keys in memory; the
+  // passphrase is not persisted by the client.
+  unlockKeystore(keystorePassphrase: string): Promise<Result<BootstrapResult>>
   postText(req: PostTextRequest): Promise<Result<{ id: string }>>
   getBlock(id: string): Promise<Result<BlockView>>
   listBlocks(filter: ListFilter): Promise<Result<BlockSummary[]>>
@@ -151,6 +158,7 @@ export interface BpDesktop {
 export const NODE_CHANNELS = {
   getStatus: 'node:getStatus',
   bootstrapWorld: 'node:bootstrapWorld',
+  unlockKeystore: 'node:unlockKeystore',
   postText: 'node:postText',
   getBlock: 'node:getBlock',
   listBlocks: 'node:listBlocks',

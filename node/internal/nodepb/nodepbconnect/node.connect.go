@@ -38,6 +38,9 @@ const (
 	// NodeServiceBootstrapWorldProcedure is the fully-qualified name of the NodeService's
 	// BootstrapWorld RPC.
 	NodeServiceBootstrapWorldProcedure = "/blockparty.node.v1.NodeService/BootstrapWorld"
+	// NodeServiceUnlockKeystoreProcedure is the fully-qualified name of the NodeService's
+	// UnlockKeystore RPC.
+	NodeServiceUnlockKeystoreProcedure = "/blockparty.node.v1.NodeService/UnlockKeystore"
 	// NodeServicePostTextProcedure is the fully-qualified name of the NodeService's PostText RPC.
 	NodeServicePostTextProcedure = "/blockparty.node.v1.NodeService/PostText"
 	// NodeServiceGetBlockProcedure is the fully-qualified name of the NodeService's GetBlock RPC.
@@ -86,6 +89,12 @@ type NodeServiceClient interface {
 	// (personal mode only): it initializes the keystore from the supplied secrets.
 	// Honors the single-World invariant.
 	BootstrapWorld(context.Context, *connect.Request[nodepb.BootstrapWorldRequest]) (*connect.Response[nodepb.BootstrapWorldResponse], error)
+	// UnlockKeystore unlocks an existing encrypted keystore at runtime, deriving
+	// the World and identity in memory (personal mode, when a keystore is present
+	// but no World is loaded). This is the client-driven alternative to handing
+	// the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
+	// reports keystore_exists=true and waits here.
+	UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error)
 	// PostText authors a content.post to a public audience. The client submits
 	// intent (audience + text); the node encrypts and signs (world_sig+author_sig)
 	// and stores it. The client never handles a private key.
@@ -147,6 +156,12 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+NodeServiceBootstrapWorldProcedure,
 			connect.WithSchema(nodeServiceMethods.ByName("BootstrapWorld")),
+			connect.WithClientOptions(opts...),
+		),
+		unlockKeystore: connect.NewClient[nodepb.UnlockKeystoreRequest, nodepb.UnlockKeystoreResponse](
+			httpClient,
+			baseURL+NodeServiceUnlockKeystoreProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("UnlockKeystore")),
 			connect.WithClientOptions(opts...),
 		),
 		postText: connect.NewClient[nodepb.PostTextRequest, nodepb.PostTextResponse](
@@ -240,6 +255,7 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 type nodeServiceClient struct {
 	getStatus              *connect.Client[nodepb.GetStatusRequest, nodepb.GetStatusResponse]
 	bootstrapWorld         *connect.Client[nodepb.BootstrapWorldRequest, nodepb.BootstrapWorldResponse]
+	unlockKeystore         *connect.Client[nodepb.UnlockKeystoreRequest, nodepb.UnlockKeystoreResponse]
 	postText               *connect.Client[nodepb.PostTextRequest, nodepb.PostTextResponse]
 	getBlock               *connect.Client[nodepb.GetBlockRequest, nodepb.GetBlockResponse]
 	listBlocks             *connect.Client[nodepb.ListBlocksRequest, nodepb.ListBlocksResponse]
@@ -264,6 +280,11 @@ func (c *nodeServiceClient) GetStatus(ctx context.Context, req *connect.Request[
 // BootstrapWorld calls blockparty.node.v1.NodeService.BootstrapWorld.
 func (c *nodeServiceClient) BootstrapWorld(ctx context.Context, req *connect.Request[nodepb.BootstrapWorldRequest]) (*connect.Response[nodepb.BootstrapWorldResponse], error) {
 	return c.bootstrapWorld.CallUnary(ctx, req)
+}
+
+// UnlockKeystore calls blockparty.node.v1.NodeService.UnlockKeystore.
+func (c *nodeServiceClient) UnlockKeystore(ctx context.Context, req *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error) {
+	return c.unlockKeystore.CallUnary(ctx, req)
 }
 
 // PostText calls blockparty.node.v1.NodeService.PostText.
@@ -345,6 +366,12 @@ type NodeServiceHandler interface {
 	// (personal mode only): it initializes the keystore from the supplied secrets.
 	// Honors the single-World invariant.
 	BootstrapWorld(context.Context, *connect.Request[nodepb.BootstrapWorldRequest]) (*connect.Response[nodepb.BootstrapWorldResponse], error)
+	// UnlockKeystore unlocks an existing encrypted keystore at runtime, deriving
+	// the World and identity in memory (personal mode, when a keystore is present
+	// but no World is loaded). This is the client-driven alternative to handing
+	// the node BPNODE_KEYSTORE_PASSPHRASE at startup: a node booted without it
+	// reports keystore_exists=true and waits here.
+	UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error)
 	// PostText authors a content.post to a public audience. The client submits
 	// intent (audience + text); the node encrypts and signs (world_sig+author_sig)
 	// and stores it. The client never handles a private key.
@@ -402,6 +429,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		NodeServiceBootstrapWorldProcedure,
 		svc.BootstrapWorld,
 		connect.WithSchema(nodeServiceMethods.ByName("BootstrapWorld")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceUnlockKeystoreHandler := connect.NewUnaryHandler(
+		NodeServiceUnlockKeystoreProcedure,
+		svc.UnlockKeystore,
+		connect.WithSchema(nodeServiceMethods.ByName("UnlockKeystore")),
 		connect.WithHandlerOptions(opts...),
 	)
 	nodeServicePostTextHandler := connect.NewUnaryHandler(
@@ -494,6 +527,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceGetStatusHandler.ServeHTTP(w, r)
 		case NodeServiceBootstrapWorldProcedure:
 			nodeServiceBootstrapWorldHandler.ServeHTTP(w, r)
+		case NodeServiceUnlockKeystoreProcedure:
+			nodeServiceUnlockKeystoreHandler.ServeHTTP(w, r)
 		case NodeServicePostTextProcedure:
 			nodeServicePostTextHandler.ServeHTTP(w, r)
 		case NodeServiceGetBlockProcedure:
@@ -537,6 +572,10 @@ func (UnimplementedNodeServiceHandler) GetStatus(context.Context, *connect.Reque
 
 func (UnimplementedNodeServiceHandler) BootstrapWorld(context.Context, *connect.Request[nodepb.BootstrapWorldRequest]) (*connect.Response[nodepb.BootstrapWorldResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.BootstrapWorld is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) UnlockKeystore(context.Context, *connect.Request[nodepb.UnlockKeystoreRequest]) (*connect.Response[nodepb.UnlockKeystoreResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("blockparty.node.v1.NodeService.UnlockKeystore is not implemented"))
 }
 
 func (UnimplementedNodeServiceHandler) PostText(context.Context, *connect.Request[nodepb.PostTextRequest]) (*connect.Response[nodepb.PostTextResponse], error) {

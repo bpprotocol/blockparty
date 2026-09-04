@@ -4,6 +4,7 @@ import { NodeService } from './gen/node_pb'
 import type {
   BlockSummary,
   BootstrapRequest,
+  BootstrapResult,
   ConnectionInfo,
   IdentityCard,
   ListFilter,
@@ -52,15 +53,21 @@ export class NodeClient implements NodeApi {
         identity: r.identity,
         blockCount: Number(r.blockCount),
         canAuthor: r.canAuthor,
+        keystoreExists: r.keystoreExists,
       }
     })
   }
 
-  async bootstrapWorld(
-    req: BootstrapRequest,
-  ): Promise<Result<{ world: string; identity: string }>> {
+  async bootstrapWorld(req: BootstrapRequest): Promise<Result<BootstrapResult>> {
     return wrap(async () => {
       const r = await this.client.bootstrapWorld(req)
+      return { world: r.world, identity: r.identity }
+    })
+  }
+
+  async unlockKeystore(keystorePassphrase: string): Promise<Result<BootstrapResult>> {
+    return wrap(async () => {
+      const r = await this.client.unlockKeystore({ keystorePassphrase })
       return { world: r.world, identity: r.identity }
     })
   }

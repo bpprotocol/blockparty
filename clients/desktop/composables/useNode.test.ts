@@ -10,6 +10,7 @@ const baseStatus: NodeStatus = {
   identity: '',
   blockCount: 0,
   canAuthor: false,
+  keystoreExists: false,
 }
 
 describe('deriveView', () => {
@@ -21,6 +22,24 @@ describe('deriveView', () => {
   })
   it('shows onboarding when connected but no World loaded', () => {
     expect(deriveView({ hasBridge: true, connected: true, status: baseStatus })).toBe('onboarding')
+  })
+  it('shows unlock when a keystore exists but no World is loaded', () => {
+    expect(
+      deriveView({
+        hasBridge: true,
+        connected: true,
+        status: { ...baseStatus, keystoreExists: true },
+      }),
+    ).toBe('unlock')
+  })
+  it('prefers ready over unlock once the keystore is open', () => {
+    expect(
+      deriveView({
+        hasBridge: true,
+        connected: true,
+        status: { ...baseStatus, keystoreExists: true, worldLoaded: true },
+      }),
+    ).toBe('ready')
   })
   it('shows ready when a World is loaded', () => {
     expect(
@@ -34,11 +53,18 @@ describe('deriveView', () => {
 })
 
 // fakeBridge installs a window.bpDesktop stub for the composable.
-function installBridge(over: Partial<{ status: NodeStatus; bootstrapOk: boolean }> = {}) {
+function installBridge(
+  over: Partial<{ status: NodeStatus; bootstrapOk: boolean; unlockOk: boolean }> = {},
+) {
   const status = over.status ?? baseStatus
   const bootstrapWorld = vi.fn(async () =>
     over.bootstrapOk === false
       ? { ok: false as const, error: 'bad seed' }
+      : { ok: true as const, value: { world: 'w1', identity: 'i1' } },
+  )
+  const unlockKeystore = vi.fn(async () =>
+    over.unlockOk === false
+      ? { ok: false as const, error: 'keystore: incorrect passphrase or corrupt keystore' }
       : { ok: true as const, value: { world: 'w1', identity: 'i1' } },
   )
   const getStatus = vi.fn(async () => ({ ok: true as const, value: status }))
@@ -47,6 +73,7 @@ function installBridge(over: Partial<{ status: NodeStatus; bootstrapOk: boolean 
       node: {
         getStatus,
         bootstrapWorld,
+        unlockKeystore,
         postText: vi.fn(),
         getBlock: vi.fn(),
         listBlocks: vi.fn(),
@@ -55,7 +82,7 @@ function installBridge(over: Partial<{ status: NodeStatus; bootstrapOk: boolean 
       versions: () => ({ electron: '', chrome: '', node: '' }),
     },
   }
-  return { bootstrapWorld, getStatus }
+  return { bootstrapWorld, unlockKeystore, getStatus }
 }
 
 afterEach(() => {
@@ -88,6 +115,47 @@ describe('useNode', () => {
       keystorePassphrase: 'pw',
     })
     expect(n.view.value).toBe('ready')
+  })
+
+  it('routes to unlock when the node already holds a keystore', async () => {
+    installBridge({ status: { ...baseStatus, keystoreExists: true } })
+    const n = useNode()
+    await n.refresh()
+    expect(n.view.value).toBe('unlock')
+  })
+
+  it('unlock forwards the passphrase and advances to ready on success', async () => {
+    const { unlockKeystore, getStatus } = installBridge({
+      status: { ...baseStatus, keystoreExists: true },
+    })
+    // After unlocking, the node reports a loaded World.
+    getStatus.mockResolvedValue({
+      ok: true,
+      value: { ...baseStatus, keystoreExists: true, worldLoaded: true, canAuthor: true },
+    })
+    const n = useNode()
+    const res = await n.unlock('pw')
+    expect(res.ok).toBe(true)
+    expect(unlockKeystore).toHaveBeenCalledWith('pw')
+    expect(n.view.value).toBe('ready')
+  })
+
+  it('unlock surfaces a wrong passphrase and stays on the unlock view', async () => {
+    installBridge({ status: { ...baseStatus, keystoreExists: true }, unlockOk: false })
+    const n = useNode()
+    await n.refresh()
+    const res = await n.unlock('nope')
+    expect(res.ok).toBe(false)
+    expect(res.error).toContain('incorrect passphrase')
+    expect(n.view.value).toBe('unlock')
+  })
+
+  it('unlock rejects an empty passphrase without calling the node', async () => {
+    const { unlockKeystore } = installBridge({ status: { ...baseStatus, keystoreExists: true } })
+    const n = useNode()
+    const res = await n.unlock('')
+    expect(res.ok).toBe(false)
+    expect(unlockKeystore).not.toHaveBeenCalled()
   })
 
   it('bootstrap surfaces the node error on failure', async () => {

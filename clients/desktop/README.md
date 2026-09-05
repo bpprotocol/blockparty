@@ -156,7 +156,7 @@ The renderer's connection/health panel polls `getStatus` and shows node version,
 
 ## Architecture
 
-- **`electron/main.ts`** — the Electron main process: window lifecycle and (later) managing the bundled `bpnode`. It loads the Nuxt dev server in development and the generated static SPA in production.
+- **`electron/main.ts`** — the Electron main process: window lifecycle and managing the bundled `bpnode`. It loads the Nuxt dev server in development, and in production serves the generated SPA over a privileged `app://bundle` scheme. That scheme is not cosmetic: Nuxt emits absolute asset paths (`/_nuxt/…`), which `file://` resolves against the filesystem root, and its entry is an ES module, which browsers refuse to load cross-origin from a file URL — either one leaves a blank window. The handler resolves paths inside `.output/public` and refuses anything outside it.
 - **`electron/preload.ts`** — the **only** bridge between renderer and main. It exposes a small, typed `window.bpDesktop` API via `contextBridge`; the renderer never touches Node, `fs`, or the main process directly.
 - **`app.vue` / Nuxt** — the renderer (SPA, `ssr: false`).
 

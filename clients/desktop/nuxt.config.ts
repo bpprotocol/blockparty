@@ -14,9 +14,12 @@ export default defineNuxtConfig({
   // starts. Enabling the Vite Environment API gives the dev server a real `ssr`
   // environment with the expected entry, which takes the same code path cleanly.
   experimental: { viteEnvironmentApi: true },
-  // Relative base so the generated index.html loads its assets via file://.
+  // Assets are referenced from the root: in production the Electron shell
+  // serves .output/public from a custom `app://bundle` scheme (see
+  // electron/main.ts), so absolute paths resolve against that origin. Loading
+  // the same bundle over file:// would not work — Nuxt's entry is an ES module,
+  // which browsers refuse to fetch cross-origin from a file URL.
   app: {
-    baseURL: './',
     head: {
       title: 'BlockParty',
     },

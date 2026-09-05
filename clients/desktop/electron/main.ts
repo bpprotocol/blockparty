@@ -1,5 +1,6 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, net, protocol, shell } from 'electron'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { FEED_CHANNELS, type ExternalNodeConfig, type NodeApi, type Result } from './bridge'
 import {
   clearExternalNode,
@@ -21,6 +22,39 @@ import { NodeClient, nodeTransport } from './node-client'
 import { NodeSupervisor } from './node-supervisor'
 
 const isDev = process.env.NODE_ENV === 'development'
+
+// The generated SPA is served over a custom scheme rather than file://, for two
+// reasons: Nuxt emits absolute asset paths (/_nuxt/...), which file:// resolves
+// against the filesystem root, and its entry is an ES module, which browsers
+// refuse to load cross-origin over file://. Both work over a standard scheme.
+const APP_SCHEME = 'app'
+const APP_ORIGIN = `${APP_SCHEME}://bundle`
+const RENDERER_ROOT = path.join(__dirname, '../.output/public')
+
+// Must run before the app is ready: marks the scheme standard and secure, so
+// module scripts, fetch and the usual web platform rules apply.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: APP_SCHEME,
+    privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true },
+  },
+])
+
+// registerAppProtocol serves the static bundle. Paths are resolved inside
+// RENDERER_ROOT and anything outside it is refused, so a crafted URL cannot
+// read the rest of the disk. Unknown paths fall back to index.html, the SPA
+// entry point.
+function registerAppProtocol(): void {
+  protocol.handle(APP_SCHEME, async (request) => {
+    const { pathname } = new URL(request.url)
+    const decoded = decodeURIComponent(pathname)
+    const target = path.join(RENDERER_ROOT, decoded)
+    const withinRoot = path.resolve(target).startsWith(path.resolve(RENDERER_ROOT) + path.sep)
+    const file =
+      withinRoot && path.extname(decoded) ? target : path.join(RENDERER_ROOT, 'index.html')
+    return net.fetch(pathToFileURL(file).toString())
+  })
+}
 
 let supervisor: NodeSupervisor | undefined
 let nodeClient: NodeClient | undefined
@@ -111,12 +145,14 @@ function createMainWindow(): BrowserWindow {
   if (isDev) {
     void win.loadURL(process.env.ELECTRON_RENDERER_URL ?? 'http://localhost:3000')
   } else {
-    void win.loadFile(path.join(__dirname, '../.output/public/index.html'))
+    void win.loadURL(`${APP_ORIGIN}/index.html`)
   }
   return win
 }
 
 void app.whenReady().then(async () => {
+  if (!isDev) registerAppProtocol()
+
   // Manage (or attach to) the local node, then expose it to the renderer (#42).
   await startNode()
   registerNodeIpc(() => nodeApi)

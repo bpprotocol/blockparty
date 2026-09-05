@@ -3,9 +3,12 @@ name: desktop
 on:
   push:
     branches: [master, reference-node]
-    paths: ['clients/desktop/**', '.github/workflows/desktop.yml']
+    tags: ['desktop-v*']
+    paths: ['clients/desktop/**', 'node/**', '.github/workflows/desktop.yml']
   pull_request:
-    paths: ['clients/desktop/**', '.github/workflows/desktop.yml']
+    paths: ['clients/desktop/**', 'node/**', '.github/workflows/desktop.yml']
+  # Packaging on demand, without waiting for a push to master.
+  workflow_dispatch:
 
 jobs:
   build:
@@ -34,3 +37,72 @@ jobs:
       - run: pnpm build:renderer # nuxt generate → static SPA
       - run: pnpm build:main # tsc → dist-electron (main + preload)
       - run: pnpm format:check
+
+  # Packaging matrix (#48). Each platform's installer has to be produced on that
+  # platform — electron-builder needs macOS for a dmg and Windows for NSIS — so
+  # this fans out rather than cross-building. Every leg compiles its own bpnode
+  # through the beforePack hook, which is why Go is set up here.
+  #
+  # It downloads Electron and packages three ways, so it is reserved for master,
+  # desktop-v* tags, and manual runs; pull requests stop at the `build` job.
+  package:
+    needs: build
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/master' ||
+      startsWith(github.ref, 'refs/tags/desktop-v')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux
+          - os: macos-latest
+            label: macos
+          - os: windows-latest
+            label: windows
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: clients/desktop
+    steps:
+      - uses: actions/checkout@v4
+      # The bundled node is built from source for the target being packaged.
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: node/go.sum
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: clients/desktop/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: package
+        run: pnpm build # renderer + main + bpnode for this target, then electron-builder
+      # Guards the no-bundled-node target (#51) against bit-rot. One platform is
+      # enough: nothing in it is OS-specific.
+      - name: package (client-only, no bundled node)
+        if: runner.os == 'Linux'
+        run: pnpm build:client-only
+      - name: the artifact carries a node for this platform
+        shell: bash
+        run: |
+          case "${{ runner.os }}" in
+            Windows) test -f resources/bpnode.exe ;;
+            *)       test -f resources/bpnode ;;
+          esac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blockparty-desktop-${{ matrix.label }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            clients/desktop/release/*.AppImage
+            clients/desktop/release/*.deb
+            clients/desktop/release/*.dmg
+            clients/desktop/release/*.exe
+            clients/desktop/release-client-only/*.AppImage

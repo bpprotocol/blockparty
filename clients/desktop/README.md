@@ -76,7 +76,7 @@ The node is compiled by an electron-builder **`beforePack` hook** (`scripts/befo
 | macOS   | `BlockParty-<version>-<arch>.dmg` (x64, arm64)                            | macOS    |
 | Windows | `BlockParty-<version>-x64.exe` (NSIS)                                     | Windows  |
 
-The Go side cross-compiles freely, but each platform's _installer_ has to be produced on that platform (electron-builder needs macOS for a dmg, Windows or wine for NSIS) — so releases come from a matrix, not one machine. The app icon is generated from `build/icon.png`; the executable is named `blockparty` (`executableName`), not after the npm package.
+The Go side cross-compiles freely, but each platform's _installer_ has to be produced on that platform (electron-builder needs macOS for a dmg, Windows or wine for NSIS) — so releases come from a matrix, not one machine. That matrix is the `package` job in [`.github/workflows/desktop.yml`](../../.github/workflows/desktop.yml): it fans out across `ubuntu-latest`, `macos-latest` and `windows-latest`, sets up Go so each leg compiles its own `bpnode`, and uploads the artifacts. Pull requests stop at the checks; packaging runs on `master`, on `desktop-v*` tags, and on demand via **Run workflow**. The app icon is generated from `build/icon.png`; the executable is named `blockparty` (`executableName`), not after the npm package.
 
 **Code signing, notarization and auto-update are deliberately out of scope** (`mac.identity: null`). The artifacts install and launch unsigned, with the usual first-run warnings on macOS and Windows.
 

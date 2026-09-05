@@ -1,4 +1,4 @@
-import { app, BrowserWindow, net, protocol, shell } from 'electron'
+import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { FEED_CHANNELS, type ExternalNodeConfig, type NodeApi, type Result } from './bridge'
@@ -124,11 +124,43 @@ async function connectExternal(cfg: ExternalNodeConfig): Promise<Result<void>> {
   })
 }
 
+// installAppMenu drops Electron's default File/Edit/View/Window/Help bar: the
+// app's own left rail is its navigation, and none of those items did anything
+// this app needs.
+//
+// macOS is the exception — the system always shows a menu bar for the focused
+// app, and the standard shortcuts (Cmd+Q, Cmd+C/V, Cmd+W) come from it, so
+// there it keeps a minimal one built from the standard roles.
+function installAppMenu(): void {
+  if (process.platform === 'darwin') {
+    Menu.setApplicationMenu(
+      Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]),
+    )
+    return
+  }
+  Menu.setApplicationMenu(null)
+}
+
+// Toggle DevTools without the View menu that used to carry it. Development
+// only: a packaged build should not open DevTools on a stray keypress.
+function enableDevToolsShortcut(win: BrowserWindow): void {
+  win.webContents.on('before-input-event', (_event, input) => {
+    const toggle =
+      input.key === 'F12' ||
+      (input.control && input.shift && input.key.toLowerCase() === 'i') ||
+      (input.meta && input.alt && input.key.toLowerCase() === 'i')
+    if (input.type === 'keyDown' && toggle) win.webContents.toggleDevTools()
+  })
+}
+
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1100,
     height: 760,
     show: false,
+    // Belt and braces on Windows/Linux: with no menu set there is nothing to
+    // show, and this keeps the Alt key from summoning one.
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -138,6 +170,7 @@ function createMainWindow(): BrowserWindow {
     },
   })
   win.once('ready-to-show', () => win.show())
+  if (isDev) enableDevToolsShortcut(win)
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
     return { action: 'deny' }
@@ -151,6 +184,7 @@ function createMainWindow(): BrowserWindow {
 }
 
 void app.whenReady().then(async () => {
+  installAppMenu()
   if (!isDev) registerAppProtocol()
 
   // Manage (or attach to) the local node, then expose it to the renderer (#42).

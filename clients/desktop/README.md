@@ -160,6 +160,10 @@ The renderer's connection/health panel polls `getStatus` and shows node version,
 - **`electron/preload.ts`** — the **only** bridge between renderer and main. It exposes a small, typed `window.bpDesktop` API via `contextBridge`; the renderer never touches Node, `fs`, or the main process directly.
 - **`app.vue` / Nuxt** — the renderer (SPA, `ssr: false`).
 
+### Window chrome
+
+Electron's default File/Edit/View/Window/Help menu is removed — the app's own left rail is its navigation. macOS keeps a minimal menu built from the standard roles, because the system always shows a menu bar for the focused app and `Cmd+Q`, `Cmd+C`/`Cmd+V` and `Cmd+W` come from it. `autoHideMenuBar` stops Alt from summoning a bar on Windows/Linux. Losing the View menu also loses its DevTools shortcut, so development builds bind `F12` / `Ctrl+Shift+I` (`Cmd+Alt+I`) directly; packaged builds do not.
+
 ### Secure defaults (#40)
 
 The `BrowserWindow` is created with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`, and `webSecurity: true`; external links open in the user's browser, not in-app. All privileged capability is added behind the typed preload bridge.

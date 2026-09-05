@@ -7,3 +7,4 @@ release/
 resources/
 *.log
 .DS_Store
+release-client-only/

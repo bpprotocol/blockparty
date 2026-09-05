@@ -1,24 +1,47 @@
 appId: org.bpprotocol.desktop
 productName: BlockParty
+# Without this the binary is named after the npm package (@blockparty/desktop),
+# which lands as "@blockpartydesktop" on disk.
+executableName: blockparty
+copyright: BlockParty contributors
 directories:
   output: release
+  buildResources: build
 files:
   - dist-electron/**/*
   - .output/public/**/*
   - package.json
-# The bundled bpnode binary lands in the app's resources dir (process.resourcesPath),
-# where the supervisor looks for it by default. The per-platform binary is built
-# into resources/ by the packaging step (#48).
+# The bundled bpnode lands in the app's resources dir (process.resourcesPath),
+# where the supervisor looks for it by default (#42). beforePack builds it for
+# the exact platform/arch being packaged (#48), so the filter only ever matches
+# the one binary that belongs in this artifact.
+beforePack: scripts/before-pack.mjs
 extraResources:
   - from: resources
     to: .
     filter: ['bpnode', 'bpnode.exe']
 asar: true
+# Signing and notarization are deliberately out of scope here: unsigned
+# artifacts still install and launch on all three platforms.
 mac:
-  target: dmg
+  target:
+    - target: dmg
+      arch: [x64, arm64]
   category: public.app-category.social-networking
+  identity: null
+  artifactName: ${productName}-${version}-${arch}.${ext}
 win:
-  target: nsis
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ${productName}-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
 linux:
-  target: AppImage
+  target:
+    - target: AppImage
+      arch: [x64]
   category: Network
+  synopsis: Desktop client for the BlockParty protocol
+  artifactName: ${productName}-${version}-${arch}.${ext}

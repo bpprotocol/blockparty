@@ -6,6 +6,7 @@
 # address of a node the user runs themselves.
 appId: org.bpprotocol.desktop
 productName: BlockParty
+executableName: blockparty
 directories:
   output: release-client-only
 files:

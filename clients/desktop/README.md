@@ -58,13 +58,39 @@ The unlock screen also carries the way out of a **lost** passphrase: _Forgotten 
 
 Onboarding submits the secrets to the node via `bootstrapWorld` (#38) — the node holds the keys; the renderer never persists them. Once the node reports a loaded World, the view advances to the dashboard. The routing logic (`deriveView`) and the bootstrap flow live in `composables/useNode.ts` and are unit-tested.
 
+## Packaging (#48)
+
+`pnpm build` produces an installable artifact for the platform you run it on, with a `bpnode` built for that same target inside it:
+
+```sh
+pnpm build       # installer/artifact → release/   (AppImage · dmg · NSIS installer)
+pnpm run pack:dir # unpacked app → release/linux-unpacked (etc.), for a quick look
+pnpm build:node  # just the bundled node → resources/, for this machine
+```
+
+The node is compiled by an electron-builder **`beforePack` hook** (`scripts/before-pack.mjs` → `scripts/build-node.mjs`), which maps the target electron-builder is about to package to a Go target — `darwin/win32/linux` → `GOOS`, `x64/arm64/armv7l/ia32` → `GOARCH` — empties `resources/` and builds `bpnode` (`bpnode.exe` on Windows, the same name `node-config.ts` probes for) with `CGO_ENABLED=0 -trimpath`. Every artifact therefore carries exactly one node, built for itself; `resources/` is generated, never committed.
+
+| Target  | Artifact                                       | Built on |
+| ------- | ---------------------------------------------- | -------- |
+| Linux   | `BlockParty-<version>-x86_64.AppImage`         | Linux    |
+| macOS   | `BlockParty-<version>-<arch>.dmg` (x64, arm64) | macOS    |
+| Windows | `BlockParty-<version>-x64.exe` (NSIS)          | Windows  |
+
+The Go side cross-compiles freely, but each platform's _installer_ has to be produced on that platform (electron-builder needs macOS for a dmg, Windows or wine for NSIS) — so releases come from a matrix, not one machine. The app icon is generated from `build/icon.png`; the executable is named `blockparty` (`executableName`), not after the npm package.
+
+**Code signing, notarization and auto-update are deliberately out of scope** (`mac.identity: null`). The artifacts install and launch unsigned, with the usual first-run warnings on macOS and Windows.
+
+First run needs nothing prepared: the app spawns the bundled node against `<appData>/blockparty/node`, the node creates that directory and its `api.token`, and the renderer's onboarding (#43) sets up the World.
+
+> Note: `pnpm pack` is pnpm's own tarball command — the packaging scripts are `pack:dir` / `pack:dir:client-only` so they always reach electron-builder.
+
 ## Client-only build & external nodes (#51)
 
 The app can be packaged **without** a bundled `bpnode` — a lighter build for people who already run a node (on this machine, a server, a relay) and just want the UI:
 
 ```sh
 pnpm build:client-only   # electron-builder --config electron-builder.client-only.yml
-pnpm pack:client-only    # unpacked, for a quick look
+pnpm pack:dir:client-only # unpacked, for a quick look
 ```
 
 What decides the behaviour is the **binary itself, not an env var**: on startup `resolveSupervisorOptions` probes `<resources>/bpnode` (`bpnode.exe` on Windows). Present → managed mode as before. Absent → the app is **attach-only** and never tries to spawn; instead of a spawn `ENOENT` it reports a typed `NodeUnavailableError` and the renderer shows a **"Connect to a node"** screen asking for the node's API address plus either its API token or the data directory to read `api.token` from.
@@ -94,7 +120,7 @@ Knobs (env-overridable for development):
 
 A build with no bundled binary resolves to attach-only on its own (#51); `BPNODE_ATTACH` is only needed to force it when a binary _is_ present.
 
-The packaged app bundles the per-platform `bpnode` into its resources dir (built by the packaging step, #48).
+The packaged app bundles the per-platform `bpnode` into its resources dir — see [Packaging (#48)](#packaging-48).
 
 ## Node API client (#41)
 
@@ -173,7 +199,8 @@ pnpm dev            # nuxt dev server + electron window (requires a display + a 
 ```sh
 pnpm build:renderer # nuxt generate → .output/public (static SPA)
 pnpm build:main     # tsc → dist-electron (main + preload, CommonJS)
-pnpm build          # both, then electron-builder → release/ (mac/win/linux)
+pnpm build:node     # go build → resources/bpnode for this machine (#48)
+pnpm build          # renderer + main + a target-matched bpnode, then electron-builder → release/
 pnpm build:client-only # same, without a bundled bpnode → release-client-only/ (#51)
 pnpm typecheck      # vue-tsc (renderer) + tsc (electron)
 pnpm lint           # eslint (flat config: js + ts + vue)
@@ -200,6 +227,10 @@ clients/desktop/
 ├── components/          # Onboarding, NodeDashboard, Compose, Connections, Identity, Feed
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
+├── scripts/
+│   ├── build-node.mjs   # build bpnode for a packaging target (#48)
+│   └── before-pack.mjs  # electron-builder hook that calls it
+├── build/icon.png       # app icon, rendered into per-platform icons
 ├── electron-builder.yml
 ├── electron-builder.client-only.yml  # the no-bundled-node build target (#51)
 └── eslint.config.mjs

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import {
   CONNECTION_CHANNELS,
   EXTERNAL_NODE_CHANNELS,
@@ -6,6 +6,7 @@ import {
   IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
+  WINDOW_CHANNELS,
   type BootstrapRequest,
   type ExternalNodeConfig,
   type IdentityCard,
@@ -129,4 +130,37 @@ export function registerIdentityIpc(getClient: () => NodeClient | undefined): vo
     (_e, notice: string, confirm: boolean) =>
       getClient()?.burnIdentity(notice, confirm) ?? noClient(),
   )
+}
+
+// registerWindowIpc lets the renderer drive its own frameless window. The
+// window is resolved from the sender, so the handlers stay correct if the app
+// ever has more than one.
+export function registerWindowIpc(): void {
+  const win = (e: Electron.IpcMainInvokeEvent): BrowserWindow | null =>
+    BrowserWindow.fromWebContents(e.sender)
+
+  ipcMain.handle(WINDOW_CHANNELS.minimize, (e) => {
+    win(e)?.minimize()
+  })
+  ipcMain.handle(WINDOW_CHANNELS.toggleMaximize, (e): boolean => {
+    const w = win(e)
+    if (!w) return false
+    if (w.isMaximized()) w.unmaximize()
+    else w.maximize()
+    return w.isMaximized()
+  })
+  ipcMain.handle(WINDOW_CHANNELS.close, (e) => {
+    win(e)?.close()
+  })
+  ipcMain.handle(WINDOW_CHANNELS.isMaximized, (e): boolean => win(e)?.isMaximized() ?? false)
+}
+
+// forwardMaximizeState pushes maximize/restore to the renderer, so its button
+// matches the window even when the change came from the window manager.
+export function forwardMaximizeState(window: BrowserWindow): void {
+  const send = (maximized: boolean): void => {
+    if (!window.isDestroyed()) window.webContents.send(WINDOW_CHANNELS.maximizeChanged, maximized)
+  }
+  window.on('maximize', () => send(true))
+  window.on('unmaximize', () => send(false))
 }

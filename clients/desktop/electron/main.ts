@@ -16,6 +16,8 @@ import {
   registerIdentityIpc,
   registerLifecycleIpc,
   registerNodeIpc,
+  registerWindowIpc,
+  forwardMaximizeState,
 } from './ipc'
 import { resolveSupervisorOptions } from './node-config'
 import { NodeClient, nodeTransport } from './node-client'
@@ -158,6 +160,14 @@ function createMainWindow(): BrowserWindow {
     width: 1100,
     height: 760,
     show: false,
+    // Frameless: the renderer draws its own title bar (the navbar doubles as
+    // the drag region). macOS keeps its traffic lights via hiddenInset, so
+    // only Windows/Linux need the app's own window buttons.
+    frame: process.platform === 'darwin',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    // Below the frameless chrome the page paints its own background; this
+    // avoids a white flash before the renderer's first paint.
+    backgroundColor: '#f2f3f7',
     // Belt and braces on Windows/Linux: with no menu set there is nothing to
     // show, and this keeps the Alt key from summoning one.
     autoHideMenuBar: true,
@@ -170,6 +180,7 @@ function createMainWindow(): BrowserWindow {
     },
   })
   win.once('ready-to-show', () => win.show())
+  forwardMaximizeState(win)
   if (isDev) enableDevToolsShortcut(win)
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
@@ -185,6 +196,7 @@ function createMainWindow(): BrowserWindow {
 
 void app.whenReady().then(async () => {
   installAppMenu()
+  registerWindowIpc()
   if (!isDev) registerAppProtocol()
 
   // Manage (or attach to) the local node, then expose it to the renderer (#42).

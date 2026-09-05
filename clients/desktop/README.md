@@ -162,6 +162,10 @@ The renderer's connection/health panel polls `getStatus` and shows node version,
 
 ### Window chrome
 
+The window is **frameless**: there is no system title bar, and the app's own header is the drag region (`-webkit-app-region: drag`, with buttons, chips and avatars opted back out so they stay clickable). Double-clicking it maximizes and restores, as a title bar would. On Windows and Linux the header carries the app's minimize / maximize / close buttons; macOS uses `titleBarStyle: 'hiddenInset'` instead, keeping its native traffic lights, and the header reserves space for them. The login/setup screen has no header, so it gets a slim drag strip with the same buttons over the photo.
+
+Window state is driven from the renderer over the bridge (`window.bpDesktop.window`), and the main process pushes maximize/restore back, so the button matches the window even when the window manager changes it. `useWindow` decides per platform what to draw; both rules are unit-tested.
+
 Electron's default File/Edit/View/Window/Help menu is removed — the app's own left rail is its navigation. macOS keeps a minimal menu built from the standard roles, because the system always shows a menu bar for the focused app and `Cmd+Q`, `Cmd+C`/`Cmd+V` and `Cmd+W` come from it. `autoHideMenuBar` stops Alt from summoning a bar on Windows/Linux. Losing the View menu also loses its DevTools shortcut, so development builds bind `F12` / `Ctrl+Shift+I` (`Cmd+Alt+I`) directly; packaged builds do not.
 
 ### Secure defaults (#40)

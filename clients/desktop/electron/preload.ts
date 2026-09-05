@@ -6,6 +6,7 @@ import {
   IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
+  WINDOW_CHANNELS,
   type BlockSummary,
   type BpDesktop,
   type ConnectionsApi,
@@ -14,6 +15,7 @@ import {
   type IdentityApi,
   type LifecycleApi,
   type NodeApi,
+  type WindowApi,
 } from './bridge'
 
 // The node API surface, forwarded to the main process over IPC. The renderer
@@ -31,6 +33,18 @@ const node: NodeApi = {
 const lifecycle: LifecycleApi = {
   getState: () => ipcRenderer.invoke(LIFECYCLE_CHANNELS.getState),
   recentLogs: () => ipcRenderer.invoke(LIFECYCLE_CHANNELS.recentLogs),
+}
+
+const windowApi: WindowApi = {
+  minimize: () => ipcRenderer.invoke(WINDOW_CHANNELS.minimize),
+  toggleMaximize: () => ipcRenderer.invoke(WINDOW_CHANNELS.toggleMaximize),
+  close: () => ipcRenderer.invoke(WINDOW_CHANNELS.close),
+  isMaximized: () => ipcRenderer.invoke(WINDOW_CHANNELS.isMaximized),
+  onMaximizeChange: (cb) => {
+    const handler = (_e: IpcRendererEvent, maximized: boolean): void => cb(maximized)
+    ipcRenderer.on(WINDOW_CHANNELS.maximizeChanged, handler)
+    return () => ipcRenderer.removeListener(WINDOW_CHANNELS.maximizeChanged, handler)
+  },
 }
 
 const externalNode: ExternalNodeApi = {
@@ -72,6 +86,8 @@ const api: BpDesktop = {
     chrome: process.versions.chrome ?? '',
     node: process.versions.node ?? '',
   }),
+  platform: process.platform,
+  window: windowApi,
   node,
   lifecycle,
   externalNode,

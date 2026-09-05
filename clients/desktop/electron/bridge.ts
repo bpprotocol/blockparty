@@ -103,6 +103,20 @@ export interface LifecycleApi {
   recentLogs(): Promise<string[]>
 }
 
+// --- Window controls ---
+
+// WindowApi drives the frameless window from the renderer, which draws its own
+// title bar. macOS keeps the native traffic lights, so it needs only the state.
+export interface WindowApi {
+  minimize(): Promise<void>
+  toggleMaximize(): Promise<boolean> // resolves to the new maximized state
+  close(): Promise<void>
+  isMaximized(): Promise<boolean>
+  // onMaximizeChange fires when the window is maximized or restored by any
+  // route — the buttons, a double-click, or the window manager.
+  onMaximizeChange(cb: (maximized: boolean) => void): () => void
+}
+
 // --- External node (#51) ---
 
 // ExternalNodeConfig points the app at a node someone else runs: its API base
@@ -176,6 +190,10 @@ export interface IdentityApi {
 
 export interface BpDesktop {
   versions: () => { electron: string; chrome: string; node: string }
+  // The host platform, so the renderer can leave room for the macOS traffic
+  // lights and skip drawing window buttons there.
+  platform: 'darwin' | 'win32' | 'linux' | string
+  window: WindowApi
   node: NodeApi
   lifecycle: LifecycleApi
   externalNode: ExternalNodeApi
@@ -198,6 +216,14 @@ export const NODE_CHANNELS = {
 export const LIFECYCLE_CHANNELS = {
   getState: 'lifecycle:getState',
   recentLogs: 'lifecycle:recentLogs',
+} as const
+
+export const WINDOW_CHANNELS = {
+  minimize: 'window:minimize',
+  toggleMaximize: 'window:toggleMaximize',
+  close: 'window:close',
+  isMaximized: 'window:isMaximized',
+  maximizeChanged: 'window:maximizeChanged', // main → renderer push
 } as const
 
 export const EXTERNAL_NODE_CHANNELS = {

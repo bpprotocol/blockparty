@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRuntimeConfig } from '#imports'
 import type { BootstrapRequest, ExternalNodeConfig } from './electron/bridge'
 import { useNode } from './composables/useNode'
+import { useWindow } from './composables/useWindow'
 import { shortHex } from './composables/useFormat'
 import OnboardingView from './components/OnboardingView.vue'
 import UnlockView from './components/UnlockView.vue'
@@ -14,6 +15,7 @@ import ConnectionsView from './components/ConnectionsView.vue'
 import IdentityView from './components/IdentityView.vue'
 import UserAvatar from './components/UserAvatar.vue'
 import AppIcon from './components/AppIcon.vue'
+import WindowControls from './components/WindowControls.vue'
 
 const {
   status,
@@ -30,6 +32,10 @@ const {
 // Lets the user re-open the endpoint form on a build that can't run its own
 // node — e.g. the configured node moved and no longer answers (#51).
 const editEndpoint = ref(false)
+
+// The window has no system title bar: the header below is the drag region and
+// carries the window buttons (macOS keeps its own).
+const { maximized, showControls, macInset, minimize, toggleMaximize, close } = useWindow()
 // Errors from the setup screens (bootstrap or unlock), shown under the card.
 const setupError = ref<string | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
@@ -103,7 +109,7 @@ onUnmounted(() => {
   <!-- App shell: shown once the node is ready and a World is loaded — unless the
        user is re-pointing the app at a different node (#51). -->
   <div v-if="view === 'ready' && status && !editEndpoint" class="shell">
-    <header class="navbar">
+    <header class="navbar titlebar" :class="{ 'is-mac': macInset }" @dblclick="toggleMaximize">
       <div class="brand">
         <span class="mark">bp</span>
         <span class="name">BlockParty</span>
@@ -112,6 +118,13 @@ onUnmounted(() => {
         <span class="chip is-success"><span class="dot" /> Connected</span>
         <UserAvatar :seed="status.identity" :size="34" />
       </div>
+      <WindowControls
+        v-if="showControls"
+        :maximized="maximized"
+        @minimize="minimize"
+        @toggle="toggleMaximize"
+        @close="close"
+      />
     </header>
 
     <div class="layout">
@@ -194,6 +207,15 @@ onUnmounted(() => {
   <!-- Login / setup: a centered card over the background image, shown until the
        shell is ready (connecting, onboarding, or disconnected states). -->
   <div v-else class="auth" :style="authBgStyle">
+    <header class="auth-titlebar titlebar" @dblclick="toggleMaximize">
+      <WindowControls
+        v-if="showControls"
+        :maximized="maximized"
+        @minimize="minimize"
+        @toggle="toggleMaximize"
+        @close="close"
+      />
+    </header>
     <div class="auth-card card">
       <div class="auth-brand">
         <span class="mark">bp</span>
@@ -253,6 +275,52 @@ onUnmounted(() => {
   min-height: 100vh;
 }
 
+/* The header doubles as the window's title bar: draggable, with its
+   interactive children opted back out. */
+.titlebar {
+  -webkit-app-region: drag;
+}
+
+.titlebar button,
+.titlebar a,
+.titlebar input,
+.titlebar select,
+.titlebar .chip,
+.titlebar .avatar {
+  -webkit-app-region: no-drag;
+}
+
+/* Room for the macOS traffic lights, which sit over the top-left corner. */
+.navbar.is-mac {
+  padding-left: 78px;
+}
+
+.auth-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 38px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Over the photo the buttons need light ink and a subtler hover. */
+.auth-titlebar :deep(.ctl) {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.auth-titlebar :deep(.ctl:hover) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.auth-titlebar :deep(.ctl.is-close:hover) {
+  background: var(--danger);
+  color: #fff;
+}
+
 .navbar {
   position: sticky;
   top: 0;
@@ -262,7 +330,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 1rem;
   height: 60px;
-  padding: 0 1.25rem;
+  padding: 0 0 0 1.25rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -296,6 +364,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-right: 1.25rem;
 }
 
 .layout {

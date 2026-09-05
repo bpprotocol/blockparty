@@ -1,11 +1,13 @@
 import { ipcMain } from 'electron'
 import {
   CONNECTION_CHANNELS,
+  EXTERNAL_NODE_CHANNELS,
   FEED_CHANNELS,
   IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
   NODE_CHANNELS,
   type BootstrapRequest,
+  type ExternalNodeConfig,
   type IdentityCard,
   type LifecycleState,
   type ListFilter,
@@ -17,18 +19,37 @@ import type { NodeClient } from './node-client'
 
 // registerNodeIpc exposes the node API to the renderer over IPC. Each handler
 // delegates to the main-process NodeClient (which holds the bearer token).
-export function registerNodeIpc(api: NodeApi): void {
-  ipcMain.handle(NODE_CHANNELS.getStatus, () => api.getStatus())
+// getApi is read per call, so pointing the app at a different node (#51)
+// swaps the client without re-registering handlers.
+export function registerNodeIpc(getApi: () => NodeApi): void {
+  ipcMain.handle(NODE_CHANNELS.getStatus, () => getApi().getStatus())
   ipcMain.handle(NODE_CHANNELS.bootstrapWorld, (_e, req: BootstrapRequest) =>
-    api.bootstrapWorld(req),
+    getApi().bootstrapWorld(req),
   )
   ipcMain.handle(NODE_CHANNELS.unlockKeystore, (_e, keystorePassphrase: string) =>
-    api.unlockKeystore(keystorePassphrase),
+    getApi().unlockKeystore(keystorePassphrase),
   )
-  ipcMain.handle(NODE_CHANNELS.clearKeystore, (_e, confirm: boolean) => api.clearKeystore(confirm))
-  ipcMain.handle(NODE_CHANNELS.postText, (_e, req: PostTextRequest) => api.postText(req))
-  ipcMain.handle(NODE_CHANNELS.getBlock, (_e, id: string) => api.getBlock(id))
-  ipcMain.handle(NODE_CHANNELS.listBlocks, (_e, filter: ListFilter) => api.listBlocks(filter))
+  ipcMain.handle(NODE_CHANNELS.clearKeystore, (_e, confirm: boolean) =>
+    getApi().clearKeystore(confirm),
+  )
+  ipcMain.handle(NODE_CHANNELS.postText, (_e, req: PostTextRequest) => getApi().postText(req))
+  ipcMain.handle(NODE_CHANNELS.getBlock, (_e, id: string) => getApi().getBlock(id))
+  ipcMain.handle(NODE_CHANNELS.listBlocks, (_e, filter: ListFilter) => getApi().listBlocks(filter))
+}
+
+// ExternalNodeStore is the main-process side of the external-node endpoint: it
+// reads and writes the saved config and reconnects the app to it (#51).
+export interface ExternalNodeStore {
+  get(): ExternalNodeConfig | null
+  set(cfg: ExternalNodeConfig): Promise<Result<void>>
+  clear(): Promise<Result<void>>
+}
+
+// registerExternalNodeIpc exposes that store to the renderer.
+export function registerExternalNodeIpc(store: ExternalNodeStore): void {
+  ipcMain.handle(EXTERNAL_NODE_CHANNELS.get, () => store.get())
+  ipcMain.handle(EXTERNAL_NODE_CHANNELS.set, (_e, cfg: ExternalNodeConfig) => store.set(cfg))
+  ipcMain.handle(EXTERNAL_NODE_CHANNELS.clear, () => store.clear())
 }
 
 // Lifecycle is the subset of the supervisor exposed to the renderer.

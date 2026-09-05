@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRuntimeConfig } from '#imports'
-import type { BootstrapRequest } from './electron/bridge'
+import type { BootstrapRequest, ExternalNodeConfig } from './electron/bridge'
 import { useNode } from './composables/useNode'
 import { shortHex } from './composables/useFormat'
 import OnboardingView from './components/OnboardingView.vue'
 import UnlockView from './components/UnlockView.vue'
+import ExternalNodeView from './components/ExternalNodeView.vue'
 import NodeDashboard from './components/NodeDashboard.vue'
 import ComposeView from './components/ComposeView.vue'
 import FeedView from './components/FeedView.vue'
@@ -14,8 +15,21 @@ import IdentityView from './components/IdentityView.vue'
 import UserAvatar from './components/UserAvatar.vue'
 import AppIcon from './components/AppIcon.vue'
 
-const { status, lifecycle, error, busy, view, refresh, bootstrap, unlock, clearKeystore } =
-  useNode()
+const {
+  status,
+  lifecycle,
+  error,
+  busy,
+  view,
+  refresh,
+  bootstrap,
+  unlock,
+  clearKeystore,
+  setExternalNode,
+} = useNode()
+// Lets the user re-open the endpoint form on a build that can't run its own
+// node — e.g. the configured node moved and no longer answers (#51).
+const editEndpoint = ref(false)
 // Errors from the setup screens (bootstrap or unlock), shown under the card.
 const setupError = ref<string | null>(null)
 let timer: ReturnType<typeof setInterval> | undefined
@@ -61,6 +75,13 @@ async function onUnlock(passphrase: string): Promise<void> {
 
 // The unlock screen's recovery action, already confirmed there. On success the
 // node reports no keystore and the view falls through to onboarding.
+async function onExternalNode(cfg: ExternalNodeConfig): Promise<void> {
+  setupError.value = null
+  const r = await setExternalNode(cfg)
+  if (r.ok) editEndpoint.value = false
+  else setupError.value = r.error ?? 'Could not reach that node.'
+}
+
 async function onClearKeystore(): Promise<void> {
   setupError.value = null
   const r = await clearKeystore()
@@ -79,8 +100,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- App shell: shown once the node is ready and a World is loaded. -->
-  <div v-if="view === 'ready' && status" class="shell">
+  <!-- App shell: shown once the node is ready and a World is loaded — unless the
+       user is re-pointing the app at a different node (#51). -->
+  <div v-if="view === 'ready' && status && !editEndpoint" class="shell">
     <header class="navbar">
       <div class="brand">
         <span class="mark">bp</span>
@@ -156,6 +178,13 @@ onUnmounted(() => {
             <div v-if="lifecycle.restarts > 0" class="row">
               <span class="meta">Restarts</span><span class="val">{{ lifecycle.restarts }}</span>
             </div>
+            <button
+              v-if="!lifecycle.canManage"
+              class="btn is-small is-ghost change-node"
+              @click="editEndpoint = true"
+            >
+              Change node
+            </button>
           </div>
         </section>
       </aside>
@@ -171,8 +200,16 @@ onUnmounted(() => {
         <span class="name">BlockParty</span>
       </div>
 
+      <ExternalNodeView
+        v-if="view === 'external-node' || editEndpoint"
+        :busy="busy"
+        :can-cancel="editEndpoint"
+        @submit="onExternalNode"
+        @cancel="editEndpoint = false"
+      />
+
       <UnlockView
-        v-if="view === 'unlock'"
+        v-else-if="view === 'unlock'"
         :busy="busy"
         @submit="onUnlock"
         @clear="onClearKeystore"
@@ -184,16 +221,27 @@ onUnmounted(() => {
         <p v-if="view === 'no-bridge'" class="muted">Running outside Electron — no node bridge.</p>
         <template v-else>
           <span class="spinner" />
-          <p class="muted">Connecting to the local node…</p>
+          <p class="muted">
+            Connecting to
+            {{ lifecycle?.canManage === false ? 'the configured node' : 'the local node' }}…
+          </p>
         </template>
         <p v-if="error" class="err">{{ error }}</p>
-        <button v-if="view !== 'no-bridge'" class="btn is-primary" @click="refresh">Retry</button>
+        <div class="auth-buttons">
+          <button v-if="view !== 'no-bridge'" class="btn is-primary" @click="refresh">Retry</button>
+          <!-- No bundled node to fall back on: offer to point elsewhere. -->
+          <button v-if="lifecycle && !lifecycle.canManage" class="btn" @click="editEndpoint = true">
+            Use a different node
+          </button>
+        </div>
       </section>
 
       <p v-if="setupError" class="err setup-err">{{ setupError }}</p>
 
       <p v-if="lifecycle" class="meta mono auth-lifecycle">
-        node: {{ lifecycle.mode }} · {{ lifecycle.state }} · {{ lifecycle.endpoint }}
+        node: {{ lifecycle.mode }} · {{ lifecycle.state
+        }}<span v-if="lifecycle.endpoint"> · {{ lifecycle.endpoint }}</span>
+        <span v-if="!lifecycle.canManage"> · client-only build</span>
       </p>
     </div>
   </div>
@@ -423,6 +471,15 @@ onUnmounted(() => {
 
 .auth-status p {
   margin: 0;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.change-node {
+  justify-self: start;
 }
 
 .setup-err {

@@ -1,9 +1,16 @@
 import { app, BrowserWindow, shell } from 'electron'
 import path from 'node:path'
-import { FEED_CHANNELS, type NodeApi, type Result } from './bridge'
+import { FEED_CHANNELS, type ExternalNodeConfig, type NodeApi, type Result } from './bridge'
+import {
+  clearExternalNode,
+  connectExternalNode,
+  loadExternalNode,
+  saveExternalNode,
+} from './external-node'
 import { FeedManager } from './feed-manager'
 import {
   registerConnectionIpc,
+  registerExternalNodeIpc,
   registerFeedIpc,
   registerIdentityIpc,
   registerLifecycleIpc,
@@ -17,7 +24,9 @@ const isDev = process.env.NODE_ENV === 'development'
 
 let supervisor: NodeSupervisor | undefined
 let nodeClient: NodeClient | undefined
+let nodeApi: NodeApi = disconnectedNodeApi('node not started')
 let feed: FeedManager | undefined
+let mainWindow: BrowserWindow | undefined
 let quitting = false
 
 // disconnectedNodeApi answers every call with a connection error, used when the
@@ -35,18 +44,50 @@ function disconnectedNodeApi(reason: string): NodeApi {
   }
 }
 
-async function startNode(): Promise<NodeApi> {
+async function startNode(): Promise<void> {
+  // A client-only build (#51) has no bpnode to spawn, so the options resolve to
+  // attach-only and carry any node the user configured earlier.
   supervisor = new NodeSupervisor(
-    resolveSupervisorOptions(app.getPath('appData'), process.resourcesPath),
+    resolveSupervisorOptions(
+      app.getPath('appData'),
+      process.resourcesPath,
+      loadExternalNode(app.getPath('userData')),
+    ),
   )
   registerLifecycleIpc(supervisor)
   try {
     const conn = await supervisor.start()
-    nodeClient = new NodeClient(nodeTransport(conn.baseUrl, conn.token))
-    return nodeClient
+    useConnection(conn.baseUrl, conn.token)
   } catch (e) {
-    return disconnectedNodeApi(`node unavailable: ${e instanceof Error ? e.message : String(e)}`)
+    nodeClient = undefined
+    nodeApi = disconnectedNodeApi(`node unavailable: ${e instanceof Error ? e.message : String(e)}`)
   }
+}
+
+// useConnection points the app's client (and the live feed) at a node. Called on
+// startup and again whenever the user configures a different external node.
+function useConnection(baseUrl: string, token: string): void {
+  nodeClient = new NodeClient(nodeTransport(baseUrl, token))
+  nodeApi = nodeClient
+  feed?.unsubscribe()
+  feed = new FeedManager(nodeClient, (summary) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(FEED_CHANNELS.event, summary)
+    }
+  })
+}
+
+// connectExternal validates an endpoint before saving it: a URL or token that
+// doesn't answer is reported in the setup form, not left as a dead app.
+async function connectExternal(cfg: ExternalNodeConfig): Promise<Result<void>> {
+  const sup = supervisor
+  if (!sup) return { ok: false, error: 'node supervisor unavailable' }
+  return connectExternalNode(cfg, {
+    attach: (target) => sup.attachTo(target),
+    probe: (conn) => new NodeClient(nodeTransport(conn.baseUrl, conn.token)).getStatus(),
+    save: (target) => saveExternalNode(app.getPath('userData'), target),
+    use: (conn) => useConnection(conn.baseUrl, conn.token),
+  })
 }
 
 function createMainWindow(): BrowserWindow {
@@ -77,22 +118,25 @@ function createMainWindow(): BrowserWindow {
 
 void app.whenReady().then(async () => {
   // Manage (or attach to) the local node, then expose it to the renderer (#42).
-  registerNodeIpc(await startNode())
+  await startNode()
+  registerNodeIpc(() => nodeApi)
+  registerExternalNodeIpc({
+    get: () => loadExternalNode(app.getPath('userData')),
+    set: connectExternal,
+    clear: async () => {
+      clearExternalNode(app.getPath('userData'))
+      return { ok: true, value: undefined }
+    },
+  })
 
-  const win = createMainWindow()
+  mainWindow = createMainWindow()
 
-  // The live feed (#44) pushes block events from the node to this window.
-  if (nodeClient) {
-    feed = new FeedManager(nodeClient, (summary) => {
-      if (!win.isDestroyed()) win.webContents.send(FEED_CHANNELS.event, summary)
-    })
-  }
   registerFeedIpc(() => feed)
   registerConnectionIpc(() => nodeClient)
   registerIdentityIpc(() => nodeClient)
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
+    if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow()
   })
 })
 

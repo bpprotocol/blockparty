@@ -45,25 +45,40 @@ The merge/ordering (`mergeItem`) and public-only scoping live in `composables/us
 
 On connect the app queries the node's status and routes to one of:
 
-| `getStatus`                                        | view                                                                           |
-| -------------------------------------------------- | ------------------------------------------------------------------------------ |
-| disconnected                                        | "connecting…" with retry                                                       |
-| connected, no World, **keystore on disk**           | **unlock** — enter the keystore passphrase                                     |
-| connected, no World, **no keystore**                | **onboarding** — enter/generate a World seed + identity & keystore passphrases |
-| connected, **World loaded**                         | dashboard (skips both)                                                         |
+| `getStatus`                               | view                                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| disconnected                              | "connecting…" with retry                                                       |
+| connected, no World, **keystore on disk** | **unlock** — enter the keystore passphrase                                     |
+| connected, no World, **no keystore**      | **onboarding** — enter/generate a World seed + identity & keystore passphrases |
+| connected, **World loaded**               | dashboard (skips both)                                                         |
 
 **Unlock** covers the node started without `BPNODE_KEYSTORE_PASSPHRASE`: it holds an encrypted keystore it cannot open, so it boots with no World. Status reports `keystoreExists`, the app asks for the passphrase and calls `unlockKeystore`, and the node re-derives the World and identity in memory. Offering onboarding there would fail — the node never overwrites an existing keystore. A wrong passphrase is surfaced in place and the node stays unconfigured.
 
-The unlock screen also carries the way out of a **lost** passphrase: *Forgotten your passphrase?* reveals a warning and requires typing `CLEAR` before calling `clearKeystore`, which passes the node's `confirm: true` gate (#29) — the same two-step pattern as the identity burn. The node deletes the keystore, status flips to no keystore, and the view falls through to onboarding for a new World.
+The unlock screen also carries the way out of a **lost** passphrase: _Forgotten your passphrase?_ reveals a warning and requires typing `CLEAR` before calling `clearKeystore`, which passes the node's `confirm: true` gate (#29) — the same two-step pattern as the identity burn. The node deletes the keystore, status flips to no keystore, and the view falls through to onboarding for a new World.
 
 Onboarding submits the secrets to the node via `bootstrapWorld` (#38) — the node holds the keys; the renderer never persists them. Once the node reports a loaded World, the view advances to the dashboard. The routing logic (`deriveView`) and the bootstrap flow live in `composables/useNode.ts` and are unit-tested.
+
+## Client-only build & external nodes (#51)
+
+The app can be packaged **without** a bundled `bpnode` — a lighter build for people who already run a node (on this machine, a server, a relay) and just want the UI:
+
+```sh
+pnpm build:client-only   # electron-builder --config electron-builder.client-only.yml
+pnpm pack:client-only    # unpacked, for a quick look
+```
+
+What decides the behaviour is the **binary itself, not an env var**: on startup `resolveSupervisorOptions` probes `<resources>/bpnode` (`bpnode.exe` on Windows). Present → managed mode as before. Absent → the app is **attach-only** and never tries to spawn; instead of a spawn `ENOENT` it reports a typed `NodeUnavailableError` and the renderer shows a **"Connect to a node"** screen asking for the node's API address plus either its API token or the data directory to read `api.token` from.
+
+That endpoint is probed before it is saved — an unreachable address or a bad token is reported in the form, not left as a dead app — and then persisted to `<userData>/external-node.json` (mode `0600`; the token stays in the main process, as the managed node's does). Lifecycle state carries `canManage` and `needsEndpoint` so the UI can tell "no node configured yet" from "configured but unreachable"; the latter offers **Use a different node**, and the dashboard's node widget offers **Change node**, both re-opening the same form without a restart.
+
+Env overrides still win for development: `BPNODE_ATTACH=1` attaches to `127.0.0.1:4400` (or `BPNODE_API_ADDR`), and `BPNODE_BIN` points managed mode at a node you built yourself.
 
 ## Node lifecycle (#42)
 
 The main process owns the node process via a **supervisor** (`electron/node-supervisor.ts`):
 
-- **Managed mode** (default): spawns the bundled `bpnode`, waits until its API is ready, captures its logs, restarts it with backoff on a crash, and stops it cleanly (SIGTERM → SIGKILL) when the app quits.
-- **Attach mode** (`BPNODE_ATTACH=1`): skips spawning and connects to an externally-run daemon at a given endpoint.
+- **Managed mode** (default _when a `bpnode` ships with the build_): spawns the bundled `bpnode`, waits until its API is ready, captures its logs, restarts it with backoff on a crash, and stops it cleanly (SIGTERM → SIGKILL) when the app quits.
+- **Attach mode** (`BPNODE_ATTACH=1`, or automatically in a client-only build): skips spawning and connects to an externally-run daemon at a given endpoint.
 
 The node API token and endpoint are resolved by the supervisor and handed to the API client in the main process — never to the renderer. Lifecycle state (mode, running/crashed, restarts, endpoint) is surfaced to the renderer via `window.bpDesktop.lifecycle`.
 
@@ -76,6 +91,8 @@ Knobs (env-overridable for development):
 | `BPNODE_API_ADDR` | `127.0.0.1:4400`            | node API address                    |
 | `BPNODE_DATA_DIR` | `<appData>/blockparty/node` | node data dir (holds `api.token`)   |
 | `BPNODE_MODE`     | `personal`                  | node mode                           |
+
+A build with no bundled binary resolves to attach-only on its own (#51); `BPNODE_ATTACH` is only needed to force it when a binary _is_ present.
 
 The packaged app bundles the per-platform `bpnode` into its resources dir (built by the packaging step, #48).
 
@@ -111,9 +128,9 @@ The desktop app is a thin GUI over a [node server](../../node) — it always nee
 
 **Prerequisites:** Node ≥ 20 + [pnpm](https://pnpm.io); a **display** (`pnpm dev` opens an Electron window — it can't run headless); and the **Go toolchain** to run/build the node.
 
-> **First install:** pnpm blocks dependency build scripts by default, but `electron`, `esbuild`, and `@parcel/watcher` are approved in `pnpm-workspace.yaml`, so `pnpm install` downloads Electron's platform binary automatically. If you ever see *"Electron failed to install correctly"*, run `pnpm rebuild electron` (or `rm -rf node_modules && pnpm install`).
+> **First install:** pnpm blocks dependency build scripts by default, but `electron`, `esbuild`, and `@parcel/watcher` are approved in `pnpm-workspace.yaml`, so `pnpm install` downloads Electron's platform binary automatically. If you ever see _"Electron failed to install correctly"_, run `pnpm rebuild electron` (or `rm -rf node_modules && pnpm install`).
 
-> **Linux sandbox:** on kernels that restrict unprivileged user namespaces (e.g. Ubuntu ≥ 23.10 / 24.04), Chromium's SUID sandbox aborts with *"chrome-sandbox … owned by root … mode 4755."* The `dev` script passes `--no-sandbox` to work around this **in development only** — the packaged app keeps `sandbox: true` (#40). To instead keep the dev sandbox, make the helper setuid root (`sudo chown root node_modules/.pnpm/electron@*/node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 …`) or relax the sysctl.
+> **Linux sandbox:** on kernels that restrict unprivileged user namespaces (e.g. Ubuntu ≥ 23.10 / 24.04), Chromium's SUID sandbox aborts with _"chrome-sandbox … owned by root … mode 4755."_ The `dev` script passes `--no-sandbox` to work around this **in development only** — the packaged app keeps `sandbox: true` (#40). To instead keep the dev sandbox, make the helper setuid root (`sudo chown root node_modules/.pnpm/electron@*/node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 …`) or relax the sysctl.
 
 ### Attach mode (recommended)
 
@@ -157,6 +174,7 @@ pnpm dev            # nuxt dev server + electron window (requires a display + a 
 pnpm build:renderer # nuxt generate → .output/public (static SPA)
 pnpm build:main     # tsc → dist-electron (main + preload, CommonJS)
 pnpm build          # both, then electron-builder → release/ (mac/win/linux)
+pnpm build:client-only # same, without a bundled bpnode → release-client-only/ (#51)
 pnpm typecheck      # vue-tsc (renderer) + tsc (electron)
 pnpm lint           # eslint (flat config: js + ts + vue)
 pnpm format         # prettier
@@ -172,7 +190,8 @@ clients/desktop/
 │   ├── bridge.ts        # renderer↔main contract (NodeApi + DTOs)
 │   ├── node-client.ts   # Connect client over HTTP (holds the token)
 │   ├── node-supervisor.ts # spawn/supervise bpnode, or attach (#42)
-│   ├── node-config.ts   # resolve managed/attach options
+│   ├── node-config.ts   # detect a bundled node; resolve managed/attach options (#42, #51)
+│   ├── external-node.ts # the saved external endpoint + the connect flow (#51)
 │   ├── feed-manager.ts  # owns the live SubscribeBlocks stream → renderer (#44)
 │   ├── ipc.ts           # ipcMain handlers (node RPCs + lifecycle + feed)
 │   └── gen/node_pb.ts   # generated from node/proto/v1/node.proto
@@ -182,5 +201,6 @@ clients/desktop/
 ├── types/window.d.ts    # attaches the bridge type to Window
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── electron-builder.yml
+├── electron-builder.client-only.yml  # the no-bundled-node build target (#51)
 └── eslint.config.mjs
 ```

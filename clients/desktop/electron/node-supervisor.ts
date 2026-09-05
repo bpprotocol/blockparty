@@ -10,9 +10,28 @@ export interface SupervisorOptions {
   dataDir: string // node data dir (holds api.token)
   binPath: string // path to the bpnode binary (managed mode)
   nodeMode: string // 'personal' | 'relay'
+  // canManage: a bpnode binary for this platform ships with the build. False in
+  // a client-only package (#51), where spawning is not an option at all.
+  canManage?: boolean
+  // attachConfigured: attach mode has an endpoint to attach to. False means the
+  // user has not pointed the app at an external node yet.
+  attachConfigured?: boolean
+  token?: string // bearer token for an external node, when supplied directly
   readyTimeoutMs?: number
   stopTimeoutMs?: number
   maxRestarts?: number
+}
+
+// NodeUnavailableError is a typed, user-actionable failure to reach a node —
+// as opposed to a spawn ENOENT. `reason` tells the UI which path to offer.
+export class NodeUnavailableError extends Error {
+  constructor(
+    readonly reason: 'no-endpoint' | 'no-bundled-node',
+    message: string,
+  ) {
+    super(message)
+    this.name = 'NodeUnavailableError'
+  }
 }
 
 export interface NodeConnection {
@@ -38,6 +57,11 @@ export class NodeSupervisor {
       readyTimeoutMs: 15_000,
       stopTimeoutMs: 8_000,
       maxRestarts: 5,
+      // Callers that don't say (tests, older call sites) get the historical
+      // behaviour: managed mode implies a binary, attach implies an endpoint.
+      canManage: opts.mode === 'managed',
+      attachConfigured: true,
+      token: '',
       ...opts,
     }
   }
@@ -46,12 +70,41 @@ export class NodeSupervisor {
   // not spawn anything.
   async start(): Promise<NodeConnection> {
     if (this.opts.mode === 'attach') {
+      if (!this.opts.attachConfigured) {
+        this.state = 'stopped'
+        this.log('no node endpoint configured; waiting for one')
+        throw new NodeUnavailableError(
+          'no-endpoint',
+          'no node endpoint configured — connect this app to a node you run',
+        )
+      }
       this.state = 'running'
       this.log(`attaching to external node at ${this.opts.baseUrl}`)
-      return { baseUrl: this.opts.baseUrl, token: this.readToken(true) }
+      return { baseUrl: this.opts.baseUrl, token: this.token() }
+    }
+    // Never spawn what isn't there: a client-only build has no binary, so this
+    // fails with a message the UI can act on instead of a spawn ENOENT (#51).
+    if (!this.opts.canManage) {
+      this.state = 'stopped'
+      throw new NodeUnavailableError(
+        'no-bundled-node',
+        `no bpnode binary at ${this.opts.binPath} — this build cannot run a node itself`,
+      )
     }
     await this.spawnAndWait()
     return { baseUrl: this.opts.baseUrl, token: this.readToken(false) }
+  }
+
+  // attachTo points an attach-only app at a different external node, without a
+  // restart: the caller rebuilds its client from the returned connection.
+  attachTo(external: { baseUrl: string; token?: string; dataDir?: string }): NodeConnection {
+    this.opts.baseUrl = external.baseUrl
+    this.opts.attachConfigured = true
+    this.opts.token = external.token ?? ''
+    if (external.dataDir) this.opts.dataDir = external.dataDir
+    this.state = 'running'
+    this.log(`attaching to external node at ${this.opts.baseUrl}`)
+    return { baseUrl: this.opts.baseUrl, token: this.token() }
   }
 
   // stop terminates a managed node gracefully (SIGTERM, then SIGKILL on timeout).
@@ -81,8 +134,10 @@ export class NodeSupervisor {
     return {
       mode: this.opts.mode,
       state: this.state,
-      endpoint: this.opts.baseUrl,
+      endpoint: this.opts.attachConfigured ? this.opts.baseUrl : '',
       restarts: this.restarts,
+      canManage: this.opts.canManage,
+      needsEndpoint: this.opts.mode === 'attach' && !this.opts.attachConfigured,
     }
   }
 
@@ -153,6 +208,12 @@ export class NodeSupervisor {
       await delay(150)
     }
     throw new Error(`node did not become ready within ${this.opts.readyTimeoutMs}ms`)
+  }
+
+  // token prefers a directly supplied bearer token (an external node the user
+  // configured) and otherwise reads api.token from the node's data dir.
+  private token(): string {
+    return this.opts.token || this.readToken(true)
   }
 
   private readToken(optional: boolean): string {

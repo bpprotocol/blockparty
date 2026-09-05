@@ -1,0 +1,27 @@
+# Client-only build (#51): the same app packaged WITHOUT a bundled bpnode.
+#
+# It is identical to electron-builder.yml except for extraResources — no
+# per-platform binary is copied into resources/. With no bpnode to find, the
+# app resolves to attach-only at startup (node-config.ts) and asks for the
+# address of a node the user runs themselves.
+appId: org.bpprotocol.desktop
+productName: BlockParty
+directories:
+  output: release-client-only
+files:
+  - dist-electron/**/*
+  - .output/public/**/*
+  - package.json
+# No extraResources: this build ships no node.
+asar: true
+mac:
+  target: dmg
+  category: public.app-category.social-networking
+  artifactName: ${productName}-${version}-client-only-${arch}.${ext}
+win:
+  target: nsis
+  artifactName: ${productName}-${version}-client-only-${arch}.${ext}
+linux:
+  target: AppImage
+  category: Network
+  artifactName: ${productName}-${version}-client-only-${arch}.${ext}

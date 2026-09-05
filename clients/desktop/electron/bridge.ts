@@ -88,13 +88,38 @@ export type NodeState = 'starting' | 'running' | 'crashed' | 'stopped'
 export interface LifecycleState {
   mode: LifecycleMode
   state: NodeState
-  endpoint: string
+  endpoint: string // '' until an attach-only app has an endpoint
   restarts: number
+  // canManage: this build ships a bpnode it can run itself. False in the
+  // client-only package (#51) — the app can only attach to an external node.
+  canManage: boolean
+  // needsEndpoint: attach-only with no node configured yet, so the UI must ask
+  // for one rather than report a connection failure.
+  needsEndpoint: boolean
 }
 
 export interface LifecycleApi {
   getState(): Promise<LifecycleState>
   recentLogs(): Promise<string[]>
+}
+
+// --- External node (#51) ---
+
+// ExternalNodeConfig points the app at a node someone else runs: its API base
+// URL plus a bearer token, either pasted or read from the node's data dir.
+export interface ExternalNodeConfig {
+  baseUrl: string
+  token?: string
+  dataDir?: string
+}
+
+// ExternalNodeApi lets the renderer read and set that endpoint. set() probes
+// the node before saving, so a bad URL or token is reported in the form rather
+// than leaving the app disconnected.
+export interface ExternalNodeApi {
+  get(): Promise<ExternalNodeConfig | null>
+  set(cfg: ExternalNodeConfig): Promise<Result<void>>
+  clear(): Promise<Result<void>>
 }
 
 // --- Live feed (#44) ---
@@ -153,6 +178,7 @@ export interface BpDesktop {
   versions: () => { electron: string; chrome: string; node: string }
   node: NodeApi
   lifecycle: LifecycleApi
+  externalNode: ExternalNodeApi
   feed: FeedApi
   connections: ConnectionsApi
   identity: IdentityApi
@@ -172,6 +198,12 @@ export const NODE_CHANNELS = {
 export const LIFECYCLE_CHANNELS = {
   getState: 'lifecycle:getState',
   recentLogs: 'lifecycle:recentLogs',
+} as const
+
+export const EXTERNAL_NODE_CHANNELS = {
+  get: 'external:get',
+  set: 'external:set',
+  clear: 'external:clear',
 } as const
 
 export const FEED_CHANNELS = {

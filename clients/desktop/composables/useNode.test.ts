@@ -20,6 +20,21 @@ describe('deriveView', () => {
   it('shows disconnected when not connected', () => {
     expect(deriveView({ hasBridge: true, connected: false, status: null })).toBe('disconnected')
   })
+  it('asks for an endpoint when the build cannot run a node and none is set', () => {
+    expect(
+      deriveView({ hasBridge: true, connected: false, status: null, needsEndpoint: true }),
+    ).toBe('external-node')
+  })
+  it('does not ask for an endpoint once the node answers', () => {
+    expect(
+      deriveView({
+        hasBridge: true,
+        connected: true,
+        status: { ...baseStatus, worldLoaded: true },
+        needsEndpoint: true,
+      }),
+    ).toBe('ready')
+  })
   it('shows onboarding when connected but no World loaded', () => {
     expect(deriveView({ hasBridge: true, connected: true, status: baseStatus })).toBe('onboarding')
   })
@@ -59,6 +74,8 @@ function installBridge(
     bootstrapOk: boolean
     unlockOk: boolean
     clearOk: boolean
+    externalOk: boolean
+    lifecycle: { needsEndpoint: boolean; canManage: boolean }
   }> = {},
 ) {
   const status = over.status ?? baseStatus
@@ -78,6 +95,11 @@ function installBridge(
       : { ok: true as const, value: { world: 'w1', identity: 'i1' } },
   )
   const getStatus = vi.fn(async () => ({ ok: true as const, value: status }))
+  const setExternal = vi.fn(async () =>
+    over.externalOk === false
+      ? { ok: false as const, error: 'node unavailable: connection refused' }
+      : { ok: true as const, value: undefined },
+  )
   ;(globalThis as { window?: unknown }).window = {
     bpDesktop: {
       node: {
@@ -89,11 +111,22 @@ function installBridge(
         getBlock: vi.fn(),
         listBlocks: vi.fn(),
       },
-      lifecycle: { getState: vi.fn(async () => ({})), recentLogs: vi.fn(async () => []) },
+      lifecycle: {
+        getState: vi.fn(async () => ({
+          mode: 'attach',
+          state: 'running',
+          endpoint: '',
+          restarts: 0,
+          canManage: over.lifecycle?.canManage ?? true,
+          needsEndpoint: over.lifecycle?.needsEndpoint ?? false,
+        })),
+        recentLogs: vi.fn(async () => []),
+      },
+      externalNode: { get: vi.fn(async () => null), set: setExternal, clear: vi.fn() },
       versions: () => ({ electron: '', chrome: '', node: '' }),
     },
   }
-  return { bootstrapWorld, unlockKeystore, clearKeystore, getStatus }
+  return { bootstrapWorld, unlockKeystore, clearKeystore, setExternal, getStatus }
 }
 
 afterEach(() => {
@@ -194,6 +227,34 @@ describe('useNode', () => {
     expect(res.ok).toBe(false)
     expect(res.error).toContain('does not exist')
     expect(n.view.value).toBe('unlock')
+  })
+
+  it('routes to the endpoint form when the node cannot be reached or run', async () => {
+    const { getStatus } = installBridge({ lifecycle: { canManage: false, needsEndpoint: true } })
+    getStatus.mockResolvedValue({ ok: false, error: 'no node endpoint configured' })
+    const n = useNode()
+    await n.refresh()
+    expect(n.view.value).toBe('external-node')
+  })
+
+  it('setExternalNode forwards the endpoint and connects on success', async () => {
+    const { setExternal, getStatus } = installBridge({
+      lifecycle: { canManage: false, needsEndpoint: true },
+    })
+    const n = useNode()
+    getStatus.mockResolvedValue({ ok: true, value: { ...baseStatus, worldLoaded: true } })
+    const res = await n.setExternalNode({ baseUrl: '10.0.0.5:4400', token: 'tok' })
+    expect(res.ok).toBe(true)
+    expect(setExternal).toHaveBeenCalledWith({ baseUrl: '10.0.0.5:4400', token: 'tok' })
+    expect(n.view.value).toBe('ready')
+  })
+
+  it('setExternalNode surfaces an unreachable node', async () => {
+    installBridge({ lifecycle: { canManage: false, needsEndpoint: true }, externalOk: false })
+    const n = useNode()
+    const res = await n.setExternalNode({ baseUrl: 'nope:1', token: 't' })
+    expect(res.ok).toBe(false)
+    expect(res.error).toContain('connection refused')
   })
 
   it('bootstrap surfaces the node error on failure', async () => {

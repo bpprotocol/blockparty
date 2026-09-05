@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import {
   CONNECTION_CHANNELS,
+  EXTERNAL_NODE_CHANNELS,
   FEED_CHANNELS,
   IDENTITY_CHANNELS,
   LIFECYCLE_CHANNELS,
@@ -8,6 +9,7 @@ import {
   type BlockSummary,
   type BpDesktop,
   type ConnectionsApi,
+  type ExternalNodeApi,
   type FeedApi,
   type IdentityApi,
   type LifecycleApi,
@@ -29,6 +31,12 @@ const node: NodeApi = {
 const lifecycle: LifecycleApi = {
   getState: () => ipcRenderer.invoke(LIFECYCLE_CHANNELS.getState),
   recentLogs: () => ipcRenderer.invoke(LIFECYCLE_CHANNELS.recentLogs),
+}
+
+const externalNode: ExternalNodeApi = {
+  get: () => ipcRenderer.invoke(EXTERNAL_NODE_CHANNELS.get),
+  set: (cfg) => ipcRenderer.invoke(EXTERNAL_NODE_CHANNELS.set, cfg),
+  clear: () => ipcRenderer.invoke(EXTERNAL_NODE_CHANNELS.clear),
 }
 
 const feed: FeedApi = {
@@ -66,6 +74,7 @@ const api: BpDesktop = {
   }),
   node,
   lifecycle,
+  externalNode,
   feed,
   connections,
   identity,

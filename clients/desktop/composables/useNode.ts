@@ -1,19 +1,31 @@
 import { computed, ref } from 'vue'
-import type { BootstrapRequest, LifecycleState, NodeStatus } from '../electron/bridge'
+import type {
+  BootstrapRequest,
+  ExternalNodeConfig,
+  LifecycleState,
+  NodeStatus,
+} from '../electron/bridge'
 
 // Which top-level view the app shows. Derived from the node connection + status,
 // implementing the onboarding decision (#43 / #26 Q5): a loaded World goes
 // straight to the dashboard, an unconfigured node shows onboarding — unless it
-// already holds a keystore, which only needs its passphrase to unlock.
-export type View = 'no-bridge' | 'disconnected' | 'unlock' | 'onboarding' | 'ready'
+// already holds a keystore, which only needs its passphrase to unlock. A
+// client-only build with no node configured yet asks for one first (#51).
+export type View =
+  'no-bridge' | 'disconnected' | 'external-node' | 'unlock' | 'onboarding' | 'ready'
 
 export function deriveView(input: {
   hasBridge: boolean
   connected: boolean
   status: NodeStatus | null
+  // needsEndpoint: this build cannot run a node and has none configured, so
+  // there is nothing to connect to yet — ask for an endpoint (#51).
+  needsEndpoint?: boolean
 }): View {
   if (!input.hasBridge) return 'no-bridge'
-  if (!input.connected || !input.status) return 'disconnected'
+  if (!input.connected || !input.status) {
+    return input.needsEndpoint ? 'external-node' : 'disconnected'
+  }
   if (input.status.worldLoaded) return 'ready'
   // A keystore on disk means the node was started without its passphrase (no
   // BPNODE_KEYSTORE_PASSPHRASE): ask for it. Bootstrapping would fail — the
@@ -30,7 +42,12 @@ export function useNode() {
 
   const hasBridge = computed(() => typeof window !== 'undefined' && !!window.bpDesktop)
   const view = computed<View>(() =>
-    deriveView({ hasBridge: hasBridge.value, connected: connected.value, status: status.value }),
+    deriveView({
+      hasBridge: hasBridge.value,
+      connected: connected.value,
+      status: status.value,
+      needsEndpoint: lifecycle.value?.needsEndpoint ?? false,
+    }),
   )
 
   async function refresh(): Promise<void> {
@@ -102,6 +119,24 @@ export function useNode() {
     return { ok: false, error: r.error }
   }
 
+  // setExternalNode points the app at a node someone else runs. The main
+  // process probes it before saving, so a bad address or token comes back as an
+  // error here rather than leaving the app disconnected (#51).
+  async function setExternalNode(
+    cfg: ExternalNodeConfig,
+  ): Promise<{ ok: boolean; error?: string }> {
+    const bridge = typeof window !== 'undefined' ? window.bpDesktop : undefined
+    if (!bridge) return { ok: false, error: 'no bridge' }
+    busy.value = true
+    const r = await bridge.externalNode.set(cfg)
+    busy.value = false
+    if (r.ok) {
+      await refresh()
+      return { ok: true }
+    }
+    return { ok: false, error: r.error }
+  }
+
   return {
     status,
     lifecycle,
@@ -114,5 +149,6 @@ export function useNode() {
     bootstrap,
     unlock,
     clearKeystore,
+    setExternalNode,
   }
 }

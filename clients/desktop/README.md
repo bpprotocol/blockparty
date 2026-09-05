@@ -70,15 +70,31 @@ pnpm build:node  # just the bundled node → resources/, for this machine
 
 The node is compiled by an electron-builder **`beforePack` hook** (`scripts/before-pack.mjs` → `scripts/build-node.mjs`), which maps the target electron-builder is about to package to a Go target — `darwin/win32/linux` → `GOOS`, `x64/arm64/armv7l/ia32` → `GOARCH` — empties `resources/` and builds `bpnode` (`bpnode.exe` on Windows, the same name `node-config.ts` probes for) with `CGO_ENABLED=0 -trimpath`. Every artifact therefore carries exactly one node, built for itself; `resources/` is generated, never committed.
 
-| Target  | Artifact                                       | Built on |
-| ------- | ---------------------------------------------- | -------- |
-| Linux   | `BlockParty-<version>-x86_64.AppImage`         | Linux    |
-| macOS   | `BlockParty-<version>-<arch>.dmg` (x64, arm64) | macOS    |
-| Windows | `BlockParty-<version>-x64.exe` (NSIS)          | Windows  |
+| Target  | Artifact                                                                  | Built on |
+| ------- | ------------------------------------------------------------------------- | -------- |
+| Linux   | `BlockParty-<version>-amd64.deb` · `BlockParty-<version>-x86_64.AppImage` | Linux    |
+| macOS   | `BlockParty-<version>-<arch>.dmg` (x64, arm64)                            | macOS    |
+| Windows | `BlockParty-<version>-x64.exe` (NSIS)                                     | Windows  |
 
 The Go side cross-compiles freely, but each platform's _installer_ has to be produced on that platform (electron-builder needs macOS for a dmg, Windows or wine for NSIS) — so releases come from a matrix, not one machine. The app icon is generated from `build/icon.png`; the executable is named `blockparty` (`executableName`), not after the npm package.
 
 **Code signing, notarization and auto-update are deliberately out of scope** (`mac.identity: null`). The artifacts install and launch unsigned, with the usual first-run warnings on macOS and Windows.
+
+### Linux sandbox (Ubuntu 23.10+)
+
+Chromium refuses to start without a sandbox, and the packaged app keeps `sandbox: true` (#40). On distros with `kernel.apparmor_restrict_unprivileged_userns=1` — Ubuntu 23.10 and later — an unconfined program that creates a user namespace is transitioned into the restrictive `unprivileged_userns` profile, so the **namespace sandbox** is unavailable unless the app has an AppArmor profile of its own. The **SUID sandbox** is the fallback, and it needs `chrome-sandbox` owned by root with mode 4755.
+
+- **`.deb` (recommended on Linux):** handled for you. It installs `/etc/apparmor.d/blockparty` — the same one-line `userns,` profile Chrome, Element and other packaged Electron apps ship — and, on systems with no user namespaces at all, sets `chrome-sandbox` setuid instead.
+- **AppImage:** it cannot fix itself. An AppImage mounts `nosuid`, so its `chrome-sandbox` can never be setuid, and its mount path changes every run. Install the profile once:
+
+  ```sh
+  sudo install -m644 packaging/apparmor/blockparty-appimage /etc/apparmor.d/
+  sudo apparmor_parser -r /etc/apparmor.d/blockparty-appimage
+  ```
+
+  (Or, system-wide and much blunter, `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`.)
+
+Without one of those the app aborts with _"The SUID sandbox helper binary was found, but is not configured correctly"_ or _"No usable sandbox!"_. We deliberately don't ship `--no-sandbox` in the packaged app — that would trade the renderer's isolation for convenience.
 
 First run needs nothing prepared: the app spawns the bundled node against `<appData>/blockparty/node`, the node creates that directory and its `api.token`, and the renderer's onboarding (#43) sets up the World.
 
@@ -156,7 +172,7 @@ The desktop app is a thin GUI over a [node server](../../node) — it always nee
 
 > **First install:** pnpm blocks dependency build scripts by default, but `electron`, `esbuild`, and `@parcel/watcher` are approved in `pnpm-workspace.yaml`, so `pnpm install` downloads Electron's platform binary automatically. If you ever see _"Electron failed to install correctly"_, run `pnpm rebuild electron` (or `rm -rf node_modules && pnpm install`).
 
-> **Linux sandbox:** on kernels that restrict unprivileged user namespaces (e.g. Ubuntu ≥ 23.10 / 24.04), Chromium's SUID sandbox aborts with _"chrome-sandbox … owned by root … mode 4755."_ The `dev` script passes `--no-sandbox` to work around this **in development only** — the packaged app keeps `sandbox: true` (#40). To instead keep the dev sandbox, make the helper setuid root (`sudo chown root node_modules/.pnpm/electron@*/node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 …`) or relax the sysctl.
+> **Linux sandbox:** on kernels that restrict unprivileged user namespaces (e.g. Ubuntu ≥ 23.10 / 24.04), Chromium's SUID sandbox aborts with _"chrome-sandbox … owned by root … mode 4755."_ The `dev` script passes `--no-sandbox` to work around this **in development only** — the packaged app keeps `sandbox: true` (#40) and handles it properly; see [Linux sandbox (Ubuntu 23.10+)](#linux-sandbox-ubuntu-2310). To instead keep the dev sandbox, make the helper setuid root (`sudo chown root node_modules/.pnpm/electron@*/node_modules/electron/dist/chrome-sandbox && sudo chmod 4755 …`) or relax the sysctl.
 
 ### Attach mode (recommended)
 
@@ -229,8 +245,11 @@ clients/desktop/
 ├── nuxt.config.ts       # ssr: false static SPA
 ├── scripts/
 │   ├── build-node.mjs   # build bpnode for a packaging target (#48)
-│   └── before-pack.mjs  # electron-builder hook that calls it
+│   ├── before-pack.mjs  # electron-builder hook that calls it
+│   └── deb-after-*.sh   # deb postinst/postrm: AppArmor profile + sandbox setup
 ├── build/icon.png       # app icon, rendered into per-platform icons
+├── build/linux/apparmor-profile     # installed by the deb
+├── packaging/apparmor/blockparty-appimage # the same, for AppImage users
 ├── electron-builder.yml
 ├── electron-builder.client-only.yml  # the no-bundled-node build target (#51)
 └── eslint.config.mjs

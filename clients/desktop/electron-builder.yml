@@ -39,9 +39,26 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
 linux:
+  # Required by the deb target; change this if the project gains a real
+  # packaging contact.
+  maintainer: BlockParty contributors <blockparty@users.noreply.github.com>
   target:
+    # deb first: its postinst installs chrome-sandbox setuid root, which is what
+    # Chromium's SUID sandbox needs on distros that restrict unprivileged user
+    # namespaces (Ubuntu >= 23.10). An AppImage mounts nosuid, so its sandbox
+    # helper can never be configured that way — see the README.
+    - target: deb
+      arch: [x64]
     - target: AppImage
       arch: [x64]
   category: Network
   synopsis: Desktop client for the BlockParty protocol
   artifactName: ${productName}-${version}-${arch}.${ext}
+deb:
+  afterInstall: scripts/deb-after-install.sh
+  afterRemove: scripts/deb-after-remove.sh
+  # Ship the AppArmor profile that lets Chromium's namespace sandbox work on
+  # Ubuntu 23.10+ (see the README's Linux sandbox note). fpm takes extra inputs
+  # as source=destination, which is how a file outside the app dir gets in.
+  fpm:
+    - build/linux/apparmor-profile=/etc/apparmor.d/blockparty

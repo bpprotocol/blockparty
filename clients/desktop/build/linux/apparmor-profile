@@ -1,0 +1,15 @@
+# Ubuntu 23.10+ (and other distros with kernel.apparmor_restrict_unprivileged_userns)
+# transition unconfined programs that create a user namespace into the
+# restrictive `unprivileged_userns` profile, which denies the capabilities
+# Chromium's namespace sandbox needs. Naming the app in its own profile and
+# granting `userns` restores it — the same thing Chrome, Element and other
+# packaged Electron apps ship.
+abi <abi/4.0>,
+include <tunables/global>
+
+profile blockparty /opt/BlockParty/blockparty flags=(unconfined) {
+  userns,
+
+  # Site-specific additions and overrides. See local/README for details.
+  include if exists <local/blockparty>
+}

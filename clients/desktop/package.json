@@ -4,6 +4,12 @@
   "private": true,
   "description": "BlockParty desktop client \u2014 Electron shell + Nuxt 3 SPA renderer (epic #26).",
   "license": "CC0-1.0",
+  "homepage": "https://github.com/bpprotocol/blockparty",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bpprotocol/blockparty.git",
+    "directory": "clients/desktop"
+  },
   "author": "BlockParty",
   "main": "dist-electron/main.js",
   "engines": {
